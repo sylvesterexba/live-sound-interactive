@@ -282,7 +282,7 @@ const searchInput = document.getElementById("search");
 const filterButtons = document.querySelectorAll(".filters button");
 let selectedCategory = "all";
 let activeItem = null;
-const pflSegments = Array.from({ length: 31 }, (_, i) => -60 + i * 2);
+const pflSegments = Array.from({ length: 61 }, (_, i) => -60 + i);
 const pflLabelValues = [0, -3, -6, -9, -12, -18, -24, -36, -48, -60];
 let pflSegmentElems = [];
 let pflFill = null;
@@ -583,7 +583,8 @@ function initPflMeter() {
 }
 
 function updatePflVisual(value) {
-  const rounded = Math.max(-60, Math.min(value, 0));
+  const visualCeiling = pflMeterState.warning ? 0 : pflMeterState.peakHigh;
+  const rounded = Math.max(-60, Math.min(value, visualCeiling, 0));
   if (pflValueDisplay) {
     pflValueDisplay.textContent = formatDb(rounded);
   }
@@ -660,7 +661,7 @@ function animatePflMeter(timestamp) {
 
   const ceiling = state.warning ? 0 : state.peakHigh;
   state.value = Math.max(-60, Math.min(state.value, ceiling));
-  if (state.warning && state.spikeActive && state.value > -0.02) {
+  if (state.warning && state.spikeActive && state.value > -0.005) {
     state.value = 0;
   }
 
