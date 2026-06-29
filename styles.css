@@ -624,10 +624,11 @@ main {
   border: 1px solid rgba(148, 163, 184, 0.12);
 }
 .pfl-info-row {
-  display: grid;
-  grid-template-columns: minmax(64px, max-content) minmax(0, 1fr);
-  column-gap: 10px;
-  row-gap: 4px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  flex-wrap: wrap;
   color: #cbd5e1;
   min-width: 0;
 }
@@ -638,7 +639,7 @@ main {
   color: #f8fafc;
   text-align: right;
   min-width: 0;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   line-height: 1.35;
 }
 @keyframes currentGlow {

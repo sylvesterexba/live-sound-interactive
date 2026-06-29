@@ -510,8 +510,8 @@ function selectItem(card, item) {
   detailCategory.textContent = `類別：${categoryLabel(item.category)}`;
   detailMicType.innerHTML = `<span class="mic-type-display mic-type-display--${micTypeIcon(item.micType)}"><span class="mic-type-icon" aria-hidden="true"></span>${item.micType}</span>`;
   detailModels.textContent = item.models;
-  detailRms.textContent = item.rms || "-";
-  detailPeak.textContent = item.peak;
+  if (detailRms) detailRms.textContent = item.rms || "-";
+  if (detailPeak) detailPeak.textContent = item.peak;
   detailPflValue.textContent = "";
   detailHeadroom.textContent = item.headroom;
   detailNote.innerHTML = item.warning
@@ -556,7 +556,7 @@ function initPflMeter() {
   if (!pflVisualizer || !pflLabels) return;
 
   if (peakHoldLabel) {
-    peakHoldLabel.textContent = "Peak 範圍";
+    peakHoldLabel.textContent = "Peak 目標";
   }
   pflLabels.innerHTML = pflLabelValues.map((value) => `<span>${value}</span>`).join("");
 
