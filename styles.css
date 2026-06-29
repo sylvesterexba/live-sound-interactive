@@ -647,10 +647,6 @@ main {
 }
 
 @media (max-width: 900px) {
-  .detail-card {
-    display: flex;
-    flex-direction: column;
-  }
   .pfl-visualizer {
     grid-template-columns: 48px 88px minmax(0, 1fr);
     align-items: center;
@@ -659,17 +655,7 @@ main {
     row-gap: 16px;
   }
   .detail-group--meter {
-    order: -10;
     width: 100%;
-  }
-  .detail-card > h2 {
-    order: -9;
-  }
-  .detail-card > p {
-    order: -8;
-  }
-  .detail-note {
-    order: -7;
   }
   .detail-card h2 {
     gap: 14px;
@@ -706,6 +692,25 @@ main {
     grid-column: 1 / -1;
     order: -1;
     width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .detail-card {
+    display: flex;
+    flex-direction: column;
+  }
+  .detail-group--meter {
+    order: -10;
+  }
+  .detail-card > h2 {
+    order: -9;
+  }
+  .detail-card > p {
+    order: -8;
+  }
+  .detail-note {
+    order: -7;
   }
 }
 
