@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gain Staging 查詢頁面</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Gain Staging 互動查詢</h1>
+    <p>點選樂器或來源，即可查看建議麥克風、RMS 範圍與 Peak 目標。</p>
+  </header>
+
+  <main>
+    <section class="search-panel">
+      <div class="search-box">
+        <label for="search">搜尋樂器 / 來源：</label>
+        <input id="search" type="search" placeholder="例如：Male Vocal、Electric Bass、Snare" />
+      </div>
+      <div class="filters">
+        <button data-filter="all" class="active">全部</button>
+        <button data-filter="vocal">人聲</button>
+        <button data-filter="strings">弦樂 / 吉他</button>
+        <button data-filter="woodwind">木管 / 薩克斯</button>
+        <button data-filter="brass">銅管</button>
+        <button data-filter="drums">鼓組</button>
+        <button data-filter="bass">低頻</button>
+        <button data-filter="keyboard">鍵盤 / 其他</button>
+        <button data-filter="playback">播放</button>
+        <button data-filter="warning">警示</button>
+      </div>
+    </section>
+
+    <section class="layout">
+
+      <div class="instrument-list">
+        <h2>樂器 / 聲源</h2>
+        <div id="items"></div>
+      </div>
+
+      <aside class="detail-panel">
+        <div class="detail-card" id="detailCard">
+          <h2 id="detailName">請選擇一個項目</h2>
+          <p id="detailCategory">顯示推薦麥克風型號、RMS 範圍與 Peak 目標。</p>
+
+          <div class="detail-group">
+            <h3>建議麥克風類型</h3>
+            <p id="detailMicType">-</p>
+          </div>
+
+          <div class="detail-group">
+            <h3>推薦型號</h3>
+            <p id="detailModels">-</p>
+          </div>
+
+          <div class="detail-group">
+            <h3>RMS / Peak 參考圖示</h3>
+            <div class="pfl-visualizer">
+              <div class="pfl-visualizer__labels" id="pflLabels"></div>
+              <div class="pfl-visualizer__meter" id="pflVisualizer"></div>
+              <div class="pfl-visualizer__info">
+                <div class="pfl-info-row">
+                  <span>Peak Hold</span>
+                  <strong id="peakHoldValue">-</strong>
+                </div>
+                <div class="pfl-info-row">
+                  <span>主動範圍</span>
+                  <strong id="pflRange">-24 ~ -12 dBFS</strong>
+                </div>
+              </div>
+            </div>
+            <p id="detailPflValue" class="pfl-value">-</p>
+            <div id="pflNote" class="pfl-note"></div>
+          </div>
+
+          <div class="detail-group">
+            <h3>平均 RMS</h3>
+            <p id="detailRms">-</p>
+          </div>
+
+          <div class="detail-group">
+            <h3>Peak 目標</h3>
+            <p id="detailPeak">-</p>
+          </div>
+
+          <div class="detail-group">
+            <h3>預估 Headroom</h3>
+            <p id="detailHeadroom">-</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <p>資料來源：Live Sound Gain Staging 參考，建議仍以實際現場調整為主。</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
