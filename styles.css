@@ -832,7 +832,8 @@ main {
     gap: 4px;
   }
   .pfl-info-row strong {
-    text-align: left;
+    display: block;
+    text-align: right;
   }
   .detail-card {
     display: flex;
