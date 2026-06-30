@@ -13,7 +13,10 @@
   </header>
 
   <main>
-    <section class="search-panel">
+    <button class="picker-toggle" id="pickerToggle" type="button" aria-controls="mobilePicker" aria-expanded="false">選擇樂器</button>
+    <div class="picker-backdrop" id="pickerBackdrop"></div>
+
+    <section class="search-panel" id="mobilePicker">
       <div class="search-box">
         <label for="search">搜尋樂器 / 來源：</label>
         <input id="search" type="search" placeholder="例如：Male Vocal、Electric Bass、Snare" />

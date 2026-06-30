@@ -25,6 +25,10 @@ header p {
 main {
   padding: 24px;
 }
+.picker-toggle,
+.picker-backdrop {
+  display: none;
+}
 .search-panel {
   display: grid;
   gap: 16px;
@@ -717,21 +721,107 @@ main {
 }
 
 @media (max-width: 700px) {
+  main {
+    padding: 16px;
+  }
+  .picker-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 10px;
+    z-index: 60;
+    min-height: 44px;
+    margin: 0 0 12px;
+    border: 1px solid rgba(125, 211, 252, 0.45);
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: rgba(14, 165, 233, 0.16);
+    color: #e0f2fe;
+    font-weight: 800;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  }
+  .picker-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    pointer-events: none;
+    background: rgba(2, 6, 23, 0);
+    transition: background 0.2s ease;
+  }
+  body.picker-open {
+    overflow: hidden;
+  }
+  body.picker-open .picker-backdrop {
+    pointer-events: auto;
+    background: rgba(2, 6, 23, 0.58);
+  }
+  .search-panel,
+  .instrument-list {
+    position: fixed;
+    left: 0;
+    width: min(86vw, 340px);
+    z-index: 80;
+    margin: 0;
+    border-radius: 0;
+    transform: translateX(-104%);
+    transition: transform 0.24s ease;
+    box-shadow: 18px 0 60px rgba(0, 0, 0, 0.38);
+  }
+  .search-panel {
+    top: 0;
+    height: 238px;
+    overflow: auto;
+    padding: 18px;
+    background: rgba(15, 23, 42, 0.98);
+    border-right: 1px solid rgba(148, 163, 184, 0.16);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  }
+  .search-box {
+    display: grid;
+    gap: 10px;
+  }
+  .search-box input {
+    min-width: 0;
+    width: 100%;
+  }
+  .filters {
+    gap: 8px;
+  }
+  .filters button {
+    padding: 9px 13px;
+  }
+  .instrument-list {
+    top: 238px;
+    bottom: 0;
+    overflow: auto;
+    padding: 18px;
+    background: rgba(15, 23, 42, 0.98);
+    border-right: 1px solid rgba(148, 163, 184, 0.16);
+  }
+  body.picker-open .search-panel,
+  body.picker-open .instrument-list {
+    transform: translateX(0);
+  }
+  .layout {
+    margin-top: 0;
+  }
   .detail-card {
     display: flex;
     flex-direction: column;
   }
   .detail-group--meter {
-    order: -6;
+    order: -9;
   }
   .detail-card > h2 {
-    order: -10;
+    order: -12;
   }
   .detail-card > p {
-    order: -8;
+    order: -11;
   }
   .detail-note {
-    order: -7;
+    order: -8;
   }
 }
 
@@ -754,4 +844,3 @@ footer {
     order: 0;
   }
 }
-

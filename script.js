@@ -278,6 +278,8 @@ const pflValueDisplay = document.getElementById("pflValueDisplay");
 const peakHoldLabel = document.querySelector(".pfl-info-row:first-child span");
 const peakHoldValue = document.getElementById("peakHoldValue");
 const pflRangeLabel = document.getElementById("pflRange");
+const pickerToggle = document.getElementById("pickerToggle");
+const pickerBackdrop = document.getElementById("pickerBackdrop");
 const searchInput = document.getElementById("search");
 const filterButtons = document.querySelectorAll(".filters button");
 let selectedCategory = "all";
@@ -342,6 +344,20 @@ function getItemMeterProfile(item) {
 function randomBetween(low, high) {
   if (high <= low) return low;
   return low + Math.random() * (high - low);
+}
+
+function setPickerOpen(open) {
+  document.body.classList.toggle("picker-open", open);
+  if (pickerToggle) {
+    pickerToggle.setAttribute("aria-expanded", String(open));
+    pickerToggle.textContent = open ? "收起選單" : "選擇樂器";
+  }
+}
+
+function closePickerOnMobile() {
+  if (window.matchMedia("(max-width: 700px)").matches) {
+    setPickerOpen(false);
+  }
 }
 
 function instrumentIcon(item) {
@@ -492,7 +508,10 @@ function renderItems(filter = "all", keyword = "") {
         </div>
       </div>
     `;
-    card.addEventListener("click", () => selectItem(card, item));
+    card.addEventListener("click", () => {
+      selectItem(card, item);
+      closePickerOnMobile();
+    });
     itemsContainer.appendChild(card);
   });
 
@@ -730,6 +749,24 @@ function categoryLabel(category) {
 }
 
 searchInput.addEventListener("input", () => renderItems(selectedCategory, searchInput.value));
+if (pickerToggle) {
+  pickerToggle.addEventListener("click", () => {
+    setPickerOpen(!document.body.classList.contains("picker-open"));
+  });
+}
+if (pickerBackdrop) {
+  pickerBackdrop.addEventListener("click", () => setPickerOpen(false));
+}
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    setPickerOpen(false);
+  }
+});
+window.addEventListener("resize", () => {
+  if (!window.matchMedia("(max-width: 700px)").matches) {
+    setPickerOpen(false);
+  }
+});
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     selectedCategory = button.dataset.filter;
