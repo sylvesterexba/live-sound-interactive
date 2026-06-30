@@ -560,6 +560,11 @@ function getMeterMarkPosition(value) {
   return (1 - safeIndex / (pflMeterMarks.length - 1)) * 100;
 }
 
+function getMeterMarkBottom(value) {
+  const position = getMeterMarkPosition(value);
+  return `clamp(var(--pfl-segment-half), ${position}%, calc(100% - var(--pfl-segment-half)))`;
+}
+
 function initPflMeter() {
   if (!pflVisualizer || !pflLabels) return;
 
@@ -567,7 +572,7 @@ function initPflMeter() {
     peakHoldLabel.textContent = "Peak 目標";
   }
   pflLabels.innerHTML = pflLabelValues
-    .map((value) => `<span style="bottom: ${getMeterMarkPosition(value)}%">${value}</span>`)
+    .map((value) => `<span style="bottom: ${getMeterMarkBottom(value)}">${value}</span>`)
     .join("");
 
   const strip = document.createElement("div");
@@ -576,7 +581,7 @@ function initPflMeter() {
     const segment = document.createElement("div");
     segment.className = `pfl-segment pfl-segment--${getSegmentColor(threshold)} pfl-segment--off`;
     segment.dataset.threshold = threshold;
-    segment.style.bottom = `${getMeterMarkPosition(threshold)}%`;
+    segment.style.bottom = getMeterMarkBottom(threshold);
     strip.appendChild(segment);
   });
 
