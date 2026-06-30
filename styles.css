@@ -714,9 +714,21 @@ main {
     width: 84px;
   }
   .pfl-visualizer__info {
-    grid-column: 1 / -1;
-    order: -1;
-    width: 100%;
+    grid-column: 3;
+    order: 0;
+    width: auto;
+    align-self: center;
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .pfl-info-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .pfl-info-row strong {
+    display: block;
+    text-align: right;
   }
 }
 
@@ -825,15 +837,6 @@ main {
     align-self: center;
     padding: 12px;
     border-radius: 16px;
-  }
-  .pfl-info-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-  .pfl-info-row strong {
-    display: block;
-    text-align: right;
   }
   .detail-card {
     display: flex;
