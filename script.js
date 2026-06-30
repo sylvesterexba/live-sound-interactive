@@ -282,8 +282,9 @@ const searchInput = document.getElementById("search");
 const filterButtons = document.querySelectorAll(".filters button");
 let selectedCategory = "all";
 let activeItem = null;
-const pflSegments = Array.from({ length: 31 }, (_, i) => -60 + i * 2);
-const pflLabelValues = [0, -3, -6, -9, -12, -18, -24, -36, -48, -60];
+const pflMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
+const pflSegments = [...pflMeterMarks];
+const pflLabelValues = ["CLIP", -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
 let pflSegmentElems = [];
 let pflFill = null;
 let pflAnimationLast = null;
@@ -552,6 +553,13 @@ function getSegmentColor(threshold) {
   return "green";
 }
 
+function getMeterMarkPosition(value) {
+  const db = value === "CLIP" ? 0 : Number(value);
+  const index = pflMeterMarks.indexOf(db);
+  const safeIndex = index >= 0 ? index : pflMeterMarks.length - 1;
+  return (1 - safeIndex / (pflMeterMarks.length - 1)) * 100;
+}
+
 function initPflMeter() {
   if (!pflVisualizer || !pflLabels) return;
 
@@ -559,7 +567,7 @@ function initPflMeter() {
     peakHoldLabel.textContent = "Peak 目標";
   }
   pflLabels.innerHTML = pflLabelValues
-    .map((value) => `<span style="bottom: ${((value + 60) / 60) * 100}%">${value}</span>`)
+    .map((value) => `<span style="bottom: ${getMeterMarkPosition(value)}%">${value}</span>`)
     .join("");
 
   const strip = document.createElement("div");
@@ -568,6 +576,7 @@ function initPflMeter() {
     const segment = document.createElement("div");
     segment.className = `pfl-segment pfl-segment--${getSegmentColor(threshold)} pfl-segment--off`;
     segment.dataset.threshold = threshold;
+    segment.style.bottom = `${getMeterMarkPosition(threshold)}%`;
     strip.appendChild(segment);
   });
 
@@ -592,13 +601,15 @@ function updatePflVisual(value) {
   }
 
   let currentIndex = -1;
+  let currentThreshold = -Infinity;
   pflSegmentElems.forEach((segment, index) => {
     const threshold = Number(segment.dataset.threshold);
     const active = rounded >= threshold;
     segment.classList.toggle("active", active);
     segment.classList.toggle("pfl-segment--off", !active);
-    if (active) {
+    if (active && threshold > currentThreshold) {
       currentIndex = index;
+      currentThreshold = threshold;
     }
   });
 
