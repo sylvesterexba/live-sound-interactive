@@ -595,7 +595,7 @@ main {
 }
 .pfl-segment--green { background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%); }
 .pfl-segment--yellow { background: linear-gradient(180deg, #fdba74 0%, #ea580c 100%); }
-.pfl-segment--red { background: linear-gradient(180deg, #fecaca 0%, #dc2626 100%); }
+.pfl-segment--red { background: linear-gradient(180deg, #ff6b6b 0%, #e11d48 45%, #991b1b 100%); }
 .pfl-segment--off { background: rgba(148, 163, 184, 0.08); opacity: 0.18; }
 .pfl-segment.active {
   opacity: 1;
@@ -608,7 +608,7 @@ main {
   animation: currentGlow 1.2s ease-in-out infinite alternate;
 }
 .pfl-segment.current.pfl-segment--red {
-  box-shadow: 0 0 34px rgba(248, 113, 113, 0.7), inset 0 0 22px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 38px rgba(239, 68, 68, 0.9), 0 0 12px rgba(255, 255, 255, 0.22), inset 0 0 22px rgba(255, 255, 255, 0.2);
 }
 .pfl-segment.current.pfl-segment--yellow {
   box-shadow: 0 0 34px rgba(249, 115, 22, 0.6), inset 0 0 18px rgba(255, 255, 255, 0.18);
@@ -806,6 +806,33 @@ main {
   }
   .layout {
     margin-top: 0;
+  }
+  .pfl-visualizer {
+    grid-template-columns: 46px 64px minmax(138px, 1fr);
+    column-gap: 10px;
+    align-items: center;
+  }
+  .pfl-visualizer__labels {
+    height: 320px;
+  }
+  .pfl-visualizer__meter {
+    width: 64px;
+  }
+  .pfl-visualizer__info {
+    grid-column: 3;
+    order: 0;
+    width: auto;
+    align-self: center;
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .pfl-info-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .pfl-info-row strong {
+    text-align: left;
   }
   .detail-card {
     display: flex;
