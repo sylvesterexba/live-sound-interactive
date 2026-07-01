@@ -430,6 +430,8 @@ let simulatorNoisePhase = 0;
 let stereoDifference = 0.9;
 let stereoOffsetTimer = 0;
 let simulatorTextLast = 0;
+let simulatorTransientEnergy = 0;
+let simulatorTransientCooldown = 0;
 let simulatorProfile = {
   rmsLow: -24,
   rmsHigh: -18,
@@ -1070,6 +1072,8 @@ function resetGainToRecommended() {
   displayOutputR = simulatedOutputR;
   simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
   simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
+  simulatorTransientEnergy = 0;
+  simulatorTransientCooldown = 0.2;
   updateKnob();
   updateInputMeter();
   updateStereoMeter();
@@ -1291,6 +1295,8 @@ function setSimulatorProfile(item) {
   simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
   simulatorNoisePhase = Math.random() * Math.PI * 2;
   stereoOffsetTimer = randomBetween(0.3, 0.5);
+  simulatorTransientEnergy = 0;
+  simulatorTransientCooldown = randomBetween(0.12, 0.35);
 
   if (simulatorSource) simulatorSource.textContent = `目前聲源：${item.name}`;
   if (outputFader) outputFader.value = String(valueToFaderPosition(currentFader));
@@ -1325,6 +1331,9 @@ function updateInputMeter() {
   updateSimulatorMeter(inputRmsMeter, simulatedInputRMS);
   updateSimulatorMeter(inputPeakMeter, simulatedInputPeak);
   updatePeakHoldMarker(inputPeakMeter, simulatorPeakHolds.inputPeak.value);
+  const inputClipping = simulatedInputPeak >= 0;
+  inputRmsMeter?.classList.toggle("is-clipping", inputClipping);
+  inputPeakMeter?.classList.toggle("is-clipping", inputClipping);
   updateFloatingKnobIcon();
 }
 
@@ -1364,6 +1373,19 @@ function getInputStatusLevel() {
   if (simulatedInputPeak > -3 || simulatedInputPeak > simulatorProfile.peakHigh) return "warning";
   if (simulatedInputPeak < simulatorProfile.peakLow) return "low";
   return "good";
+}
+
+function getSimulatorDynamics(basePeak) {
+  if (basePeak >= -0.5) {
+    return { rmsSwing: 1.05, peakSwing: 1.85, transientRate: 3.2, transientMin: 1.8, transientMax: 4.2, rmsTime: 0.42, peakRelease: 0.18 };
+  }
+  if (basePeak > -3 || basePeak > simulatorProfile.peakHigh) {
+    return { rmsSwing: 0.82, peakSwing: 1.45, transientRate: 1.7, transientMin: 1.1, transientMax: 3.1, rmsTime: 0.52, peakRelease: 0.26 };
+  }
+  if (basePeak < simulatorProfile.peakLow) {
+    return { rmsSwing: 0.34, peakSwing: 0.72, transientRate: 0.35, transientMin: 0.25, transientMax: 1.1, rmsTime: 0.82, peakRelease: 0.42 };
+  }
+  return { rmsSwing: 0.62, peakSwing: 1.08, transientRate: 0.85, transientMin: 0.55, transientMax: 2.05, rmsTime: 0.64, peakRelease: 0.32 };
 }
 
 function updateStatusMessage() {
@@ -1412,13 +1434,33 @@ function updateSimulatorFrame(timestamp) {
   const dt = Math.min((timestamp - simulatorAnimationLast) / 1000, 0.08);
   simulatorAnimationLast = timestamp;
 
-  const slowMotion = Math.sin(timestamp * 0.0016 + simulatorNoisePhase) * 0.75;
-  const fastMotion = Math.sin(timestamp * 0.009 + simulatorNoisePhase * 0.5) * 0.55;
-  const transient = Math.random() < 0.08 ? randomBetween(0.4, 2.2) : randomBetween(-0.4, 0.7);
-  const targetRms = simulatorProfile.sourceRmsAtZero + currentGain + slowMotion + randomBetween(-0.25, 0.25);
-  const targetPeak = simulatorProfile.sourcePeakAtZero + currentGain + fastMotion + transient;
-  const rmsAlpha = 1 - Math.pow(0.05, dt);
-  const peakAlpha = targetPeak > simulatedInputPeak ? 1 - Math.pow(0.002, dt) : 1 - Math.pow(0.08, dt);
+  const baseRms = simulatorProfile.sourceRmsAtZero + currentGain;
+  const basePeak = simulatorProfile.sourcePeakAtZero + currentGain;
+  const dynamics = getSimulatorDynamics(basePeak);
+  const slowMotion = Math.sin(timestamp * 0.0015 + simulatorNoisePhase) * dynamics.rmsSwing;
+  const bodyMotion = Math.sin(timestamp * 0.0037 + simulatorNoisePhase * 1.7) * dynamics.rmsSwing * 0.45;
+  const fastMotion = Math.sin(timestamp * 0.011 + simulatorNoisePhase * 0.5) * dynamics.peakSwing;
+
+  // Peak transient 以能量衰減方式處理，讓電平表持續跳動但不會像每幀亂數一樣假。
+  simulatorTransientCooldown = Math.max(0, simulatorTransientCooldown - dt);
+  simulatorTransientEnergy = Math.max(0, simulatorTransientEnergy - dt * 7.5);
+  if (simulatorTransientCooldown <= 0 && Math.random() < dynamics.transientRate * dt) {
+    simulatorTransientEnergy = randomBetween(dynamics.transientMin, dynamics.transientMax);
+    simulatorTransientCooldown = randomBetween(0.16, 0.55);
+  }
+
+  const targetRms = clamp(baseRms + slowMotion + bodyMotion + randomBetween(-0.18, 0.18), -60, 1.5);
+  let targetPeak = basePeak + fastMotion + simulatorTransientEnergy + randomBetween(-0.35, 0.35);
+  targetPeak = Math.max(targetPeak, targetRms + randomBetween(3.5, 6.2));
+  if (basePeak >= 0) {
+    targetPeak = Math.max(targetPeak, randomBetween(0.08, 1.25));
+  }
+  targetPeak = clamp(targetPeak, -60, 2.5);
+
+  const rmsAlpha = 1 - Math.exp(-dt / dynamics.rmsTime);
+  const peakAlpha = targetPeak > simulatedInputPeak
+    ? 1 - Math.exp(-dt / 0.028)
+    : 1 - Math.exp(-dt / dynamics.peakRelease);
 
   simulatedInputRMS += (targetRms - simulatedInputRMS) * rmsAlpha;
   simulatedInputPeak += (targetPeak - simulatedInputPeak) * peakAlpha;
@@ -1429,6 +1471,7 @@ function updateSimulatorFrame(timestamp) {
     stereoOffsetTimer = randomBetween(0.3, 0.5);
   }
 
+  // Output 是 Input 經過 Fader 後的結果；Fader 拉低只會降輸出，不會修復前級已經發生的 input clip。
   const outputBase = currentFader <= -89.5 ? -90 : simulatedInputPeak + currentFader;
   simulatedOutputL = outputBase + stereoDifference / 2;
   simulatedOutputR = outputBase - stereoDifference / 2;

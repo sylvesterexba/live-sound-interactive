@@ -944,6 +944,10 @@ main {
 .sim-led.current.sim-led--red {
   box-shadow: 0 0 30px rgba(239, 68, 68, 0.9), 0 0 12px rgba(255,255,255,0.24);
 }
+/* Clip 時讓紅色 LED 有短促脈衝，模擬控台削波燈的即時警示感，不影響一般 meter 流暢度。 */
+.sim-meter-leds.is-clipping .sim-led--red.active {
+  animation: clipPulse 0.42s ease-in-out infinite alternate;
+}
 .clip-indicator {
   min-height: 14px;
   color: rgba(248, 113, 113, 0.24);
@@ -959,6 +963,16 @@ main {
 .sim-meter-leds.is-clipping {
   border-color: rgba(248, 113, 113, 0.44);
   box-shadow: inset 0 0 22px rgba(127, 29, 29, 0.36), 0 0 24px rgba(239, 68, 68, 0.38);
+}
+@keyframes clipPulse {
+  from {
+    filter: saturate(1.2) brightness(1.08);
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+  }
+  to {
+    filter: saturate(1.55) brightness(1.32);
+    box-shadow: 0 0 32px rgba(239, 68, 68, 0.92), 0 0 10px rgba(254, 202, 202, 0.45);
+  }
 }
 .wing-fader {
   --fader-position: 82%;
