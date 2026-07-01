@@ -1,3 +1,127 @@
+// 鼓組資料獨立維護，因為 live sound / recording 的鼓組通道順序通常固定，拆出來可避免日後新增項目時打亂分類。
+const drums = [
+  {
+    name: "Kick 大鼓",
+    category: "drums",
+    rms: "-24 ~ -18 dBFS",
+    peak: "-8 ~ -6 dBFS",
+    headroom: "約 6~8 dB",
+    micType: "低頻動圈",
+    models: "AKG D112, Shure Beta 52A",
+    note: "Kick 建議目標峰值稍高，以保留衝擊感。"
+  },
+  {
+    name: "Snare Top 小鼓上方",
+    category: "drums",
+    rms: "-24 ~ -18 dBFS",
+    peak: "-12 ~ -6 dBFS",
+    headroom: "約 6~12 dB",
+    micType: "動圈",
+    models: "Shure SM57, Beyerdynamic M201TG, Telefunken M80, Audix i5",
+    note: "主要收鼓皮 Attack。"
+  },
+  {
+    name: "Snare Bottom 小鼓下方",
+    category: "drums",
+    rms: "-30 ~ -24 dBFS",
+    peak: "-18 ~ -12 dBFS",
+    headroom: "約 12 dB",
+    micType: "動圈",
+    models: "SM57, Beta57A",
+    note: "主要收 Snare Wire，通常需要反相 (Polarity Reverse)。"
+  },
+  {
+    name: "Rack Tom 1 高通鼓",
+    category: "drums",
+    rms: "-24 ~ -18 dBFS",
+    peak: "-12 ~ -6 dBFS",
+    headroom: "約 6~12 dB",
+    micType: "動圈 / 夾式電容",
+    models: "Sennheiser e904, MD421-II, Audix D2, Beta98AMP",
+    note: "Rack Tom 1 用於較高音域的通鼓，近收時保留鼓皮 Attack 與桶身共鳴。"
+  },
+  {
+    name: "Rack Tom 2 中通鼓",
+    category: "drums",
+    rms: "-24 ~ -18 dBFS",
+    peak: "-12 ~ -6 dBFS",
+    headroom: "約 6~12 dB",
+    micType: "動圈 / 夾式電容",
+    models: "e904, MD421-II, Audix D2",
+    note: "Rack Tom 2 通常比 Rack Tom 1 更厚，Gain 設定仍以瞬間 Peak 留足 headroom 為主。"
+  },
+  {
+    name: "Floor Tom 落地通鼓",
+    category: "drums",
+    rms: "-24 ~ -18 dBFS",
+    peak: "-12 ~ -6 dBFS",
+    headroom: "約 6~12 dB",
+    micType: "動圈",
+    models: "MD421-II, Audix D4, Audix D6",
+    note: "Floor Tom 低頻能量較大，建議避免前級過熱，保留鼓手重擊時的 headroom。"
+  },
+  {
+    name: "Hi-Hat 踩鈸",
+    category: "drums",
+    rms: "-30 ~ -24 dBFS",
+    peak: "-18 ~ -12 dBFS",
+    headroom: "約 12 dB",
+    micType: "小振膜電容",
+    models: "AKG C451B, Shure SM81, AKG P170, Rode NT5",
+    note: "高頻瞬態明顯，不需要錄得太熱。"
+  },
+  {
+    name: "Ride 叮叮鈸",
+    category: "drums",
+    rms: "-30 ~ -24 dBFS",
+    peak: "-18 ~ -12 dBFS",
+    headroom: "約 12~18 dB",
+    micType: "小振膜電容",
+    models: "SM81, KM184, AKG P170",
+    note: "Ride 以清楚鈸面敲擊與延音為主，通常不需要推到太高電平。"
+  },
+  {
+    name: "Crash 銅鈸",
+    category: "drums",
+    rms: "-30 ~ -24 dBFS",
+    peak: "-18 ~ -12 dBFS",
+    headroom: "約 12~18 dB",
+    micType: "小振膜電容",
+    models: "AKG C451B, Rode NT5, AKG P170",
+    note: "通常由 Overhead 收音即可。"
+  },
+  {
+    name: "Overhead L 鼓組上方左",
+    category: "drums",
+    rms: "-24 ~ -20 dBFS",
+    peak: "-12 ~ -8 dBFS",
+    headroom: "約 10~12 dB",
+    micType: "電容",
+    models: "AKG P170, AKG C451B, Rode NT5, KM184",
+    note: "Overhead L 主要捕捉鼓組整體平衡、鈸聲與空間感。"
+  },
+  {
+    name: "Overhead R 鼓組上方右",
+    category: "drums",
+    rms: "-24 ~ -20 dBFS",
+    peak: "-12 ~ -8 dBFS",
+    headroom: "約 10~12 dB",
+    micType: "電容",
+    models: "AKG P170, AKG C451B, Rode NT5, KM184",
+    note: "Overhead R 與 Overhead L 成對使用，Gain 設定需維持左右一致並檢查相位。"
+  },
+  {
+    name: "Room Mic 空間麥克風",
+    category: "drums",
+    rms: "-24 ~ -20 dBFS",
+    peak: "-12 ~ -8 dBFS",
+    headroom: "約 10~12 dB",
+    micType: "電容",
+    models: "AKG C414, Neumann U87, Rode NT1, AT4040",
+    note: "Room Mic 著重整體空間感。"
+  }
+];
+
 const instruments = [
   {
     name: "Clip / Clipping 削波警示",
@@ -81,36 +205,7 @@ const instruments = [
     models: "3.5mm TRS DI、Bluetooth Receiver、USB Audio Interface、Computer Output",
     note: "播放音樂來源常見於 3.5mm、藍牙接收器或電腦輸出，建議用 DI 或音訊介面接入並保留足夠 headroom。"
   },
-  {
-    name: "Kick 大鼓",
-    category: "drums",
-    rms: "-24 ~ -18 dBFS",
-    peak: "-8 ~ -6 dBFS",
-    headroom: "約 6~8 dB",
-    micType: "低頻動圈",
-    models: "AKG D112, Shure Beta 52A",
-    note: "Kick 建議目標峰值稍高，以保留衝擊感。"
-  },
-  {
-    name: "Snare 小鼓",
-    category: "drums",
-    rms: "-24 ~ -18 dBFS",
-    peak: "-8 ~ -6 dBFS",
-    headroom: "約 6~8 dB",
-    micType: "動圈 / 電容",
-    models: "Shure SM57, Audix i5, AKG C451",
-    note: "小鼓介於 -8 dBFS 最佳，可避免壓縮器過度動作。"
-  },
-  {
-    name: "Overhead 鼓組上方 (OH)",
-    category: "drums",
-    rms: "-24 ~ -18 dBFS",
-    peak: "-16 ~ -12 dBFS",
-    headroom: "約 12~16 dB",
-    micType: "電容",
-    models: "AKG P170, Rode NT5",
-    note: "Overhead 主要用於捕捉整體鼓組與空間感。"
-  },
+  ...drums,
   {
     name: "Piano 鋼琴",
     category: "keyboard",
@@ -253,13 +348,13 @@ const instruments = [
   },
   {
     name: "Cajon 木箱鼓",
-    category: "drums",
+    category: "keyboard",
     rms: "-24 ~ -18 dBFS",
     peak: "-12 ~ -9 dBFS",
     headroom: "約 9~12 dB",
     micType: "動圈 / 電容",
     models: "Shure SM57, AKG P170",
-    note: "鼓箱建議拾取低頻與手部打擊細節。"
+    note: "鼓箱建議拾取低頻與手部打擊細節；因 Drum Kit 分類已固定為標準套鼓，Cajon 先歸在鍵盤 / 其他的延伸聲源。"
   }
 ];
 

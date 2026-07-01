@@ -5,7 +5,7 @@
 ## 第一版功能
 
 - 樂器 / 聲源清單：支援人聲、吉他、Bass、鼓組、弦樂、木管、銅管、鍵盤、播放來源與削波警示。
-- 搜尋與分類篩選：可用中文或英文搜尋，例如 `Male Vocal`、`Electric Bass`、`Snare`。
+- 搜尋與分類篩選：可用中文或英文搜尋，例如 `Male Vocal`、`Electric Bass`、`Snare Top`。
 - 詳細資訊面板：點選項目後顯示建議麥克風類型、推薦型號、RMS 範圍、Peak 目標與 headroom。
 - RMS / Peak 電平參考圖示：以動態 LED meter 模擬控台電平表，依目前選取項目的 RMS / Peak 資料跳動。
 - Clip / Clipping 警示項目：模擬削波狀態，電平會衝到 0 dBFS 並亮紅燈，同時顯示降低增益的警告提示。
@@ -26,10 +26,10 @@
 
 - Vocal：男主唱、女主唱
 - Guitar / Bass：木吉他、電吉他、爵士貝斯、電貝斯
-- Drums：Kick、Snare、Overhead、Cajon
+- Drums：Kick、Snare Top、Snare Bottom、Rack Tom 1、Rack Tom 2、Floor Tom、Hi-Hat、Ride、Crash、Overhead L、Overhead R、Room Mic
 - Strings：Violin、Viola、Cello
 - Woodwind / Brass：Saxophone、Trumpet、Trombone、Flute、Clarinet、Oboe、Harmonica
-- Keyboard / Other：Piano、Electric Piano、Accordion、Bandoneon
+- Keyboard / Other：Piano、Electric Piano、Accordion、Bandoneon、Cajon
 - Playback：音樂播放輸入
 - Warning：Clip / Clipping 削波警示
 
