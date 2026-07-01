@@ -1344,12 +1344,38 @@ main {
     padding: 16px;
   }
   .simulator-card {
+    display: grid;
+    gap: 14px;
     padding: 18px;
     border-radius: 20px;
   }
-  .simulator-grid,
+  .simulator-grid {
+    grid-template-columns: 1fr;
+  }
   .sim-status-grid {
     grid-template-columns: 1fr;
+  }
+  .simulator-header {
+    order: 0;
+    margin-bottom: 0;
+  }
+  /* 手機版把兩個 wrapper 展開成同一層，狀態提示才能緊跟對應的 meter，而不是全部堆在最後。 */
+  .simulator-grid,
+  .sim-status-grid {
+    display: contents;
+  }
+  .sim-panel--gain { order: 1; }
+  .sim-panel--meter { order: 2; }
+  #inputStatusBox { order: 3; }
+  .sim-panel--fader { order: 4; }
+  .sim-panel--output { order: 5; }
+  #outputStatusBox { order: 6; }
+  .sim-lesson {
+    order: 7;
+    margin-top: 0;
+  }
+  .sim-status {
+    margin-top: 0;
   }
   .sim-panel {
     padding: 16px;
