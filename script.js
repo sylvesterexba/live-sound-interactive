@@ -308,6 +308,7 @@ const inputStatusMessage = document.getElementById("inputStatusMessage");
 const outputStatusMessage = document.getElementById("outputStatusMessage");
 const gainSimulator = document.getElementById("gain-simulator");
 const floatingSimButton = document.getElementById("floatingSimButton");
+const floatingSimButtonText = floatingSimButton?.querySelector(".floating-btn-text");
 let selectedCategory = "all";
 let activeItem = null;
 const pflMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
@@ -908,8 +909,13 @@ function updateFloatingButtonState() {
   if (!floatingSimButton || !gainSimulator) return;
   const rect = gainSimulator.getBoundingClientRect();
   const nearSimulator = rect.top < window.innerHeight * 0.45 && rect.bottom > window.innerHeight * 0.2;
+  // 按鈕本身包含旋鈕圖示，所以只更新文字節點，避免每次捲動時重建圖示造成閃爍。
   floatingSimButton.classList.toggle("is-at-simulator", nearSimulator);
-  floatingSimButton.textContent = nearSimulator ? "回到上方" : "前往模擬器";
+  if (floatingSimButtonText) {
+    floatingSimButtonText.textContent = nearSimulator ? "回到上方" : "前往模擬器";
+  }
+  floatingSimButton.setAttribute("aria-label", nearSimulator ? "回到頁面上方" : "前往增益級距模擬器");
+  floatingSimButton.setAttribute("title", nearSimulator ? "回到頁面上方" : "前往 Gain Staging Simulator");
 }
 
 function resetGainToRecommended() {
@@ -1256,7 +1262,10 @@ function updateStatusMessage() {
   setStatusClass(inputStatusBox, inputStatus);
   setStatusClass(outputStatusBox, outputStatus);
   setStatusClass(gainKnob, inputStatus);
+  // 浮動入口跟隨目前 input 狀態變色，使用者能從右下角快速感知模擬器是否偏熱或 clip。
+  setStatusClass(floatingSimButton, inputStatus);
   gainKnob?.classList.toggle("is-clipping", inputStatus === "clip");
+  floatingSimButton?.classList.toggle("is-clipping", inputStatus === "clip");
 }
 
 function updateSimulatorFrame(timestamp) {

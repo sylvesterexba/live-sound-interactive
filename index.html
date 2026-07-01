@@ -181,7 +181,15 @@
     </section>
   </main>
 
-  <button class="floating-sim-button" id="floatingSimButton" type="button">前往模擬器</button>
+  <!-- 浮動跳轉按鈕保留文字並加入迷你旋鈕，讓使用者不用讀完整文案也能辨識這是模擬器入口。 -->
+  <button class="floating-sim-button floating-simulator-btn" id="floatingSimButton" type="button" aria-label="前往增益級距模擬器" title="前往 Gain Staging Simulator">
+    <span class="floating-knob-icon" aria-hidden="true">
+      <span class="floating-knob-leds"></span>
+      <span class="floating-knob-body"></span>
+      <span class="floating-knob-pointer"></span>
+    </span>
+    <span class="floating-btn-text">前往模擬器</span>
+  </button>
 
   <footer>
     <p>資料來源：Live Sound Gain Staging 參考，建議仍以實際現場調整為主。</p>
