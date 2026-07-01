@@ -376,8 +376,10 @@ const peakHoldValue = document.getElementById("peakHoldValue");
 const pflRangeLabel = document.getElementById("pflRange");
 const pickerToggle = document.getElementById("pickerToggle");
 const pickerBackdrop = document.getElementById("pickerBackdrop");
-const searchInput = document.getElementById("search");
 const filterButtons = document.querySelectorAll(".filters button");
+const aboutButton = document.getElementById("aboutButton");
+const aboutModal = document.getElementById("aboutModal");
+const aboutClose = document.getElementById("aboutClose");
 const simulatorSource = document.getElementById("simulatorSource");
 const gainKnob = document.getElementById("gainKnob");
 const knobLedRing = document.getElementById("knobLedRing");
@@ -676,13 +678,10 @@ function micTypeIcon(type) {
   return "mic";
 }
 
-function renderItems(filter = "all", keyword = "") {
+function renderItems(filter = "all") {
   itemsContainer.innerHTML = "";
-  const normalizedKeyword = keyword.trim().toLowerCase();
   const filtered = instruments.filter((item) => {
-    const matchesCategory = filter === "all" || item.category === filter;
-    const matchesKeyword = normalizedKeyword === "" || item.name.toLowerCase().includes(normalizedKeyword);
-    return matchesCategory && matchesKeyword;
+    return filter === "all" || item.category === filter;
   });
 
   if (filtered.length === 0) {
@@ -1674,6 +1673,20 @@ function initFloatingButton() {
   updateFloatingButtonState();
 }
 
+function setAboutModalOpen(open) {
+  if (!aboutModal) return;
+  const wasOpen = aboutModal.classList.contains("is-open");
+  // Modal 只控制說明內容顯示，不影響分類與模擬器狀態；開啟時鎖住背景避免手機捲動混亂。
+  aboutModal.classList.toggle("is-open", open);
+  aboutModal.setAttribute("aria-hidden", String(!open));
+  document.body.classList.toggle("about-open", open);
+  if (open) {
+    aboutClose?.focus();
+  } else if (wasOpen) {
+    aboutButton?.focus();
+  }
+}
+
 function categoryLabel(category) {
   const map = {
     vocal: "人聲",
@@ -1689,7 +1702,6 @@ function categoryLabel(category) {
   return map[category] || "其他";
 }
 
-searchInput.addEventListener("input", () => renderItems(selectedCategory, searchInput.value));
 if (pickerToggle) {
   pickerToggle.addEventListener("click", () => {
     setPickerOpen(!document.body.classList.contains("picker-open"));
@@ -1701,6 +1713,7 @@ if (pickerBackdrop) {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     setPickerOpen(false);
+    setAboutModalOpen(false);
   }
 });
 window.addEventListener("resize", () => {
@@ -1713,8 +1726,17 @@ filterButtons.forEach((button) => {
     selectedCategory = button.dataset.filter;
     filterButtons.forEach((btn) => btn.classList.remove("active"));
     button.classList.add("active");
-    renderItems(selectedCategory, searchInput.value);
+    renderItems(selectedCategory);
   });
+});
+if (aboutButton) {
+  aboutButton.addEventListener("click", () => setAboutModalOpen(true));
+}
+if (aboutClose) {
+  aboutClose.addEventListener("click", () => setAboutModalOpen(false));
+}
+document.querySelectorAll("[data-about-close]").forEach((node) => {
+  node.addEventListener("click", () => setAboutModalOpen(false));
 });
 
 initSimulator();

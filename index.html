@@ -13,19 +13,15 @@
       <span class="title-zh">互動查詢</span>
     </h1>
     <p>點選樂器或來源，即可查看建議麥克風、RMS 範圍與 Peak 目標。</p>
+    <button class="about-button" id="aboutButton" type="button" aria-haspopup="dialog" aria-controls="aboutModal">使用說明</button>
   </header>
 
   <main>
     <button class="picker-toggle" id="pickerToggle" type="button" aria-controls="mobilePicker" aria-expanded="false">選擇樂器</button>
     <div class="picker-backdrop" id="pickerBackdrop"></div>
 
-    <section class="search-panel" id="mobilePicker">
-      <div class="search-box">
-        <label for="search">搜尋樂器 / 來源：</label>
-        <input id="search" type="search" placeholder="例如：Male Vocal、Electric Bass、Snare Top" />
-      </div>
+    <section class="control-panel" id="mobilePicker">
       <div class="filters">
-        <button data-filter="all" class="active">全部</button>
         <button data-filter="vocal">人聲</button>
         <button data-filter="strings">弦樂 / 吉他</button>
         <button data-filter="woodwind">木管 / 薩克斯</button>
@@ -35,6 +31,7 @@
         <button data-filter="keyboard">鍵盤 / 其他</button>
         <button data-filter="playback">播放</button>
         <button data-filter="warning">警示</button>
+        <button data-filter="all" class="active">全部</button>
       </div>
     </section>
 
@@ -197,6 +194,36 @@
     </span>
     <span class="floating-btn-text">前往模擬器</span>
   </button>
+
+  <div class="about-modal" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" aria-hidden="true">
+    <div class="about-modal__backdrop" data-about-close></div>
+    <div class="about-modal__panel" role="document">
+      <button class="about-modal__close" type="button" id="aboutClose" aria-label="關閉使用說明">×</button>
+      <span class="about-modal__eyebrow">使用說明</span>
+      <h2 id="aboutTitle">關於 Gain Staging 互動查詢</h2>
+      <p>這個工具用來查詢不同樂器 / 聲源的 Gain Staging 參考值，協助現場或錄音前置作業快速抓到合理輸入電平。</p>
+      <div class="about-modal__grid">
+        <section>
+          <h3>核心概念</h3>
+          <ul>
+            <li><strong>RMS</strong> 是平均音量感參考。</li>
+            <li><strong>Peak</strong> 是瞬間最高電平參考。</li>
+            <li><strong>Gain / Preamp</strong> 主要決定輸入電平。</li>
+            <li><strong>Fader</strong> 主要決定送出去的音量。</li>
+          </ul>
+        </section>
+        <section>
+          <h3>操作流程</h3>
+          <ul>
+            <li>先選樂器或來源。</li>
+            <li>查看建議麥克風、RMS、Peak 與注意事項。</li>
+            <li>可進入模擬器練習 Gain 與 Fader 的差別。</li>
+            <li>如果 Input Clip，拉低 Fader 不能修復已經發生的失真。</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <p>資料來源：Live Sound Gain Staging 參考，建議仍以實際現場調整為主。</p>
