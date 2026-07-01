@@ -1,4 +1,18 @@
 ﻿// simulator.js：只處理 Gain / Fader / Meter 模擬器，避免主 UI 腳本承擔即時動畫狀態。
+import {
+  clamp,
+  faderMajorTicks,
+  faderMinorValues,
+  faderPositionToValue,
+  formatDbfs,
+  formatSignedDb,
+  getFaderBottomPercent,
+  getItemMeterProfile,
+  randomBetween,
+  simulatorMeterMarks,
+  valueToFaderPosition
+} from "./data.js";
+
 const simulatorSource = document.getElementById("simulatorSource");
 const gainKnob = document.getElementById("gainKnob");
 const knobLedRing = document.getElementById("knobLedRing");
@@ -356,7 +370,7 @@ function updateDisplayReadouts(timestamp, force = false) {
   }
 }
 
-function setSimulatorProfile(item) {
+export function setSimulatorProfile(item) {
   if (!item) return;
   const profile = getItemMeterProfile(item);
   const peakCenter = (profile.peakLow + profile.peakHigh) / 2;
@@ -523,7 +537,7 @@ function updateStatusMessage() {
   updateFloatingKnobIcon();
 }
 
-function updateSimulatorFrame(timestamp) {
+export function updateSimulator(timestamp) {
   if (!simulatorAnimationLast) simulatorAnimationLast = timestamp;
   const dt = Math.min((timestamp - simulatorAnimationLast) / 1000, 0.08);
   simulatorAnimationLast = timestamp;
@@ -578,7 +592,7 @@ function updateSimulatorFrame(timestamp) {
   updateStereoMeter();
   updateDisplayReadouts(timestamp);
   updateStatusMessage();
-  requestAnimationFrame(updateSimulatorFrame);
+  requestAnimationFrame(updateSimulator);
 }
 
 function adjustGain(delta) {
@@ -739,7 +753,7 @@ function initSimulator() {
   updateSimulatorTargetZones();
   updateKnob();
   updateFader();
-  requestAnimationFrame(updateSimulatorFrame);
+  requestAnimationFrame(updateSimulator);
 }
 
 function initFloatingButton() {
@@ -755,4 +769,21 @@ function initFloatingButton() {
   window.addEventListener("resize", updateFloatingButtonState);
   updateFloatingButtonState();
 }
+
+export function resetGain() {
+  resetGainToRecommended();
+}
+
+export function resetFader() {
+  resetFaderToUnity();
+}
+
+export const simulator = {
+  init: initSimulator,
+  initFloatingButton,
+  setProfile: setSimulatorProfile,
+  resetGain,
+  resetFader,
+  update: updateSimulator
+};
 

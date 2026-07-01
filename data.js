@@ -1,6 +1,6 @@
 ﻿// data.js：集中保存資料與共用設定，讓 UI 與模擬器只讀取同一份來源，避免日後更新數值時不同步。
 // 鼓組資料獨立維護，因為 live sound / recording 的鼓組通道順序通常固定，拆出來可避免日後新增項目時打亂分類。
-const drums = [
+export const drums = [
   {
     name: "Kick 大鼓",
     category: "drums",
@@ -123,7 +123,7 @@ const drums = [
   }
 ];
 
-const instruments = [
+export const instruments = [
   {
     name: "Clip / Clipping 削波警示",
     category: "warning",
@@ -361,11 +361,11 @@ const instruments = [
 
 
 // 電平表與推桿刻度設定集中放在資料層，PFL 與 Simulator 共用同一套比例。
-const pflMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
-const pflSegments = [...pflMeterMarks];
-const pflLabelValues = ["CLIP", -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
-const simulatorMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
-const faderCurve = [
+export const pflMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
+export const pflSegments = [...pflMeterMarks];
+export const pflLabelValues = ["CLIP", -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
+export const simulatorMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
+export const faderCurve = [
   { db: 10, position: 0 },
   { db: 5, position: 0.08 },
   { db: 0, position: 0.18 },
@@ -378,7 +378,7 @@ const faderCurve = [
   { db: -60, position: 0.96 },
   { db: -90, position: 1 }
 ];
-const faderMajorTicks = [
+export const faderMajorTicks = [
   { label: "+10", db: 10 },
   { label: "+5", db: 5 },
   { label: "0", db: 0, unity: true },
@@ -391,10 +391,10 @@ const faderMajorTicks = [
   { label: "-60", db: -60 },
   { label: "-∞", db: -90 }
 ];
-const faderMinorValues = [7.5, 2.5, -2.5, -7.5, -12.5, -15, -17.5, -22.5, -25, -27.5, -35, -45, -55];
+export const faderMinorValues = [7.5, 2.5, -2.5, -7.5, -12.5, -15, -17.5, -22.5, -25, -27.5, -35, -45, -55];
 
 // 共用格式與範圍工具只做資料轉換，不碰 DOM，方便不同模組重複使用。
-function parseDbRange(value, fallbackLow, fallbackHigh = fallbackLow) {
+export function parseDbRange(value, fallbackLow, fallbackHigh = fallbackLow) {
   if (typeof value === "number") {
     return { low: value, high: value };
   }
@@ -415,7 +415,7 @@ function parseDbRange(value, fallbackLow, fallbackHigh = fallbackLow) {
   };
 }
 
-function getItemMeterProfile(item) {
+export function getItemMeterProfile(item) {
   const rms = parseDbRange(item.rms, -24, -18);
   const peak = parseDbRange(item.peak, -12, -9);
 
@@ -427,38 +427,38 @@ function getItemMeterProfile(item) {
   };
 }
 
-function randomBetween(low, high) {
+export function randomBetween(low, high) {
   if (high <= low) return low;
   return low + Math.random() * (high - low);
 }
 
 
 // Fader 使用實體推桿式非線性曲線，集中管理可避免 UI 與計算位置分歧。
-function formatDb(value) {
+export function formatDb(value) {
   const rounded = Math.round(value * 10) / 10;
   return Number.isInteger(rounded) ? `${rounded}` : `${rounded.toFixed(1)}`;
 }
 
 // Legacy PFL tower rendering has been removed because the new detail panel meter drives directly from selected item data.
 
-function clamp(value, min, max) {
+export function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function formatSignedDb(value, digits = 0) {
+export function formatSignedDb(value, digits = 0) {
   if (value <= -89.5) return "-∞ dB";
   const rounded = Number(value.toFixed(digits));
   const sign = rounded > 0 ? "+" : "";
   return `${sign}${rounded.toFixed(digits)} dB`;
 }
 
-function formatDbfs(value) {
+export function formatDbfs(value) {
   const rounded = Math.round(value * 10) / 10;
   const sign = rounded > 0 ? "+" : "";
   return `${sign}${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} dBFS`;
 }
 
-function valueToFaderPosition(db) {
+export function valueToFaderPosition(db) {
   const value = clamp(db, -90, 10);
   for (let index = 0; index < faderCurve.length - 1; index += 1) {
     const upper = faderCurve[index];
@@ -471,7 +471,7 @@ function valueToFaderPosition(db) {
   return value >= 10 ? 0 : 1;
 }
 
-function faderPositionToValue(position) {
+export function faderPositionToValue(position) {
   const pos = clamp(position, 0, 1);
   for (let index = 0; index < faderCurve.length - 1; index += 1) {
     const upper = faderCurve[index];
@@ -484,24 +484,32 @@ function faderPositionToValue(position) {
   return pos <= 0 ? 10 : -90;
 }
 
-function getFaderBottomPercent(db) {
+export function getFaderBottomPercent(db) {
   return (1 - valueToFaderPosition(db)) * 100;
 }
 
 
 // 分類名稱集中在資料層，清單與 Detail Panel 顯示同一份中文標籤。
-function categoryLabel(category) {
-  const map = {
-    vocal: "人聲",
-    strings: "弦樂 / 吉他",
-    woodwind: "木管 / 薩克斯",
-    brass: "銅管",
-    drums: "鼓組",
-    bass: "低頻",
-    keyboard: "鍵盤 / 其他",
-    playback: "播放來源",
-    warning: "警示"
-  };
-  return map[category] || "其他";
+export const categoryLabels = {
+  vocal: "人聲",
+  strings: "弦樂 / 吉他",
+  woodwind: "木管 / 薩克斯",
+  brass: "銅管",
+  drums: "鼓組",
+  bass: "低頻",
+  keyboard: "鍵盤 / 其他",
+  playback: "播放來源",
+  warning: "警示"
+};
+
+export const simulatorSettings = {
+  meterMarks: simulatorMeterMarks,
+  faderCurve,
+  faderMajorTicks,
+  faderMinorValues
+};
+
+export function categoryLabel(category) {
+  return categoryLabels[category] || "其他";
 }
 

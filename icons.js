@@ -1,5 +1,5 @@
 ﻿// icons.js：所有圖示產生邏輯集中於此，讓資料與 UI 渲染不需要混入 SVG 細節。
-function instrumentIcon(item) {
+export function instrumentIcon(item) {
   const name = typeof item === "string" ? item : item.name || "";
   const category = typeof item === "string" ? item : item.category || "";
   const icons = {
@@ -105,7 +105,7 @@ function instrumentIcon(item) {
   return icons.keyboard;
 }
 
-function micTypeIcon(type) {
+export function micTypeIcon(type) {
   const normalized = String(type || "");
   if (normalized.includes("過載") || normalized.includes("增益過高")) return "warning";
   if (normalized.includes("Bluetooth") || normalized.includes("USB") || normalized.includes("3.5mm")) return "playback";
