@@ -361,6 +361,7 @@ const instruments = [
 const itemsContainer = document.getElementById("items");
 const detailName = document.getElementById("detailName");
 const detailCategory = document.getElementById("detailCategory");
+const detailIcon = document.getElementById("detailIcon");
 const detailMicType = document.getElementById("detailMicType");
 const detailModels = document.getElementById("detailModels");
 const detailRms = document.getElementById("detailRms");
@@ -533,11 +534,15 @@ function randomBetween(low, high) {
   return low + Math.random() * (high - low);
 }
 
-function setPickerOpen(open) {
+function setPickerOpen(open, returnFocus = true) {
+  const wasOpen = document.body.classList.contains("picker-open");
   document.body.classList.toggle("picker-open", open);
   if (pickerToggle) {
     pickerToggle.setAttribute("aria-expanded", String(open));
     pickerToggle.textContent = open ? "收起選單" : "選擇樂器";
+    if (!open && wasOpen && returnFocus) {
+      pickerToggle.focus();
+    }
   }
 }
 
@@ -722,7 +727,8 @@ function selectItem(card, item) {
   document.querySelectorAll(".item-card").forEach((node) => node.classList.remove("active"));
   if (card) card.classList.add("active");
 
-  detailName.innerHTML = `<span class="detail-title-text">${formatBilingualTitle(item.name)}</span><span class="detail-title-icon" aria-hidden="true">${instrumentIcon(item)}</span>`;
+  detailName.innerHTML = formatBilingualTitle(item.name);
+  if (detailIcon) detailIcon.innerHTML = instrumentIcon(item);
   detailCategory.textContent = `類別：${categoryLabel(item.category)}`;
   detailMicType.innerHTML = `<span class="mic-type-display mic-type-display--${micTypeIcon(item.micType)}"><span class="mic-type-icon" aria-hidden="true"></span>${item.micType}</span>`;
   detailModels.textContent = item.models;
@@ -1718,7 +1724,7 @@ document.addEventListener("keydown", (event) => {
 });
 window.addEventListener("resize", () => {
   if (!window.matchMedia("(max-width: 700px)").matches) {
-    setPickerOpen(false);
+    setPickerOpen(false, false);
   }
 });
 filterButtons.forEach((button) => {

@@ -44,18 +44,13 @@
 
       <aside class="detail-panel">
         <div class="detail-card" id="detailCard">
-          <h2 id="detailName">請選擇一個項目</h2>
-          <p id="detailCategory">顯示推薦麥克風型號、RMS 範圍與 Peak 目標。</p>
-          <div id="pflNote" class="pfl-note detail-note"></div>
-
-          <div class="detail-group detail-group--mic">
-            <h3>建議麥克風類型</h3>
-            <p id="detailMicType">-</p>
-          </div>
-
-          <div class="detail-group detail-group--models">
-            <h3>推薦型號</h3>
-            <p id="detailModels">-</p>
+          <!-- Detail header 將文字與 icon 分離，避免響應式版面需要依賴 h2 內部定位。 -->
+          <div class="detail-header">
+            <div class="detail-title">
+              <h2 id="detailName">請選擇一個項目</h2>
+              <p id="detailCategory">顯示推薦麥克風型號、RMS 範圍與 Peak 目標。</p>
+            </div>
+            <div class="detail-icon" id="detailIcon" aria-hidden="true"></div>
           </div>
 
           <div class="detail-group detail-group--meter">
@@ -80,6 +75,18 @@
             </div>
             <p id="detailPflValue" class="pfl-value">-</p>
           </div>
+
+          <div class="detail-group detail-group--mic">
+            <h3>建議麥克風類型</h3>
+            <p id="detailMicType">-</p>
+          </div>
+
+          <div class="detail-group detail-group--models">
+            <h3>推薦型號</h3>
+            <p id="detailModels">-</p>
+          </div>
+
+          <div id="pflNote" class="pfl-note detail-note"></div>
         </div>
       </aside>
     </section>
