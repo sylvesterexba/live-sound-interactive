@@ -43,7 +43,10 @@
 
 - `index.html`：頁面結構
 - `styles.css`：介面樣式與響應式排版
-- `script.js`：資料、分類篩選、詳細面板、Drawer 行為與電平表動畫
+- `data.js`：樂器 / 聲源資料、分類標籤、Meter 與 Fader 固定設定
+- `icons.js`：樂器與麥克風類型圖示
+- `simulator.js`：Gain Staging Simulator、Input / Output Meter、Fader 與即時動畫
+- `script.js`：初始化、分類篩選、詳細面板、手機 Drawer、About 視窗與 PFL 參考圖示串接
 
 ## 備註
 
