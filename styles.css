@@ -148,22 +148,21 @@ main {
   stroke-linejoin: round;
 }
 .detail-card h2 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px;
+  align-items: start;
+  justify-content: stretch;
+  width: 100%;
   gap: 18px;
-  position: relative;
   margin: 0 0 14px;
   min-height: 84px;
-  padding: 0 96px;
+  padding: 0;
   text-align: center;
 }
 .detail-title-icon {
   display: grid;
   place-items: center;
-  position: absolute;
-  top: 0;
-  right: 0;
+  justify-self: end;
   width: 84px;
   height: 84px;
   border-radius: 18px;
@@ -179,6 +178,8 @@ main {
 .detail-title-text {
   min-width: 0;
   padding-top: 0;
+  align-self: center;
+  justify-self: center;
 }
 .bilingual-title {
   display: inline;
@@ -1414,11 +1415,13 @@ body.about-open {
     width: 100%;
   }
   .detail-card h2 {
+    grid-template-columns: minmax(0, 1fr) 72px;
     gap: 14px;
     min-height: 72px;
-    padding: 0 84px 0 0;
-    justify-content: flex-start;
     text-align: left;
+  }
+  .detail-title-text {
+    justify-self: start;
   }
   .detail-title-icon {
     width: 72px;

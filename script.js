@@ -406,7 +406,7 @@ const outputStatusMessage = document.getElementById("outputStatusMessage");
 const gainSimulator = document.getElementById("gain-simulator");
 const floatingSimButton = document.getElementById("floatingSimButton");
 const floatingSimButtonText = floatingSimButton?.querySelector(".floating-btn-text");
-let selectedCategory = "all";
+let selectedCategory = "warning";
 let activeItem = null;
 const pflMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
 const pflSegments = [...pflMeterMarks];
@@ -1741,5 +1741,5 @@ document.querySelectorAll("[data-about-close]").forEach((node) => {
 
 initSimulator();
 initFloatingButton();
-renderItems();
+renderItems(selectedCategory);
 initPflMeter();
