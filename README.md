@@ -14,7 +14,7 @@
 
 ## 第二版功能
 
-- Gain Staging Simulator：新增教學用互動模擬器，示範 Gain / Preamp 與 Output Fader 的不同作用。
+- Gain Staging Simulator 增益級距模擬器：新增教學用互動模擬器，示範 Gain / Preamp 與 Output Fader 的不同作用。
 - Gain Knob：支援滑鼠拖曳、滾輪與手機觸控，範圍為 0 到 +60 dB，旋轉角度與數值同步。
 - Input Meter：RMS 以較慢速度平滑變動，Peak 以較快速度跳動，並依目前選取聲源的建議 RMS / Peak 範圍顯示狀態。
 - Output Fader：模擬通道輸出推桿，範圍為 -∞ 到 +10 dB，預設 0 dB，不影響 input gain。
