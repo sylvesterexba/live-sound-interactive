@@ -16,6 +16,7 @@ const instruments = [
     rms: "-24 ~ -18 dBFS",
     peak: "-12 ~ -6 dBFS",
     headroom: "約 6~12 dB",
+    recommendedGain: 28,
     micType: "動圈 / 電容",
     models: "SM58, e865, KSM9, NT1-A",
     note: "人聲建議峰值落在 -12 到 -6 dBFS，保留足夠 headroom，避免 0 dBFS 飽和。"
@@ -292,6 +293,7 @@ const inputPeakMeter = document.getElementById("inputPeakMeter");
 const simInputLabels = document.getElementById("simInputLabels");
 const outputFader = document.getElementById("outputFader");
 const wingFader = document.getElementById("wingFader");
+const faderScale = document.getElementById("faderScale");
 const faderCap = document.getElementById("faderCap");
 const faderValue = document.getElementById("faderValue");
 const outputReadout = document.getElementById("outputReadout");
@@ -304,6 +306,8 @@ const inputStatusBox = document.getElementById("inputStatusBox");
 const outputStatusBox = document.getElementById("outputStatusBox");
 const inputStatusMessage = document.getElementById("inputStatusMessage");
 const outputStatusMessage = document.getElementById("outputStatusMessage");
+const gainSimulator = document.getElementById("gain-simulator");
+const floatingSimButton = document.getElementById("floatingSimButton");
 let selectedCategory = "all";
 let activeItem = null;
 const pflMeterMarks = [0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60];
@@ -330,10 +334,38 @@ let simulatorProfile = {
   peakLow: -12,
   peakHigh: -6,
   idealGain: 28,
+  recommendedGain: 28,
   sourceRmsAtZero: -49,
   sourcePeakAtZero: -37
 };
 const simulatorMeters = new Map();
+const faderCurve = [
+  { db: 10, position: 0 },
+  { db: 5, position: 0.08 },
+  { db: 0, position: 0.18 },
+  { db: -5, position: 0.3 },
+  { db: -10, position: 0.42 },
+  { db: -20, position: 0.58 },
+  { db: -30, position: 0.72 },
+  { db: -40, position: 0.82 },
+  { db: -50, position: 0.9 },
+  { db: -60, position: 0.96 },
+  { db: -90, position: 1 }
+];
+const faderMajorTicks = [
+  { label: "+10", db: 10 },
+  { label: "+5", db: 5 },
+  { label: "0", db: 0, unity: true },
+  { label: "-5", db: -5 },
+  { label: "-10", db: -10 },
+  { label: "-20", db: -20 },
+  { label: "-30", db: -30 },
+  { label: "-40", db: -40 },
+  { label: "-50", db: -50 },
+  { label: "-60", db: -60 },
+  { label: "-∞", db: -90 }
+];
+const faderMinorValues = [7.5, 2.5, -2.5, -7.5, -12.5, -15, -17.5, -22.5, -25, -27.5, -35, -45, -55];
 const pflMeterState = {
   value: -20,
   target: -18,
@@ -783,7 +815,7 @@ function clamp(value, min, max) {
 }
 
 function formatSignedDb(value, digits = 0) {
-  if (value <= -59.5) return "-∞";
+  if (value <= -89.5) return "-∞ dB";
   const rounded = Number(value.toFixed(digits));
   const sign = rounded > 0 ? "+" : "";
   return `${sign}${rounded.toFixed(digits)} dB`;
@@ -793,6 +825,121 @@ function formatDbfs(value) {
   const rounded = Math.round(value * 10) / 10;
   const sign = rounded > 0 ? "+" : "";
   return `${sign}${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} dBFS`;
+}
+
+function valueToFaderPosition(db) {
+  const value = clamp(db, -90, 10);
+  for (let index = 0; index < faderCurve.length - 1; index += 1) {
+    const upper = faderCurve[index];
+    const lower = faderCurve[index + 1];
+    if (value <= upper.db && value >= lower.db) {
+      const progress = (upper.db - value) / (upper.db - lower.db);
+      return upper.position + progress * (lower.position - upper.position);
+    }
+  }
+  return value >= 10 ? 0 : 1;
+}
+
+function faderPositionToValue(position) {
+  const pos = clamp(position, 0, 1);
+  for (let index = 0; index < faderCurve.length - 1; index += 1) {
+    const upper = faderCurve[index];
+    const lower = faderCurve[index + 1];
+    if (pos >= upper.position && pos <= lower.position) {
+      const progress = (pos - upper.position) / (lower.position - upper.position);
+      return upper.db + progress * (lower.db - upper.db);
+    }
+  }
+  return pos <= 0 ? 10 : -90;
+}
+
+function getFaderBottomPercent(db) {
+  return (1 - valueToFaderPosition(db)) * 100;
+}
+
+function renderFaderScale() {
+  if (!faderScale) return;
+  faderScale.innerHTML = "";
+
+  faderMinorValues.forEach((db) => {
+    const tick = document.createElement("span");
+    tick.className = "fader-tick fader-tick--minor";
+    tick.style.bottom = `${getFaderBottomPercent(db)}%`;
+    faderScale.appendChild(tick);
+  });
+
+  faderMajorTicks.forEach((tickConfig) => {
+    const tick = document.createElement("span");
+    tick.className = `fader-tick fader-tick--major${tickConfig.unity ? " fader-scale__unity" : ""}`;
+    tick.style.bottom = `${getFaderBottomPercent(tickConfig.db)}%`;
+    tick.innerHTML = `<i></i><b>${tickConfig.label}</b>`;
+    faderScale.appendChild(tick);
+  });
+}
+
+function getRecommendedGain() {
+  if (Number.isFinite(simulatorProfile.recommendedGain)) {
+    return simulatorProfile.recommendedGain;
+  }
+  const recommendedPeakCenter = (simulatorProfile.peakLow + simulatorProfile.peakHigh) / 2;
+  return clamp(recommendedPeakCenter - simulatorProfile.sourcePeakAtZero, 0, 60);
+}
+
+function scrollToSimulator() {
+  gainSimulator?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function updateFloatingButtonState() {
+  if (!floatingSimButton || !gainSimulator) return;
+  const rect = gainSimulator.getBoundingClientRect();
+  const nearSimulator = rect.top < window.innerHeight * 0.45 && rect.bottom > window.innerHeight * 0.2;
+  floatingSimButton.classList.toggle("is-at-simulator", nearSimulator);
+  floatingSimButton.textContent = nearSimulator ? "回到上方" : "前往模擬器";
+}
+
+function resetGainToRecommended() {
+  currentGain = getRecommendedGain();
+  const recommendedPeakCenter = (simulatorProfile.peakLow + simulatorProfile.peakHigh) / 2;
+  const recommendedRmsCenter = (simulatorProfile.rmsLow + simulatorProfile.rmsHigh) / 2;
+  simulatedInputPeak = recommendedPeakCenter;
+  simulatedInputRMS = recommendedRmsCenter;
+  updateKnob();
+  updateInputMeter();
+  updateStereoMeter();
+  updateStatusMessage();
+}
+
+function resetFaderToUnity() {
+  currentFader = 0;
+  updateFader();
+  updateStereoMeter();
+  updateStatusMessage();
+}
+
+function handleDoubleTapReset(element, callback) {
+  if (!element) return;
+  let lastTap = 0;
+
+  element.addEventListener("dblclick", (event) => {
+    event.preventDefault();
+    callback();
+  });
+
+  element.addEventListener("pointerup", (event) => {
+    if (event.pointerType === "mouse") return;
+    const now = Date.now();
+    if (now - lastTap < 320) {
+      event.preventDefault();
+      callback();
+      lastTap = 0;
+      return;
+    }
+    lastTap = now;
+  });
 }
 
 function getSimulatorSegmentColor(threshold) {
@@ -898,11 +1045,16 @@ function setSimulatorProfile(item) {
   const profile = getItemMeterProfile(item);
   const peakCenter = (profile.peakLow + profile.peakHigh) / 2;
   const rmsCenter = (profile.rmsLow + profile.rmsHigh) / 2;
-  const idealGain = item.name.includes("Male Vocal") ? 28 : clamp(28 + (peakCenter + 9) * 0.7, 18, 42);
+  const idealGain = Number.isFinite(item.recommendedGain)
+    ? item.recommendedGain
+    : item.name.includes("Male Vocal")
+      ? 28
+      : clamp(28 + (peakCenter + 9) * 0.7, 18, 42);
 
   simulatorProfile = {
     ...profile,
     idealGain,
+    recommendedGain: idealGain,
     sourcePeakAtZero: peakCenter - idealGain,
     sourceRmsAtZero: rmsCenter - idealGain
   };
@@ -954,12 +1106,13 @@ function updateFader() {
   if (faderValue) {
     faderValue.textContent = `FADER ${formatSignedDb(currentFader, 1)}`;
   }
-  if (outputFader && Number(outputFader.value) !== currentFader) {
-    outputFader.value = String(currentFader);
+  const position = valueToFaderPosition(currentFader);
+  if (outputFader && Math.abs(Number(outputFader.value) - position) > 0.0005) {
+    outputFader.value = String(position);
   }
-  const faderPosition = ((currentFader + 60) / 70) * 100;
-  if (wingFader) wingFader.style.setProperty("--fader-position", `${faderPosition}%`);
-  if (faderCap) faderCap.style.bottom = `clamp(10px, ${faderPosition}%, calc(100% - 10px))`;
+  const faderBottom = (1 - position) * 100;
+  if (wingFader) wingFader.style.setProperty("--fader-position", `${faderBottom}%`);
+  if (faderCap) faderCap.style.bottom = `clamp(26px, ${faderBottom}%, calc(100% - 26px))`;
 }
 
 function updateStereoMeter() {
@@ -1043,7 +1196,7 @@ function updateSimulatorFrame(timestamp) {
   simulatedInputRMS += (targetRms - simulatedInputRMS) * rmsAlpha;
   simulatedInputPeak += (targetPeak - simulatedInputPeak) * peakAlpha;
 
-  const outputBase = simulatedInputPeak + currentFader;
+  const outputBase = currentFader <= -89.5 ? -90 : simulatedInputPeak + currentFader;
   const drift = Math.sin(timestamp * 0.0027) * 0.25;
   simulatedOutputL = outputBase + stereoDifference / 2 + drift;
   simulatedOutputR = outputBase - stereoDifference / 2 - drift;
@@ -1110,10 +1263,47 @@ function bindGainKnob() {
 function bindOutputFader() {
   if (!outputFader) return;
   outputFader.addEventListener("input", () => {
-    currentFader = Number(outputFader.value);
+    currentFader = faderPositionToValue(Number(outputFader.value));
     updateFader();
     updateStereoMeter();
     updateStatusMessage();
+  });
+}
+
+function setFaderFromPointer(event) {
+  if (!wingFader) return;
+  const rect = wingFader.getBoundingClientRect();
+  const position = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+  currentFader = faderPositionToValue(position);
+  updateFader();
+  updateStereoMeter();
+  updateStatusMessage();
+}
+
+function bindFaderPointerControl() {
+  if (!wingFader) return;
+  let dragging = false;
+
+  wingFader.addEventListener("pointerdown", (event) => {
+    dragging = true;
+    wingFader.setPointerCapture(event.pointerId);
+    wingFader.classList.add("is-dragging");
+    setFaderFromPointer(event);
+  });
+
+  wingFader.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    setFaderFromPointer(event);
+  });
+
+  ["pointerup", "pointercancel"].forEach((eventName) => {
+    wingFader.addEventListener(eventName, (event) => {
+      dragging = false;
+      wingFader.classList.remove("is-dragging");
+      if (wingFader.hasPointerCapture(event.pointerId)) {
+        wingFader.releasePointerCapture(event.pointerId);
+      }
+    });
   });
 }
 
@@ -1141,13 +1331,31 @@ function initSimulator() {
   }
 
   [inputRmsMeter, inputPeakMeter, outputLeftMeter, outputRightMeter].forEach(createSimulatorMeter);
+  renderFaderScale();
   initKnobLedRing();
   bindGainKnob();
   bindOutputFader();
+  bindFaderPointerControl();
+  handleDoubleTapReset(gainKnob, resetGainToRecommended);
+  handleDoubleTapReset(wingFader, resetFaderToUnity);
   updateSimulatorTargetZones();
   updateKnob();
   updateFader();
   requestAnimationFrame(updateSimulatorFrame);
+}
+
+function initFloatingButton() {
+  if (!floatingSimButton) return;
+  floatingSimButton.addEventListener("click", () => {
+    if (floatingSimButton.classList.contains("is-at-simulator")) {
+      scrollToTop();
+    } else {
+      scrollToSimulator();
+    }
+  });
+  window.addEventListener("scroll", updateFloatingButtonState, { passive: true });
+  window.addEventListener("resize", updateFloatingButtonState);
+  updateFloatingButtonState();
 }
 
 function categoryLabel(category) {
@@ -1194,5 +1402,6 @@ filterButtons.forEach((button) => {
 });
 
 initSimulator();
+initFloatingButton();
 renderItems();
 initPflMeter();

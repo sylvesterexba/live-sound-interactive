@@ -84,7 +84,7 @@
       </aside>
     </section>
 
-    <section class="simulator-card" aria-labelledby="simulatorTitle">
+    <section class="simulator-card" id="gain-simulator" aria-labelledby="simulatorTitle">
       <div class="simulator-header">
         <div>
           <h2 id="simulatorTitle">Gain Staging Simulator 增益級距模擬器</h2>
@@ -130,22 +130,13 @@
             <span>Output Fader</span>
           </div>
           <div class="wing-fader" id="wingFader">
-            <div class="fader-scale" aria-hidden="true">
-              <span>+10</span>
-              <span>+5</span>
-              <span class="fader-scale__unity">0</span>
-              <span>-5</span>
-              <span>-10</span>
-              <span>-20</span>
-              <span>-40</span>
-              <span>-∞</span>
-            </div>
+            <div class="fader-scale" id="faderScale" aria-hidden="true"></div>
             <div class="fader-track" aria-hidden="true">
               <span class="fader-line"></span>
               <span class="fader-unity"></span>
               <span class="fader-cap" id="faderCap"><span></span></span>
             </div>
-            <input class="output-fader" id="outputFader" type="range" min="-60" max="10" step="0.5" value="0" aria-label="調整 Output Fader" />
+            <input class="output-fader" id="outputFader" type="range" min="0" max="1" step="0.001" value="0.18" aria-label="調整 Output Fader" />
           </div>
           <strong class="control-value" id="faderValue">FADER 0.0 dB</strong>
           <p>Fader 只影響送到輸出或混音中的音量，不會修正 preamp input 過載。</p>
@@ -189,6 +180,8 @@
       </div>
     </section>
   </main>
+
+  <button class="floating-sim-button" id="floatingSimButton" type="button">前往模擬器</button>
 
   <footer>
     <p>資料來源：Live Sound Gain Staging 參考，建議仍以實際現場調整為主。</p>
