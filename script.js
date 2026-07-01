@@ -545,6 +545,18 @@ function closePickerOnMobile() {
   }
 }
 
+function formatBilingualTitle(text) {
+  const title = String(text || "");
+  const firstChineseIndex = title.search(/[\u4e00-\u9fff]/);
+  if (firstChineseIndex <= 0) return title;
+  const english = title.slice(0, firstChineseIndex).trim();
+  const chinese = title.slice(firstChineseIndex).trim();
+  if (!english || !chinese) return title;
+
+  // 動態資料也包成英中兩段，讓手機版只靠 CSS 就能避免中文被擠到英文尾端硬斷行。
+  return `<span class="bilingual-title"><span class="title-en">${english}</span><span class="title-zh">${chinese}</span></span>`;
+}
+
 function instrumentIcon(item) {
   const name = typeof item === "string" ? item : item.name || "";
   const category = typeof item === "string" ? item : item.category || "";
@@ -684,7 +696,7 @@ function renderItems(filter = "all", keyword = "") {
     card.innerHTML = `
       <div class="item-icon" aria-hidden="true">${instrumentIcon(item)}</div>
       <div class="item-content">
-        <h3 class="item-title">${item.name}</h3>
+        <h3 class="item-title">${formatBilingualTitle(item.name)}</h3>
         <div class="item-meta">
           ${item.warning ? "<span class=\"warning-pill\">CLIP WARNING</span>" : ""}
           <span>RMS: ${item.rms || "-"}</span>
@@ -711,7 +723,7 @@ function selectItem(card, item) {
   document.querySelectorAll(".item-card").forEach((node) => node.classList.remove("active"));
   if (card) card.classList.add("active");
 
-  detailName.innerHTML = `<span class="detail-title-text">${item.name}</span><span class="detail-title-icon" aria-hidden="true">${instrumentIcon(item)}</span>`;
+  detailName.innerHTML = `<span class="detail-title-text">${formatBilingualTitle(item.name)}</span><span class="detail-title-icon" aria-hidden="true">${instrumentIcon(item)}</span>`;
   detailCategory.textContent = `類別：${categoryLabel(item.category)}`;
   detailMicType.innerHTML = `<span class="mic-type-display mic-type-display--${micTypeIcon(item.micType)}"><span class="mic-type-icon" aria-hidden="true"></span>${item.micType}</span>`;
   detailModels.textContent = item.models;

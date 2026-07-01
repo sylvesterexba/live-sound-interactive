@@ -179,6 +179,20 @@ main {
   min-width: 0;
   padding-top: 0;
 }
+.bilingual-title {
+  display: inline;
+}
+h1.bilingual-title,
+h2.bilingual-title {
+  display: block;
+}
+.title-en,
+.title-zh {
+  display: inline;
+}
+.title-zh {
+  margin-left: 0.32em;
+}
 .item-title {
   margin: 0 0 8px;
   font-size: 1.05rem;
@@ -1372,6 +1386,16 @@ main {
   .simulator-header {
     order: 0;
     margin-bottom: 0;
+  }
+  /* 窄版把英中標題拆成上下兩行，避免中文被擠在英文後半段產生不自然斷行。 */
+  .bilingual-title,
+  .title-en,
+  .title-zh {
+    display: block;
+  }
+  .title-zh {
+    margin-left: 0;
+    margin-top: 2px;
   }
   /* 手機版把兩個 wrapper 展開成同一層，並讓警告框排在 meter 上方，使用者先看到狀態再看電平。 */
   .simulator-grid,

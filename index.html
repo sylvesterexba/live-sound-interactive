@@ -8,7 +8,10 @@
 </head>
 <body>
   <header>
-    <h1>Gain Staging 互動查詢</h1>
+    <h1 class="bilingual-title">
+      <span class="title-en">Gain Staging</span>
+      <span class="title-zh">互動查詢</span>
+    </h1>
     <p>點選樂器或來源，即可查看建議麥克風、RMS 範圍與 Peak 目標。</p>
   </header>
 
@@ -87,7 +90,11 @@
     <section class="simulator-card" id="gain-simulator" aria-labelledby="simulatorTitle">
       <div class="simulator-header">
         <div>
-          <h2 id="simulatorTitle">Gain Staging Simulator 增益級距模擬器</h2>
+          <!-- 英中標題分段包起來，窄版時可自然上下換行，不會讓中文被擠在英文尾端。 -->
+          <h2 id="simulatorTitle" class="bilingual-title">
+            <span class="title-en">Gain Staging Simulator</span>
+            <span class="title-zh">增益級距模擬器</span>
+          </h2>
           <p>先用 Gain / Preamp 把 Input 調到建議範圍，再用 Fader 做輸出音量平衡。</p>
         </div>
         <div class="simulator-source" id="simulatorSource">目前聲源：-</div>
