@@ -253,8 +253,9 @@
           <span class="module-kicker">Module 2</span>
           <h2 id="moduleEqTitle">EQ Trainer</h2>
           <p class="eq-trainer-placeholder__subtitle">EQ 頻段聽感訓練</p>
-          <span class="eq-trainer-placeholder__status">Coming Soon / 即將推出</span>
+          <span class="eq-trainer-placeholder__status">Preview / 開發預覽</span>
           <p class="eq-trainer-placeholder__description">未來將用於 80 Hz 到 12 kHz 的頻段記憶訓練。</p>
+          <div class="eq-band-preview" id="eqBandPreview" aria-label="EQ 頻段預覽"></div>
         </div>
       </div>
     </section>
@@ -371,5 +372,6 @@
 
   <!-- 腳本依資料、圖示、模擬器、主 UI 的順序載入，避免模組拆分後出現未定義相依。 -->
   <script type="module" src="script.js"></script>
+  <script type="module" src="eqTrainer.js"></script>
 </body>
 </html>

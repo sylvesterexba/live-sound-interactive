@@ -1,5 +1,8 @@
 ﻿/* responsive.css：所有斷點集中最後載入，確保手機 Drawer、平板與手機版覆寫順序一致。 */
 @media (max-width: 1100px) {
+  .eq-band-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .simulator-header {
     display: grid;
   }
@@ -104,6 +107,12 @@
   .eq-trainer-placeholder__panel {
     padding: 16px;
     border-radius: 18px;
+  }
+  .eq-band-preview {
+    grid-template-columns: 1fr;
+  }
+  .eq-band-card {
+    min-height: auto;
   }
   .simulator-card {
     display: grid;

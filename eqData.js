@@ -1,0 +1,101 @@
+export const eqBands = [
+  {
+    id: "eq-80hz",
+    frequency: "80 Hz",
+    label: "低頻重量",
+    impression: "低頻的基礎重量與衝擊感，常影響 kick、bass 與整體厚實度。",
+    commonProblem: "過多時容易轟、濁，過少時低頻支撐不足。",
+    commonTreatment: "確認 PA 與舞台低頻能量後，再少量調整，不用 EQ 補償系統問題。",
+    instruments: ["Kick", "Bass", "Floor Tom", "Playback"],
+    boostAdvice: "需要更多重量或舞台低頻支撐時，可小幅提升。",
+    cutAdvice: "低頻過度堆積或造成轟鳴時，可小幅削減。"
+  },
+  {
+    id: "eq-150hz",
+    frequency: "150 Hz",
+    label: "厚度 / 混濁",
+    impression: "聲音厚度與溫暖感，也容易累積成混濁。",
+    commonProblem: "過多時混音變厚重、不清楚；過少時聲音偏薄。",
+    commonTreatment: "先判斷是單一聲源太厚，還是多個聲源在低中頻堆疊。",
+    instruments: ["Vocal", "Guitar", "Bass", "Snare", "Keyboard"],
+    boostAdvice: "聲音太薄、缺少身體感時可謹慎增加。",
+    cutAdvice: "混音糊成一團或低中頻堆積時，可針對問題聲源削減。"
+  },
+  {
+    id: "eq-250hz",
+    frequency: "250 Hz",
+    label: "箱音",
+    impression: "木箱、鼓腔與房間感常聚集的區域。",
+    commonProblem: "過多時像悶在箱子裡，聲音變鈍。",
+    commonTreatment: "用較窄或中等 Q 值找出箱音位置，不要一次削太寬。",
+    instruments: ["Acoustic Guitar", "Snare", "Tom", "Vocal", "Piano"],
+    boostAdvice: "少數需要補充木質共鳴時可小幅提升。",
+    cutAdvice: "聲音有紙箱感、悶箱感時，通常適合小幅削減。"
+  },
+  {
+    id: "eq-500hz",
+    frequency: "500 Hz",
+    label: "鼻音 / 悶",
+    impression: "中低頻悶感、鼻音與聲音前後距離感的關鍵區域。",
+    commonProblem: "過多時人聲或樂器容易鼻、悶、缺乏開放感。",
+    commonTreatment: "先確認麥克風位置，再用 EQ 做細修。",
+    instruments: ["Vocal", "Saxophone", "Guitar", "Snare", "Tom"],
+    boostAdvice: "聲音太空、缺少中段支撐時可少量增加。",
+    cutAdvice: "鼻音明顯、悶住或不透氣時，可小幅削減。"
+  },
+  {
+    id: "eq-1khz",
+    frequency: "1 kHz",
+    label: "中頻存在",
+    impression: "聲音的核心存在感，決定樂器是否站得住。",
+    commonProblem: "過多時容易硬、擠；過少時聲音退後、不容易辨識。",
+    commonTreatment: "在主唱、吉他、鍵盤等中頻樂器之間分配位置。",
+    instruments: ["Vocal", "Guitar", "Keyboard", "Snare", "Brass"],
+    boostAdvice: "需要讓聲源更靠前、更容易被辨識時可小幅提升。",
+    cutAdvice: "中頻互相打架或聲音太硬時，可針對衝突聲源削減。"
+  },
+  {
+    id: "eq-2khz",
+    frequency: "2 kHz",
+    label: "咬字 / 攻擊",
+    impression: "語音清楚度、撥弦攻擊與鼓件擊點感的區域。",
+    commonProblem: "過多時刺耳、疲勞；過少時咬字不清、攻擊感不足。",
+    commonTreatment: "先確認聲源動態與麥克風角度，再決定是否加強。",
+    instruments: ["Vocal", "Guitar", "Snare", "Kick", "Percussion"],
+    boostAdvice: "需要更清楚的字頭、撥弦或打擊輪廓時可小幅提升。",
+    cutAdvice: "聽感太衝、太咬或長時間疲勞時，可小幅削減。"
+  },
+  {
+    id: "eq-4khz",
+    frequency: "4 kHz",
+    label: "刺 / 清晰",
+    impression: "清晰度、存在感與刺耳感的交界。",
+    commonProblem: "過多時刺、尖、容易造成聽覺疲勞；過少時細節不明。",
+    commonTreatment: "用很小的幅度調整，避免讓主系統變得攻擊性太強。",
+    instruments: ["Vocal", "Cymbal", "Guitar", "Snare", "Brass"],
+    boostAdvice: "需要更多輪廓與穿透力時可非常小幅提升。",
+    cutAdvice: "刺耳、齒音邊緣太銳利或吉他太刮時可削減。"
+  },
+  {
+    id: "eq-8khz",
+    frequency: "8 kHz",
+    label: "亮度",
+    impression: "高頻亮度、細節與空間邊緣感。",
+    commonProblem: "過多時嘶、沙、齒音明顯；過少時聲音暗淡。",
+    commonTreatment: "先分辨是需要亮度，還是只有齒音或雜訊被放大。",
+    instruments: ["Vocal", "Hi-Hat", "Cymbal", "Acoustic Guitar", "Playback"],
+    boostAdvice: "需要更多亮度與細節時可小幅提升。",
+    cutAdvice: "齒音、沙聲或高頻刺感太多時可削減。"
+  },
+  {
+    id: "eq-12khz",
+    frequency: "12 kHz",
+    label: "空氣感",
+    impression: "聲音上方的空氣、開放感與細緻延伸。",
+    commonProblem: "過多時噪聲、嘶聲與不自然的亮感會被放大。",
+    commonTreatment: "確認系統高頻延伸與麥克風品質，再決定是否補充。",
+    instruments: ["Vocal", "Cymbal", "Strings", "Acoustic Guitar", "Playback"],
+    boostAdvice: "需要更開放、更有空氣感時可非常小幅提升。",
+    cutAdvice: "高頻噪聲、嘶聲或空氣感過度時可削減。"
+  }
+];
