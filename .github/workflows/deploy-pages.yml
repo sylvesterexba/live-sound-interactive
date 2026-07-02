@@ -33,6 +33,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    timeout-minutes: 20
 
     environment:
       name: github-pages
