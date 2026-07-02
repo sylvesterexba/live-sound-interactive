@@ -76,6 +76,7 @@ const simulatorPeakHolds = {
   outputL: { value: -60, hold: 0 },
   outputR: { value: -60, hold: 0 }
 };
+const resetPadToleranceDb = 0.1;
 function renderFaderScale() {
   if (!faderScale) return;
   faderScale.innerHTML = "";
@@ -102,6 +103,20 @@ function getRecommendedGain() {
   }
   const recommendedPeakCenter = (simulatorProfile.peakLow + simulatorProfile.peakHigh) / 2;
   return clamp(recommendedPeakCenter - simulatorProfile.sourcePeakAtZero, 0, 60);
+}
+
+function setResetPadState(button, ready) {
+  if (!button) return;
+  button.classList.toggle("is-ready", ready);
+  button.classList.toggle("is-dirty", !ready);
+}
+
+function updateGainResetPad() {
+  setResetPadState(gainResetButton, Math.abs(currentGain - getRecommendedGain()) <= resetPadToleranceDb);
+}
+
+function updateFaderResetPad() {
+  setResetPadState(faderResetButton, Math.abs(currentFader) <= resetPadToleranceDb);
 }
 
 function scrollToSimulator() {
@@ -496,6 +511,7 @@ function updateKnob() {
       dot.classList.toggle("is-active", index < activeCount);
     });
   }
+  updateGainResetPad();
   updateFloatingKnobIcon();
 }
 
@@ -520,6 +536,7 @@ function updateFader() {
   const faderBottom = (1 - position) * 100;
   if (wingFader) wingFader.style.setProperty("--fader-position", `${faderBottom}%`);
   if (faderCap) faderCap.style.bottom = `clamp(26px, ${faderBottom}%, calc(100% - 26px))`;
+  updateFaderResetPad();
 }
 
 function updateStereoMeter() {
