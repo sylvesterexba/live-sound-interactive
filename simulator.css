@@ -94,6 +94,9 @@
   padding: 0;
   cursor: grab;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   background:
     linear-gradient(145deg, rgba(226, 232, 240, 0.28), rgba(15, 23, 42, 0) 28%),
     radial-gradient(circle at 46% 42%, #334155 0 14%, #1f2937 34%, #0f172a 62%, #020617 100%);
@@ -313,6 +316,9 @@
   height: 300px;
   margin: 2px 0;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .wing-fader.is-dragging .fader-track {
   box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.22), 0 12px 24px rgba(0, 0, 0, 0.28);
@@ -429,6 +435,9 @@
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .wing-fader.is-dragging .fader-cap {
   cursor: grabbing;

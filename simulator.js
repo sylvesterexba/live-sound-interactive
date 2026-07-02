@@ -204,23 +204,17 @@ function resetFaderToUnity() {
 
 function handlePointerReset(element, callback) {
   if (!element) return;
-  const longPressDelay = 600;
+  const doubleTapDelay = 360;
   const moveTolerance = 10;
-  let longPressTimer = null;
-  let longPressStart = null;
-  let lastTouchPointerTime = 0;
+  let tapStart = null;
+  let lastTap = null;
 
-  const clearLongPress = () => {
-    if (longPressTimer) {
-      window.clearTimeout(longPressTimer);
-      longPressTimer = null;
-    }
-    longPressStart = null;
+  const clearTapStart = () => {
+    tapStart = null;
   };
 
   element.addEventListener("dblclick", (event) => {
     if (event.sourceCapabilities?.firesTouchEvents) return;
-    if (Date.now() - lastTouchPointerTime < 800) return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
     event.preventDefault();
     callback();
@@ -228,34 +222,61 @@ function handlePointerReset(element, callback) {
 
   element.addEventListener("pointerdown", (event) => {
     if (event.pointerType === "mouse") return;
-    lastTouchPointerTime = Date.now();
-    clearLongPress();
-    longPressStart = {
+    event.preventDefault();
+    tapStart = {
       pointerId: event.pointerId,
+      pointerType: event.pointerType,
       x: event.clientX,
-      y: event.clientY
+      y: event.clientY,
+      moved: false
     };
-    longPressTimer = window.setTimeout(() => {
-      callback();
-      clearLongPress();
-    }, longPressDelay);
   });
 
   element.addEventListener("pointermove", (event) => {
-    if (!longPressStart || event.pointerId !== longPressStart.pointerId) return;
-    const distance = Math.hypot(event.clientX - longPressStart.x, event.clientY - longPressStart.y);
+    if (!tapStart || event.pointerId !== tapStart.pointerId) return;
+    if (event.pointerType !== "mouse") {
+      event.preventDefault();
+    }
+    const distance = Math.hypot(event.clientX - tapStart.x, event.clientY - tapStart.y);
     if (distance > moveTolerance) {
-      clearLongPress();
+      tapStart.moved = true;
     }
   });
 
   element.addEventListener("pointerup", (event) => {
-    if (longPressStart && event.pointerId === longPressStart.pointerId) {
-      clearLongPress();
+    if (!tapStart || event.pointerId !== tapStart.pointerId) return;
+    if (event.pointerType !== "mouse") {
+      event.preventDefault();
     }
+    if (tapStart.moved) {
+      clearTapStart();
+      return;
+    }
+
+    const now = Date.now();
+    const isSamePointerType = lastTap?.pointerType === tapStart.pointerType;
+    const isNearLastTap = lastTap
+      ? Math.hypot(tapStart.x - lastTap.x, tapStart.y - lastTap.y) <= moveTolerance
+      : false;
+    const isDoubleTap =
+      lastTap && isSamePointerType && isNearLastTap && now - lastTap.time <= doubleTapDelay;
+
+    if (isDoubleTap) {
+      callback();
+      lastTap = null;
+    } else {
+      lastTap = {
+        pointerType: tapStart.pointerType,
+        x: tapStart.x,
+        y: tapStart.y,
+        time: now
+      };
+    }
+
+    clearTapStart();
   });
 
-  element.addEventListener("pointercancel", clearLongPress);
+  element.addEventListener("pointercancel", clearTapStart);
 }
 
 function getSimulatorSegmentColor(threshold) {
