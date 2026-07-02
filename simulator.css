@@ -145,32 +145,53 @@
 .sim-reset-button {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  border-radius: 999px;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
   padding: 0;
-  background: rgba(15, 23, 42, 0.72);
+  background: transparent;
   color: #7dd3fc;
-  box-shadow:
-    inset 0 0 12px rgba(56, 189, 248, 0.12),
-    0 0 16px rgba(56, 189, 248, 0.14);
   cursor: pointer;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 900;
   line-height: 1;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   transition:
-    transform 0.14s ease,
+    color 0.14s ease;
+}
+.sim-reset-button::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 45%),
+    #23272e;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.28),
+    0 0 12px rgba(56, 189, 248, 0.12),
+    0 4px 8px rgba(0, 0, 0, 0.28);
+  transition:
+    transform 0.12s ease,
     border-color 0.14s ease,
     background 0.14s ease,
-    box-shadow 0.14s ease,
-    color 0.14s ease;
+    box-shadow 0.14s ease;
+}
+.sim-reset-button span {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 8px rgba(125, 211, 252, 0.34);
+  transition: transform 0.12s ease, color 0.14s ease, text-shadow 0.14s ease;
 }
 .sim-reset-button--gain {
   margin-top: 12px;
@@ -179,19 +200,36 @@
   margin-top: 10px;
 }
 .sim-reset-button:hover {
-  border-color: rgba(125, 211, 252, 0.78);
-  background: rgba(14, 165, 233, 0.18);
   color: #e0f2fe;
-  box-shadow:
-    inset 0 0 14px rgba(56, 189, 248, 0.18),
-    0 0 20px rgba(56, 189, 248, 0.24);
 }
-.sim-reset-button:active {
-  transform: scale(0.92);
+.sim-reset-button:hover::before {
+  border-color: rgba(125, 211, 252, 0.68);
+  background:
+    linear-gradient(180deg, rgba(125, 211, 252, 0.1), transparent 48%),
+    #262c34;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.24),
+    0 0 16px rgba(56, 189, 248, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.28);
+}
+.sim-reset-button:hover span {
+  text-shadow: 0 0 10px rgba(125, 211, 252, 0.5);
+}
+.sim-reset-button:active::before {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 10px rgba(56, 189, 248, 0.16),
+    0 2px 4px rgba(0, 0, 0, 0.22);
+}
+.sim-reset-button:active span {
+  transform: translateY(1px);
 }
 .sim-reset-button:focus-visible {
   outline: 3px solid rgba(125, 211, 252, 0.78);
-  outline-offset: 4px;
+  outline-offset: 2px;
 }
 .knob-led-ring {
   position: absolute;

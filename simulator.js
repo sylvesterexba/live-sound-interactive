@@ -204,8 +204,9 @@ function resetFaderToUnity() {
   updateDisplayReadouts(performance.now(), true);
 }
 
-function handlePointerReset(element, callback) {
+function handlePointerReset(element, callback, options = {}) {
   if (!element) return;
+  const { touchDoubleTap = false } = options;
 
   element.addEventListener("dblclick", (event) => {
     if (event.sourceCapabilities?.firesTouchEvents) return;
@@ -213,6 +214,69 @@ function handlePointerReset(element, callback) {
     event.preventDefault();
     callback();
   });
+
+  if (!touchDoubleTap) return;
+
+  const doubleTapDelay = 360;
+  const moveTolerance = 10;
+  let tapStart = null;
+  let lastTap = null;
+
+  const clearTapStart = () => {
+    tapStart = null;
+  };
+
+  element.addEventListener("pointerdown", (event) => {
+    if (event.pointerType !== "touch") return;
+    tapStart = {
+      pointerId: event.pointerId,
+      pointerType: event.pointerType,
+      x: event.clientX,
+      y: event.clientY,
+      moved: false
+    };
+  });
+
+  element.addEventListener("pointermove", (event) => {
+    if (!tapStart || event.pointerId !== tapStart.pointerId) return;
+    const distance = Math.hypot(event.clientX - tapStart.x, event.clientY - tapStart.y);
+    if (distance > moveTolerance) {
+      tapStart.moved = true;
+    }
+  });
+
+  element.addEventListener("pointerup", (event) => {
+    if (!tapStart || event.pointerId !== tapStart.pointerId) return;
+    if (tapStart.moved) {
+      clearTapStart();
+      return;
+    }
+
+    const now = Date.now();
+    const isSamePointerType = lastTap?.pointerType === tapStart.pointerType;
+    const isNearLastTap = lastTap
+      ? Math.hypot(tapStart.x - lastTap.x, tapStart.y - lastTap.y) <= moveTolerance
+      : false;
+    const isDoubleTap =
+      lastTap && isSamePointerType && isNearLastTap && now - lastTap.time <= doubleTapDelay;
+
+    if (isDoubleTap) {
+      event.preventDefault();
+      callback();
+      lastTap = null;
+    } else {
+      lastTap = {
+        pointerType: tapStart.pointerType,
+        x: tapStart.x,
+        y: tapStart.y,
+        time: now
+      };
+    }
+
+    clearTapStart();
+  });
+
+  element.addEventListener("pointercancel", clearTapStart);
 }
 
 function bindResetButton(button, callback) {
@@ -750,7 +814,7 @@ function initSimulator() {
   bindFaderPointerControl();
   bindResetButton(gainResetButton, resetGainToRecommended);
   bindResetButton(faderResetButton, resetFaderToUnity);
-  handlePointerReset(gainKnob, resetGainToRecommended);
+  handlePointerReset(gainKnob, resetGainToRecommended, { touchDoubleTap: true });
   handlePointerReset(wingFader, resetFaderToUnity);
   updateSimulatorTargetZones();
   updateKnob();
