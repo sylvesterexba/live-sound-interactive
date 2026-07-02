@@ -15,6 +15,7 @@ import {
 
 const simulatorSource = document.getElementById("simulatorSource");
 const gainKnob = document.getElementById("gainKnob");
+const gainResetButton = document.getElementById("gainResetButton");
 const knobLedRing = document.getElementById("knobLedRing");
 const gainValue = document.getElementById("gainValue");
 const inputReadout = document.getElementById("inputReadout");
@@ -23,6 +24,7 @@ const inputPeakMeter = document.getElementById("inputPeakMeter");
 const simInputLabels = document.getElementById("simInputLabels");
 const outputFader = document.getElementById("outputFader");
 const wingFader = document.getElementById("wingFader");
+const faderResetButton = document.getElementById("faderResetButton");
 const faderScale = document.getElementById("faderScale");
 const faderCap = document.getElementById("faderCap");
 const faderValue = document.getElementById("faderValue");
@@ -204,14 +206,6 @@ function resetFaderToUnity() {
 
 function handlePointerReset(element, callback) {
   if (!element) return;
-  const doubleTapDelay = 360;
-  const moveTolerance = 10;
-  let tapStart = null;
-  let lastTap = null;
-
-  const clearTapStart = () => {
-    tapStart = null;
-  };
 
   element.addEventListener("dblclick", (event) => {
     if (event.sourceCapabilities?.firesTouchEvents) return;
@@ -219,64 +213,15 @@ function handlePointerReset(element, callback) {
     event.preventDefault();
     callback();
   });
+}
 
-  element.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "mouse") return;
+function bindResetButton(button, callback) {
+  if (!button) return;
+  button.addEventListener("click", (event) => {
     event.preventDefault();
-    tapStart = {
-      pointerId: event.pointerId,
-      pointerType: event.pointerType,
-      x: event.clientX,
-      y: event.clientY,
-      moved: false
-    };
+    event.stopPropagation();
+    callback();
   });
-
-  element.addEventListener("pointermove", (event) => {
-    if (!tapStart || event.pointerId !== tapStart.pointerId) return;
-    if (event.pointerType !== "mouse") {
-      event.preventDefault();
-    }
-    const distance = Math.hypot(event.clientX - tapStart.x, event.clientY - tapStart.y);
-    if (distance > moveTolerance) {
-      tapStart.moved = true;
-    }
-  });
-
-  element.addEventListener("pointerup", (event) => {
-    if (!tapStart || event.pointerId !== tapStart.pointerId) return;
-    if (event.pointerType !== "mouse") {
-      event.preventDefault();
-    }
-    if (tapStart.moved) {
-      clearTapStart();
-      return;
-    }
-
-    const now = Date.now();
-    const isSamePointerType = lastTap?.pointerType === tapStart.pointerType;
-    const isNearLastTap = lastTap
-      ? Math.hypot(tapStart.x - lastTap.x, tapStart.y - lastTap.y) <= moveTolerance
-      : false;
-    const isDoubleTap =
-      lastTap && isSamePointerType && isNearLastTap && now - lastTap.time <= doubleTapDelay;
-
-    if (isDoubleTap) {
-      callback();
-      lastTap = null;
-    } else {
-      lastTap = {
-        pointerType: tapStart.pointerType,
-        x: tapStart.x,
-        y: tapStart.y,
-        time: now
-      };
-    }
-
-    clearTapStart();
-  });
-
-  element.addEventListener("pointercancel", clearTapStart);
 }
 
 function getSimulatorSegmentColor(threshold) {
@@ -803,6 +748,8 @@ function initSimulator() {
   bindGainKnob();
   bindOutputFader();
   bindFaderPointerControl();
+  bindResetButton(gainResetButton, resetGainToRecommended);
+  bindResetButton(faderResetButton, resetFaderToUnity);
   handlePointerReset(gainKnob, resetGainToRecommended);
   handlePointerReset(wingFader, resetFaderToUnity);
   updateSimulatorTargetZones();

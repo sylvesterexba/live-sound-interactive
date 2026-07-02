@@ -122,6 +122,9 @@
             <span class="gain-knob__cap"></span>
             <span class="gain-knob__mark knob-pointer"></span>
           </button>
+          <button class="sim-reset-button sim-reset-button--gain" id="gainResetButton" type="button" title="回到建議 Gain" aria-label="回到目前樂器的建議 Gain">
+            <span aria-hidden="true">🎯</span>
+          </button>
           <strong class="control-value" id="gainValue">GAIN +28 dB</strong>
           <p>決定進入系統的原始訊號大小。Gain 太大會先造成輸入失真。</p>
         </div>
@@ -157,6 +160,9 @@
             </div>
             <input class="output-fader" id="outputFader" type="range" min="0" max="1" step="0.001" value="0.18" aria-label="調整 Output Fader" />
           </div>
+          <button class="sim-reset-button sim-reset-button--fader" id="faderResetButton" type="button" title="回到 0 dB" aria-label="將 Output Fader 回到 0 dB">
+            <span aria-hidden="true">↺</span>
+          </button>
           <strong class="control-value" id="faderValue">FADER 0.0 dB</strong>
           <p>Fader 只影響送到輸出或混音中的音量，不會修正 preamp input 過載。</p>
         </div>
@@ -254,8 +260,8 @@
         <section>
           <h3>4. 快速操作</h3>
           <ul>
-            <li><strong>Gain Knob</strong>：雙擊可快速回到目前樂器的建議 Gain。</li>
-            <li><strong>Output Fader</strong>：雙擊可快速回到 0 dB。</li>
+            <li><strong>Gain Knob</strong>：點擊 🎯 按鈕，可快速回到目前樂器 / 聲源的建議 Gain。桌機版也可雙擊 Gain Knob 快速回到建議 Gain。</li>
+            <li><strong>Output Fader</strong>：點擊 ↺ 按鈕，可快速回到 0 dB。桌機版也可雙擊 Output Fader 快速回到 0 dB。</li>
           </ul>
         </section>
         <section class="about-callout about-callout--warning">

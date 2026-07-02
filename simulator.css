@@ -142,6 +142,57 @@
 .gain-knob.is-warning { --knob-state-color: #fb923c; }
 .gain-knob.is-clip,
 .gain-knob.is-clipping { --knob-state-color: #ef4444; }
+.sim-reset-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.72);
+  color: #7dd3fc;
+  box-shadow:
+    inset 0 0 12px rgba(56, 189, 248, 0.12),
+    0 0 16px rgba(56, 189, 248, 0.14);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    transform 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease,
+    color 0.14s ease;
+}
+.sim-reset-button--gain {
+  margin-top: 12px;
+}
+.sim-reset-button--fader {
+  margin-top: 10px;
+}
+.sim-reset-button:hover {
+  border-color: rgba(125, 211, 252, 0.78);
+  background: rgba(14, 165, 233, 0.18);
+  color: #e0f2fe;
+  box-shadow:
+    inset 0 0 14px rgba(56, 189, 248, 0.18),
+    0 0 20px rgba(56, 189, 248, 0.24);
+}
+.sim-reset-button:active {
+  transform: scale(0.92);
+}
+.sim-reset-button:focus-visible {
+  outline: 3px solid rgba(125, 211, 252, 0.78);
+  outline-offset: 4px;
+}
 .knob-led-ring {
   position: absolute;
   inset: -12px;
