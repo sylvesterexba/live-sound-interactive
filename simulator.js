@@ -202,26 +202,60 @@ function resetFaderToUnity() {
   updateDisplayReadouts(performance.now(), true);
 }
 
-function handleDoubleTapReset(element, callback) {
+function handlePointerReset(element, callback) {
   if (!element) return;
-  let lastTap = 0;
+  const longPressDelay = 600;
+  const moveTolerance = 10;
+  let longPressTimer = null;
+  let longPressStart = null;
+  let lastTouchPointerTime = 0;
+
+  const clearLongPress = () => {
+    if (longPressTimer) {
+      window.clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    longPressStart = null;
+  };
 
   element.addEventListener("dblclick", (event) => {
+    if (event.sourceCapabilities?.firesTouchEvents) return;
+    if (Date.now() - lastTouchPointerTime < 800) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
     event.preventDefault();
     callback();
   });
 
-  element.addEventListener("pointerup", (event) => {
+  element.addEventListener("pointerdown", (event) => {
     if (event.pointerType === "mouse") return;
-    const now = Date.now();
-    if (now - lastTap < 320) {
-      event.preventDefault();
+    lastTouchPointerTime = Date.now();
+    clearLongPress();
+    longPressStart = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY
+    };
+    longPressTimer = window.setTimeout(() => {
       callback();
-      lastTap = 0;
-      return;
-    }
-    lastTap = now;
+      clearLongPress();
+    }, longPressDelay);
   });
+
+  element.addEventListener("pointermove", (event) => {
+    if (!longPressStart || event.pointerId !== longPressStart.pointerId) return;
+    const distance = Math.hypot(event.clientX - longPressStart.x, event.clientY - longPressStart.y);
+    if (distance > moveTolerance) {
+      clearLongPress();
+    }
+  });
+
+  element.addEventListener("pointerup", (event) => {
+    if (longPressStart && event.pointerId === longPressStart.pointerId) {
+      clearLongPress();
+    }
+  });
+
+  element.addEventListener("pointercancel", clearLongPress);
 }
 
 function getSimulatorSegmentColor(threshold) {
@@ -748,8 +782,8 @@ function initSimulator() {
   bindGainKnob();
   bindOutputFader();
   bindFaderPointerControl();
-  handleDoubleTapReset(gainKnob, resetGainToRecommended);
-  handleDoubleTapReset(wingFader, resetFaderToUnity);
+  handlePointerReset(gainKnob, resetGainToRecommended);
+  handlePointerReset(wingFader, resetFaderToUnity);
   updateSimulatorTargetZones();
   updateKnob();
   updateFader();
