@@ -54,43 +54,220 @@
 
 .eq-band-preview {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
+  gap: 16px;
   margin-top: 8px;
 }
 
-.eq-band-card {
+.eq-atlas-band-list {
   display: grid;
+  align-content: start;
   gap: 8px;
-  min-height: 190px;
+}
+
+.eq-band-selector {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
   border: 1px solid rgba(125, 211, 252, 0.16);
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 10px 12px;
   background: rgba(15, 23, 42, 0.58);
-  box-shadow: inset 0 0 18px rgba(14, 165, 233, 0.04);
+  color: #cbd5e1;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-.eq-band-card__frequency {
+.eq-band-selector strong {
   color: #f8fafc;
-  font-size: 1.25rem;
-  line-height: 1.1;
+  font-size: 0.95rem;
 }
 
-.eq-band-card__label {
+.eq-band-selector span {
   color: #7dd3fc;
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
   font-weight: 900;
 }
 
-.eq-band-card__impression {
+.eq-band-selector:hover,
+.eq-band-selector:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.54);
+  background: rgba(14, 165, 233, 0.12);
+  outline: none;
+}
+
+.eq-band-selector.is-active {
+  border-color: rgba(34, 211, 238, 0.68);
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.76), rgba(14, 165, 233, 0.18));
+  box-shadow:
+    inset 0 0 20px rgba(56, 189, 248, 0.12),
+    0 0 18px rgba(14, 165, 233, 0.12);
+}
+
+.eq-atlas-panel {
+  display: grid;
+  gap: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.eq-atlas-visual {
+  display: grid;
+  gap: 14px;
+}
+
+.eq-frequency-axis {
+  position: relative;
+  min-height: 60px;
+  padding: 24px 0 18px;
+}
+
+.eq-frequency-axis__line {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #22d3ee, #4ade80, #facc15, #fb923c);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.16);
+}
+
+.eq-frequency-axis__label {
+  position: absolute;
+  top: 0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.eq-frequency-axis__label--low {
+  left: 0;
+}
+
+.eq-frequency-axis__label--high {
+  right: 0;
+}
+
+.eq-frequency-axis__marker {
+  --eq-marker-position: 0%;
+  position: absolute;
+  left: var(--eq-marker-position);
+  top: 28px;
+  width: 16px;
+  height: 28px;
+  border: 2px solid #e0f2fe;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.42);
+  box-shadow: 0 0 18px rgba(125, 211, 252, 0.55);
+  transform: translate(-50%, -50%);
+  transition: left 0.22s ease;
+}
+
+.eq-curve-visual {
+  width: 100%;
+  min-height: 170px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px) 0 0 / 100% 30px,
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.1), transparent 34%),
+    rgba(2, 6, 23, 0.5);
+}
+
+.eq-curve-visual__grid {
+  stroke: rgba(148, 163, 184, 0.34);
+  stroke-width: 1;
+}
+
+.eq-curve-visual__grid--soft {
+  stroke: rgba(148, 163, 184, 0.16);
+  stroke-dasharray: 4 6;
+}
+
+.eq-curve-visual__path {
+  fill: none;
+  stroke: #7dd3fc;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+  filter: drop-shadow(0 0 8px rgba(125, 211, 252, 0.45));
+  transition: d 0.22s ease;
+}
+
+.eq-atlas-summary {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  padding-top: 14px;
+}
+
+.eq-atlas-summary__eyebrow {
+  color: #7dd3fc;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.eq-atlas-summary h3 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+}
+
+.eq-atlas-summary > strong {
+  color: #7dd3fc;
+  font-size: 1.05rem;
+}
+
+.eq-atlas-summary dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.eq-atlas-summary div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.eq-atlas-summary dt {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.eq-atlas-summary dd {
   margin: 0;
   color: #cbd5e1;
   line-height: 1.6;
 }
 
-.eq-band-card__instruments {
-  align-self: end;
-  margin: 0;
+.eq-atlas-future {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eq-atlas-future span {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(51, 65, 85, 0.32);
   color: #94a3b8;
-  font-size: 0.86rem;
-  line-height: 1.5;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
