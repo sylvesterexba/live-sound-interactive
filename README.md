@@ -1,6 +1,13 @@
-# Gain Staging 互動查詢
+# Live Sound Interactive Academy
 
-這是 live sound gain staging 參考工具，用來快速查詢不同樂器、聲源與播放來源的建議 RMS 範圍、Peak 目標、預估 headroom、麥克風類型與推薦型號，並透過互動模擬器理解 Gain 與 Fader 的差別。
+這是 Live Sound 互動學習頁面。V2 將原本的 Gain Staging 互動查詢整理為 Academy + Modules 架構，保留既有查詢、PFL / Meter 與 Simulator 功能，並為未來擴充其他教學模組預留清楚的單頁基礎。
+
+## 模組定位
+
+- Module 1：Gain Staging（目前已實作）
+- Module 2：EQ Trainer（保留未來擴充方向，本版不包含 EQ UI、音訊播放、RTA、Auto EQ 或 PEQ 曲線拖曳）
+
+目前所有既有功能仍集中在單頁 `index.html` 中，Gain Staging 是第一個可互動驗收的教學模組。
 
 ## 第一版功能
 
@@ -41,9 +48,9 @@
 
 ## 檔案結構
 
-- `index.html`：頁面結構
+- `index.html`：單頁 Academy 外殼、Module 1 Gain Staging 結構與使用指南
 - `base.css`：reset、body、基本文字與共用標題規則
-- `layout.css`：header、main、頁面 grid、控制區、清單容器與 footer
+- `layout.css`：header、main、Academy / Module 外殼、頁面 grid、控制區、清單容器與 footer
 - `components.css`：按鈕、分類按鈕、項目卡片、mic chip、警告提示、Modal 與浮動按鈕
 - `detail.css`：Detail Panel、Detail Card、Detail Icon、RMS / Peak 參考圖示與 PFL visualizer
 - `simulator.css`：Gain Staging Simulator、Gain Knob、Input Meter、Output Fader、Stereo Meter 與狀態教學

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gain Staging 查詢頁面</title>
+  <title>Live Sound Interactive Academy | Module 1：Gain Staging</title>
   <link rel="stylesheet" href="base.css" />
   <link rel="stylesheet" href="layout.css" />
   <link rel="stylesheet" href="components.css" />
@@ -14,10 +14,10 @@
 <body>
   <header>
     <h1 class="bilingual-title">
-      <span class="title-en">Gain Staging</span>
-      <span class="title-zh">互動查詢</span>
+      <span class="title-en">Live Sound Interactive Academy</span>
+      <span class="title-zh">現場音控互動學院</span>
     </h1>
-    <p>點選樂器或來源，即可查看建議麥克風、RMS 範圍與 Peak 目標。</p>
+    <p>Module 1：Gain Staging。點選樂器或來源，即可查看建議麥克風、RMS 範圍與 Peak 目標。</p>
     <button class="about-button" id="aboutButton" type="button" aria-haspopup="dialog" aria-controls="aboutModal">
       <span class="about-button__icon" aria-hidden="true">i</span>
       使用指南
@@ -25,10 +25,17 @@
   </header>
 
   <main>
-    <button class="picker-toggle" id="pickerToggle" type="button" aria-controls="mobilePicker" aria-expanded="false">選擇樂器</button>
+    <section class="academy-module academy-module--gain" id="module-gain-staging" aria-labelledby="moduleGainTitle" data-module="gain-staging">
+      <div class="module-heading">
+        <span class="module-kicker">Module 1</span>
+        <h2 id="moduleGainTitle">Gain Staging</h2>
+        <p>用樂器參考值、PFL / Meter 與 Simulator 建立健康訊號與混音平衡。</p>
+      </div>
+
+      <button class="picker-toggle" id="pickerToggle" type="button" aria-controls="mobilePicker" aria-expanded="false">選擇樂器</button>
     <div class="picker-backdrop" id="pickerBackdrop"></div>
 
-    <section class="control-panel" id="mobilePicker">
+      <section class="control-panel" id="mobilePicker">
       <div class="filters">
         <button data-filter="warning" class="active">警示</button>
         <button data-filter="vocal">人聲</button>
@@ -41,9 +48,9 @@
         <button data-filter="playback">播放</button>
         <button data-filter="all">全部</button>
       </div>
-    </section>
+      </section>
 
-    <section class="layout">
+      <section class="layout">
 
       <div class="instrument-list">
         <h2>樂器 / 聲源</h2>
@@ -97,9 +104,9 @@
           <div id="pflNote" class="pfl-note detail-note"></div>
         </div>
       </aside>
-    </section>
+      </section>
 
-    <section class="simulator-card" id="gain-simulator" aria-labelledby="simulatorTitle">
+      <section class="simulator-card" id="gain-simulator" aria-labelledby="simulatorTitle">
       <div class="simulator-header">
         <div>
           <!-- 英中標題分段包起來，窄版時可自然上下換行，不會讓中文被擠在英文尾端。 -->
@@ -203,6 +210,9 @@
         <span>流程提示</span>
         <p>Gain / Preamp 控制進入系統的訊號；Fader 控制送出去的音量。先讓 Input Peak 落在目標範圍，再用 Fader 做混音平衡。Input clip 代表前級過載，拉低 Fader 也無法修復失真。</p>
       </div>
+      </section>
+
+      <!-- Module 2：EQ Trainer is reserved for a future module. No EQ Trainer UI or logic is rendered in this V2 base. -->
     </section>
   </main>
 

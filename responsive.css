@@ -75,6 +75,14 @@
   main {
     padding: 16px;
   }
+  .module-heading {
+    margin-bottom: 14px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+  .module-heading h2 {
+    font-size: 1.45rem;
+  }
   .simulator-card {
     display: grid;
     gap: 14px;
