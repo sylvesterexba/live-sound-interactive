@@ -107,16 +107,18 @@ function getRecommendedGain() {
 
 function setResetPadState(button, ready) {
   if (!button) return;
+  const nextState = ready ? "ready" : "dirty";
+  if (button.dataset.resetState === nextState) return;
   button.classList.toggle("is-ready", ready);
   button.classList.toggle("is-dirty", !ready);
+  button.dataset.resetState = nextState;
 }
 
-function updateGainResetPad() {
-  setResetPadState(gainResetButton, Math.abs(currentGain - getRecommendedGain()) <= resetPadToleranceDb);
-}
-
-function updateFaderResetPad() {
-  setResetPadState(faderResetButton, Math.abs(currentFader) <= resetPadToleranceDb);
+function updateResetPadState() {
+  const gainReady = Math.abs(currentGain - getRecommendedGain()) <= resetPadToleranceDb;
+  const faderReady = Math.abs(currentFader) <= resetPadToleranceDb;
+  setResetPadState(gainResetButton, gainReady);
+  setResetPadState(faderResetButton, faderReady);
 }
 
 function scrollToSimulator() {
@@ -511,7 +513,7 @@ function updateKnob() {
       dot.classList.toggle("is-active", index < activeCount);
     });
   }
-  updateGainResetPad();
+  updateResetPadState();
   updateFloatingKnobIcon();
 }
 
@@ -536,7 +538,7 @@ function updateFader() {
   const faderBottom = (1 - position) * 100;
   if (wingFader) wingFader.style.setProperty("--fader-position", `${faderBottom}%`);
   if (faderCap) faderCap.style.bottom = `clamp(26px, ${faderBottom}%, calc(100% - 26px))`;
-  updateFaderResetPad();
+  updateResetPadState();
 }
 
 function updateStereoMeter() {
@@ -673,6 +675,7 @@ export function updateSimulator(timestamp) {
   updateStereoMeter();
   updateDisplayReadouts(timestamp);
   updateStatusMessage();
+  updateResetPadState();
   requestAnimationFrame(updateSimulator);
 }
 
