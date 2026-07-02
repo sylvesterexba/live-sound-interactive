@@ -98,6 +98,13 @@
   .module-heading h2 {
     font-size: 1.45rem;
   }
+  .eq-trainer-placeholder {
+    margin-top: 18px;
+  }
+  .eq-trainer-placeholder__panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
   .simulator-card {
     display: grid;
     gap: 14px;

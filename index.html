@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="components.css" />
   <link rel="stylesheet" href="detail.css" />
   <link rel="stylesheet" href="simulator.css" />
+  <link rel="stylesheet" href="eq-trainer.css" />
   <link rel="stylesheet" href="responsive.css" />
 </head>
 <body>
@@ -52,7 +53,7 @@
           <h3>EQ Trainer</h3>
           <p class="academy-module-card__zh">EQ 頻段聽感訓練</p>
           <p>透過頻段記憶訓練，建立 80 Hz 到 12 kHz 的聲音印象。</p>
-          <button class="academy-module-card__button" type="button" disabled aria-disabled="true">即將推出</button>
+          <button class="academy-module-card__button" type="button" data-module-target="module-eq-trainer">即將推出</button>
         </article>
       </div>
     </section>
@@ -244,7 +245,18 @@
       </div>
       </section>
 
-      <!-- Module 2：EQ Trainer is reserved for a future module. No EQ Trainer UI or logic is rendered in this V2 base. -->
+    </section>
+
+    <section class="academy-module academy-module--eq eq-trainer-placeholder" id="module-eq-trainer" aria-labelledby="moduleEqTitle" data-module="eq-trainer">
+      <div class="eq-trainer-placeholder__panel">
+        <div class="eq-trainer-placeholder__content">
+          <span class="module-kicker">Module 2</span>
+          <h2 id="moduleEqTitle">EQ Trainer</h2>
+          <p class="eq-trainer-placeholder__subtitle">EQ 頻段聽感訓練</p>
+          <span class="eq-trainer-placeholder__status">Coming Soon / 即將推出</span>
+          <p class="eq-trainer-placeholder__description">未來將用於 80 Hz 到 12 kHz 的頻段記憶訓練。</p>
+        </div>
+      </div>
     </section>
   </main>
 
