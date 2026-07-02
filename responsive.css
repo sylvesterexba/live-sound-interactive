@@ -75,6 +75,21 @@
   main {
     padding: 16px;
   }
+  .academy-module-grid {
+    grid-template-columns: 1fr;
+  }
+  .academy-module-card {
+    min-height: auto;
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .academy-module-card__topline {
+    padding-right: 42px;
+  }
+  .academy-module-card__button {
+    width: 100%;
+    justify-content: center;
+  }
   .module-heading {
     margin-bottom: 14px;
     padding: 14px;
@@ -168,11 +183,17 @@
     margin-top: 14px;
   }
   .floating-sim-button {
+    width: 44px;
+    height: 44px;
     right: 14px;
     bottom: 14px;
-    gap: 8px;
-    padding: 9px 13px 9px 10px;
+    justify-content: center;
+    gap: 0;
+    padding: 9px;
     font-size: 0.9rem;
+  }
+  .floating-btn-text {
+    display: none;
   }
   .floating-knob-icon {
     width: 24px;

@@ -17,6 +17,28 @@ header p {
 main {
   padding: 24px;
 }
+.academy-modules {
+  max-width: 1080px;
+  margin: 0 auto 24px;
+}
+.academy-modules__header {
+  margin-bottom: 14px;
+}
+.academy-modules__header h2 {
+  margin: 8px 0 0;
+  color: #f8fafc;
+  font-size: clamp(1.6rem, 2.4vw, 2.25rem);
+}
+.academy-modules__header p {
+  margin: 8px 0 0;
+  max-width: 720px;
+  color: #cbd5e1;
+}
+.academy-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
 .academy-module {
   max-width: 1280px;
   margin: 0 auto;

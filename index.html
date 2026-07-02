@@ -25,6 +25,38 @@
   </header>
 
   <main>
+    <section class="academy-modules" aria-labelledby="academyModulesTitle">
+      <div class="academy-modules__header">
+        <span class="module-kicker">Academy Modules</span>
+        <h2 id="academyModulesTitle">Live Sound Modules</h2>
+        <p>從現場音控的核心流程開始，逐步建立可操作、可判斷、可驗收的聲音工作觀念。</p>
+      </div>
+
+      <div class="academy-module-grid">
+        <article class="academy-module-card academy-module-card--available">
+          <div class="academy-module-card__topline">
+            <span class="academy-module-card__index">Module 1</span>
+            <span class="academy-module-card__status">Available / 已開放</span>
+          </div>
+          <h3>Gain Staging</h3>
+          <p class="academy-module-card__zh">增益級距</p>
+          <p>用樂器參考值、PFL / Meter 與 Simulator 建立健康訊號與混音平衡。</p>
+          <button class="academy-module-card__button" type="button" data-module-target="module-gain-staging">進入 Module</button>
+        </article>
+
+        <article class="academy-module-card academy-module-card--coming">
+          <div class="academy-module-card__topline">
+            <span class="academy-module-card__index">Module 2</span>
+            <span class="academy-module-card__status">Coming Soon / 即將推出</span>
+          </div>
+          <h3>EQ Trainer</h3>
+          <p class="academy-module-card__zh">EQ 頻段聽感訓練</p>
+          <p>透過頻段記憶訓練，建立 80 Hz 到 12 kHz 的聲音印象。</p>
+          <button class="academy-module-card__button" type="button" disabled aria-disabled="true">即將推出</button>
+        </article>
+      </div>
+    </section>
+
     <section class="academy-module academy-module--gain" id="module-gain-staging" aria-labelledby="moduleGainTitle" data-module="gain-staging">
       <div class="module-heading">
         <span class="module-kicker">Module 1</span>

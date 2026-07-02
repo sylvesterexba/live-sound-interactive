@@ -18,6 +18,7 @@ const detailNote = document.getElementById("pflNote");
 const pickerToggle = document.getElementById("pickerToggle");
 const pickerBackdrop = document.getElementById("pickerBackdrop");
 const filterButtons = document.querySelectorAll(".filters button");
+const moduleEntryButtons = document.querySelectorAll("[data-module-target]");
 const aboutButton = document.getElementById("aboutButton");
 const aboutModal = document.getElementById("aboutModal");
 const aboutClose = document.getElementById("aboutClose");
@@ -152,6 +153,12 @@ filterButtons.forEach((button) => {
     filterButtons.forEach((btn) => btn.classList.remove("active"));
     button.classList.add("active");
     renderItems(selectedCategory);
+  });
+});
+moduleEntryButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const target = document.getElementById(button.dataset.moduleTarget);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
 if (aboutButton) {
