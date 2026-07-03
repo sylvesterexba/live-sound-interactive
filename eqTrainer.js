@@ -5,6 +5,12 @@ const eqBandPreview = document.getElementById("eqBandPreview");
 const DEFAULT_BAND_ID = "eq-250hz";
 const MIN_FREQUENCY = 20;
 const MAX_FREQUENCY = 20000;
+const CURVE_LEFT = 24;
+const CURVE_RIGHT = 296;
+const CURVE_ZERO_Y = 60;
+const CURVE_GAIN_SCALE = 5;
+const CURVE_MIN_WIDTH = 7;
+const CURVE_MAX_WIDTH = 34;
 
 let activeBand = eqBands.find((band) => band.id === DEFAULT_BAND_ID) || eqBands[0];
 let bandButtons = [];
@@ -13,10 +19,25 @@ let curvePathNode = null;
 let summaryNode = null;
 
 function getBandFrequencyValue(band) {
-  return (
-    Number.parseFloat(String(band.frequency).replace(/[^0-9.]/g, "")) *
-    (band.frequency.toLowerCase().includes("khz") ? 1000 : 1)
-  );
+  return Number(band.frequency);
+}
+
+function formatFrequency(frequency) {
+  if (frequency >= 1000) {
+    const value = frequency / 1000;
+    return `${Number.isInteger(value) ? value : value.toFixed(1)} kHz`;
+  }
+
+  return `${frequency} Hz`;
+}
+
+function formatGain(gainDb) {
+  return `${gainDb > 0 ? "+" : ""}${gainDb} dB`;
+}
+
+function formatFilterType(filterType) {
+  if (!filterType) return "Bell";
+  return filterType.charAt(0).toUpperCase() + filterType.slice(1);
 }
 
 function getFrequencyPosition(band) {
@@ -26,12 +47,25 @@ function getFrequencyPosition(band) {
   return ((Math.log10(value) - min) / (max - min)) * 100;
 }
 
-function getCurvePath(position) {
-  const x = 24 + (position / 100) * 272;
-  const left = Math.max(24, x - 58);
-  const right = Math.min(296, x + 58);
+function getCurvePath(band) {
+  const centerPosition = getFrequencyPosition(band);
+  const gainDb = Number(band.gainDb) || 0;
+  const q = Math.max(Number(band.q) || 1, 0.1);
+  const width = Math.min(Math.max(28 / q, CURVE_MIN_WIDTH), CURVE_MAX_WIDTH);
+  const gainPixels = Math.max(Math.min(gainDb, 9), -9) * CURVE_GAIN_SCALE;
+  const points = [];
 
-  return `M 24 52 L ${left.toFixed(1)} 52 Q ${x.toFixed(1)} 102 ${right.toFixed(1)} 52 L 296 52`;
+  for (let index = 0; index <= 96; index += 1) {
+    const normalized = index / 96;
+    const position = normalized * 100;
+    const x = CURVE_LEFT + normalized * (CURVE_RIGHT - CURVE_LEFT);
+    const distance = (position - centerPosition) / width;
+    const bellAmount = Math.exp(-0.5 * distance * distance);
+    const y = CURVE_ZERO_Y - gainPixels * bellAmount;
+    points.push(`${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`);
+  }
+
+  return points.join(" ");
 }
 
 function createBandButton(band) {
@@ -39,7 +73,7 @@ function createBandButton(band) {
   button.className = "eq-band-selector";
   button.type = "button";
   button.dataset.bandId = band.id;
-  button.innerHTML = `<strong>${band.frequency}</strong><span>${band.label}</span>`;
+  button.innerHTML = `<strong>${formatFrequency(band.frequency)}</strong><span>${band.label}</span>`;
   button.addEventListener("click", () => setActiveBand(band));
   return button;
 }
@@ -63,10 +97,11 @@ function createAtlasShell() {
       </div>
 
       <svg class="eq-curve-visual" viewBox="0 0 320 120" role="img" aria-labelledby="eqCurveTitle eqCurveDesc">
-        <title id="eqCurveTitle">簡化 EQ Cut 曲線示意</title>
-        <desc id="eqCurveDesc">曲線凹陷位置會依目前選擇頻段移動。</desc>
-        <line class="eq-curve-visual__grid" x1="24" y1="52" x2="296" y2="52"></line>
-        <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="82" x2="296" y2="82"></line>
+        <title id="eqCurveTitle">簡化 EQ Bell 曲線示意</title>
+        <desc id="eqCurveDesc">曲線中心、增益方向與寬度會依目前選擇頻段移動。</desc>
+        <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="30" x2="296" y2="30"></line>
+        <line class="eq-curve-visual__grid" x1="24" y1="60" x2="296" y2="60"></line>
+        <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="90" x2="296" y2="90"></line>
         <path class="eq-curve-visual__path" id="eqCurvePath" d=""></path>
       </svg>
     </div>
@@ -97,14 +132,18 @@ function updateBandButtons() {
 function updateVisualPanel() {
   const position = getFrequencyPosition(activeBand);
   markerNode?.style.setProperty("--eq-marker-position", `${position}%`);
-  curvePathNode?.setAttribute("d", getCurvePath(position));
+  curvePathNode?.setAttribute("d", getCurvePath(activeBand));
 
   if (summaryNode) {
     summaryNode.innerHTML = `
       <span class="eq-atlas-summary__eyebrow">Selected Band</span>
-      <h3>${activeBand.frequency}</h3>
+      <h3>${formatFrequency(activeBand.frequency)}</h3>
       <strong>${activeBand.label}</strong>
       <dl>
+        <div><dt>Frequency</dt><dd>${formatFrequency(activeBand.frequency)}</dd></div>
+        <div><dt>Gain</dt><dd>${formatGain(activeBand.gainDb)}</dd></div>
+        <div><dt>Q</dt><dd>${Number(activeBand.q).toFixed(1)}</dd></div>
+        <div><dt>Type</dt><dd>${formatFilterType(activeBand.filterType)}</dd></div>
         <div><dt>聽感印象</dt><dd>${activeBand.impression}</dd></div>
         <div><dt>常見問題</dt><dd>${activeBand.commonProblem}</dd></div>
         <div><dt>常見處理</dt><dd>${activeBand.commonTreatment}</dd></div>
