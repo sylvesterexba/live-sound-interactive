@@ -416,7 +416,9 @@ function createBandButton(band) {
     <span class="eq-band-selector__label-en">${band.labelEn || band.label}</span>
   `;
   button.addEventListener("click", () => {
-    setActiveBand(band, { openAccordion: true, scrollToControls: true });
+    // On mobile we should not force-open the learning accordion
+    // but we should scroll to the interactive controls so users see the curve immediately.
+    setActiveBand(band, { openAccordion: false, scrollToControls: true });
   });
   return button;
 }
@@ -433,7 +435,8 @@ function createFrequencyTick(band) {
     <small>${band.phonetic || band.bodyLabel}</small>
   `;
   button.addEventListener("click", () => {
-    setActiveBand(band, { openAccordion: true, scrollToControls: true });
+    // Do not force-open accordion when selecting a tick/preset; just update and scroll on mobile.
+    setActiveBand(band, { openAccordion: false, scrollToControls: true });
   });
   return button;
 }
@@ -570,7 +573,7 @@ function renderInteractiveControls() {
         ...getCurrentSettings(),
         frequency: getFrequencyFromSliderValue(event.target.value)
       };
-      activeAccordionItem = "ear-memory";
+      // Do not open the learning accordion on frequency slider changes.
       updateVisualPanel();
     });
 
@@ -957,7 +960,8 @@ function setActiveBand(band, { openAccordion = true, scrollToControls = false } 
 
 function resetToPreset() {
   currentSettings = createPresetSettings(activeBand);
-  activeAccordionItem = "ear-memory";
+  // On reset, collapse learning accordion to reduce jumpiness.
+  activeAccordionItem = null;
   updateVisualPanel();
 }
 
