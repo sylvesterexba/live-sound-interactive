@@ -1,4 +1,4 @@
-import { eqBands } from "./eqData.js";
+import { boostCutTeaching, eqBands } from "./eqData.js";
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
@@ -113,6 +113,20 @@ function createQValueVisuals(activeQCategoryId) {
       </div>
     `
   ).join("");
+}
+
+function createBoostCutDecisionHints(hints = []) {
+  return hints
+    .map(
+      (hint) => `
+        <div class="eq-boost-cut-card__hint">
+          <strong>${hint.question}</strong>
+          <span>${hint.answer}</span>
+          <span>${hint.answerZh}</span>
+        </div>
+      `
+    )
+    .join("");
 }
 
 function getFrequencyPositionFromValue(frequency) {
@@ -323,6 +337,40 @@ function updateVisualPanel() {
         <div class="eq-q-value-card__applications">
           <strong>Applications</strong>
           <ul>${createQApplicationList(activeBand.qApplications)}</ul>
+        </div>
+      </section>
+
+      <section class="eq-boost-cut-card" aria-label="${boostCutTeaching.title}">
+        <span class="eq-boost-cut-card__eyebrow">${boostCutTeaching.title}</span>
+        <div class="eq-boost-cut-card__columns">
+          <article class="eq-boost-cut-card__side eq-boost-cut-card__side--boost">
+            <div class="eq-boost-cut-card__side-header">
+              <span class="eq-boost-cut-card__icon">${activeBand.boostIcon}</span>
+              <strong>${boostCutTeaching.boostLabel}</strong>
+            </div>
+            <dl>
+              <div><dt>${boostCutTeaching.reasonLabel}</dt><dd>${activeBand.boostReason}</dd></div>
+              <div><dt>${boostCutTeaching.suggestionLabel}</dt><dd>${activeBand.boostSuggestion || activeBand.boostAdvice}</dd></div>
+            </dl>
+          </article>
+
+          <article class="eq-boost-cut-card__side eq-boost-cut-card__side--cut">
+            <div class="eq-boost-cut-card__side-header">
+              <span class="eq-boost-cut-card__icon">${activeBand.cutIcon}</span>
+              <strong>${boostCutTeaching.cutLabel}</strong>
+            </div>
+            <dl>
+              <div><dt>${boostCutTeaching.reasonLabel}</dt><dd>${activeBand.cutReason}</dd></div>
+              <div><dt>${boostCutTeaching.suggestionLabel}</dt><dd>${activeBand.cutSuggestion || activeBand.cutAdvice}</dd></div>
+            </dl>
+          </article>
+        </div>
+        <div class="eq-boost-cut-card__decision">
+          <strong>${boostCutTeaching.decisionTitle}</strong>
+          <div class="eq-boost-cut-card__hint-grid">
+            ${createBoostCutDecisionHints(boostCutTeaching.hints)}
+          </div>
+          <p>${boostCutTeaching.priority}<br>${boostCutTeaching.priorityZh}</p>
         </div>
       </section>
 
