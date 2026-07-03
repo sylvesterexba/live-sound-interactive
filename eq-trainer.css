@@ -406,6 +406,103 @@
   line-height: 1.5;
 }
 
+.eq-filter-type-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid
+    color-mix(in srgb, var(--eq-active-color, #7dd3fc) 36%, rgba(148, 163, 184, 0.12));
+  border-radius: 14px;
+  padding: 14px;
+  background:
+    radial-gradient(
+      circle at 88% 18%,
+      color-mix(in srgb, var(--eq-active-color, #7dd3fc) 16%, transparent),
+      transparent 36%
+    ),
+    rgba(15, 23, 42, 0.56);
+  box-shadow: inset 0 0 18px rgba(15, 23, 42, 0.28);
+}
+
+.eq-filter-type-card__eyebrow {
+  color: var(--eq-active-color, #7dd3fc);
+  font-size: 0.74rem;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eq-filter-type-card__main {
+  color: #f8fafc;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-weight: 1000;
+  line-height: 1.05;
+}
+
+.eq-filter-type-card p {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.eq-filter-type-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.eq-filter-type-card div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  padding: 9px;
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.eq-filter-type-card dt {
+  color: #94a3b8;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.eq-filter-type-card dd {
+  margin: 0;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+.eq-filter-type-card__use-cases {
+  display: grid;
+  gap: 6px;
+}
+
+.eq-filter-type-card__use-cases strong {
+  color: #94a3b8;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.eq-filter-type-card__use-cases ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eq-filter-type-card__use-cases li {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.54);
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .eq-atlas-summary dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -483,7 +580,8 @@
     height: 26px;
   }
 
-  .eq-ear-memory-card dl {
+  .eq-ear-memory-card dl,
+  .eq-filter-type-card dl {
     grid-template-columns: 1fr;
   }
 }

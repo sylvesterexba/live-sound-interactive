@@ -59,6 +59,10 @@ function formatFilterType(filterType) {
     .replace(/^./, (character) => character.toUpperCase());
 }
 
+function createFilterUseCaseList(useCases = []) {
+  return useCases.map((useCase) => `<li>${useCase}</li>`).join("");
+}
+
 function getFrequencyPositionFromValue(frequency) {
   const value = Math.min(Math.max(frequency, MIN_FREQUENCY), MAX_FREQUENCY);
   const min = Math.log10(MIN_FREQUENCY);
@@ -249,6 +253,20 @@ function updateVisualPanel() {
           <div><dt>Body Reference</dt><dd>${activeBand.bodyReference}</dd></div>
           <div><dt>快速記憶</dt><dd>${activeBand.memoryHint}</dd></div>
         </dl>
+      </section>
+
+      <section class="eq-filter-type-card" aria-label="Filter Type">
+        <span class="eq-filter-type-card__eyebrow">Filter Type</span>
+        <div class="eq-filter-type-card__main">${activeBand.filterName || formatFilterType(filterType)}</div>
+        <p>${activeBand.filterDescription}</p>
+        <dl>
+          <div><dt>用途</dt><dd>${activeBand.filterDescription}</dd></div>
+          <div><dt>常見 Q</dt><dd>${activeBand.recommendedQ}</dd></div>
+        </dl>
+        <div class="eq-filter-type-card__use-cases">
+          <strong>適用情境</strong>
+          <ul>${createFilterUseCaseList(activeBand.filterUseCases)}</ul>
+        </div>
       </section>
 
       <dl>
