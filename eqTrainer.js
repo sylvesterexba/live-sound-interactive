@@ -52,9 +52,10 @@ let curvePathNode = null;
 let controlsNode = null;
 let feedbackNode = null;
 let summaryNode = null;
+let floatingSummaryNode = null;
 let panelNode = null;
 let currentSettings = null;
-let activeAccordionItem = "ear-memory";
+let activeAccordionItem = null;
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -165,7 +166,7 @@ function createBoostCutDecisionHints(hints = []) {
 }
 
 function createAccordionItem({ id, title, summary, content }) {
-  const isOpen = activeAccordionItem === id;
+  const isOpen = activeAccordionItem === "all" || activeAccordionItem === id;
   const buttonId = `eqAccordionButton-${id}`;
   const panelId = `eqAccordionPanel-${id}`;
 
@@ -180,7 +181,7 @@ function createAccordionItem({ id, title, summary, content }) {
           data-accordion-item="${id}">
           <span class="eq-learning-accordion__title">${title}</span>
           <span class="eq-learning-accordion__summary">${summary}</span>
-          <span class="eq-learning-accordion__icon" aria-hidden="true">${isOpen ? "−" : "+"}</span>
+          <span class="eq-learning-accordion__icon" aria-hidden="true">${isOpen ? "-" : "+"}</span>
         </button>
       </h4>
       <div class="eq-learning-accordion__panel"
@@ -226,6 +227,18 @@ function getFilterTypeLabel(filterType) {
 
 function isFilterTypeRecommended() {
   return getCurrentSettings().filterType === getBandFilterType(activeBand);
+}
+
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function scrollToInteractiveControls() {
+  if (!isMobileViewport()) return;
+
+  window.requestAnimationFrame(() => {
+    controlsNode?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function getFeedbackState() {
@@ -402,7 +415,9 @@ function createBandButton(band) {
     <span class="eq-band-selector__label-zh">${band.labelZh || band.label}</span>
     <span class="eq-band-selector__label-en">${band.labelEn || band.label}</span>
   `;
-  button.addEventListener("click", () => setActiveBand(band));
+  button.addEventListener("click", () => {
+    setActiveBand(band, { openAccordion: true, scrollToControls: true });
+  });
   return button;
 }
 
@@ -415,9 +430,11 @@ function createFrequencyTick(band) {
   button.innerHTML = `
     <span class="eq-frequency-map__dot"></span>
     <strong>${formatFrequency(band.frequency)}</strong>
-    <small>${band.bodyLabel || band.phonetic}</small>
+    <small>${band.phonetic || band.bodyLabel}</small>
   `;
-  button.addEventListener("click", () => setActiveBand(band));
+  button.addEventListener("click", () => {
+    setActiveBand(band, { openAccordion: true, scrollToControls: true });
+  });
   return button;
 }
 
@@ -458,6 +475,8 @@ function createAtlasShell() {
       <span>Instrument EQ Curves: Coming Later</span>
       <span>Microphone Response: Coming Later</span>
     </div>
+
+    <button class="eq-floating-summary" type="button" id="eqFloatingSummary" aria-label="Scroll to EQ controls"></button>
   `;
 
   panelNode = panel;
@@ -466,6 +485,7 @@ function createAtlasShell() {
   controlsNode = panel.querySelector("#eqInteractiveControls");
   feedbackNode = panel.querySelector("#eqSystemFeedback");
   summaryNode = panel.querySelector("#eqAtlasSummary");
+  floatingSummaryNode = panel.querySelector("#eqFloatingSummary");
   frequencyTickButtons = eqBands.map(createFrequencyTick);
   panel.querySelector("#eqFrequencyTicks")?.append(...frequencyTickButtons);
 
@@ -612,6 +632,33 @@ function renderFeedback() {
   `;
 }
 
+function renderFloatingSummary() {
+  if (!floatingSummaryNode) return;
+
+  const settings = getCurrentSettings();
+  floatingSummaryNode.innerHTML = `
+    <span>${formatFrequencyLong(settings.frequency)}</span>
+    <span>${getFilterTypeLabel(settings.filterType)}</span>
+    <span>${formatGain(settings.gain)}</span>
+    <span>Q ${formatQValue(settings.q)}</span>
+  `;
+  floatingSummaryNode.onclick = scrollToInteractiveControls;
+}
+
+function updateFloatingSummaryVisibility() {
+  if (!floatingSummaryNode) return;
+
+  const rect = eqModule.getBoundingClientRect();
+  const isNearEqTrainer = rect.top < window.innerHeight && rect.bottom > 0;
+  floatingSummaryNode.classList.toggle("is-visible", isMobileViewport() && isNearEqTrainer);
+}
+
+function setupFloatingSummaryVisibility() {
+  updateFloatingSummaryVisibility();
+  window.addEventListener("scroll", updateFloatingSummaryVisibility, { passive: true });
+  window.addEventListener("resize", updateFloatingSummaryVisibility);
+}
+
 function renderLearningAccordion(
   settings,
   gain,
@@ -748,10 +795,24 @@ function renderLearningAccordion(
     <span class="eq-atlas-summary__eyebrow">Learning Accordion</span>
     <h3>${formatFrequencyLong(activeBand.frequency)}</h3>
     <strong>${activeBand.label}</strong>
+    <div class="eq-learning-accordion__actions" aria-label="Learning card controls">
+      <button type="button" data-accordion-action="collapse">Collapse All</button>
+      <button type="button" data-accordion-action="expand">Expand All</button>
+    </div>
     <div class="eq-learning-accordion" data-eq-accordion>
       ${accordionItems}
     </div>
   `;
+
+  summaryNode.querySelector('[data-accordion-action="collapse"]')?.addEventListener("click", () => {
+    activeAccordionItem = null;
+    updateVisualPanel();
+  });
+
+  summaryNode.querySelector('[data-accordion-action="expand"]')?.addEventListener("click", () => {
+    activeAccordionItem = "all";
+    updateVisualPanel();
+  });
 
   summaryNode.querySelectorAll("[data-accordion-item]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -775,6 +836,7 @@ function updateVisualPanel() {
   curvePathNode?.setAttribute("d", getCurvePath(settings));
   renderInteractiveControls();
   renderFeedback();
+  renderFloatingSummary();
 
   if (summaryNode) {
     summaryNode.innerHTML = `
@@ -881,12 +943,16 @@ function updateVisualPanel() {
   }
 }
 
-function setActiveBand(band) {
+function setActiveBand(band, { openAccordion = true, scrollToControls = false } = {}) {
   activeBand = band;
   currentSettings = createPresetSettings(activeBand);
-  activeAccordionItem = "ear-memory";
+  activeAccordionItem = openAccordion ? "ear-memory" : null;
   updateBandButtons();
   updateVisualPanel();
+
+  if (scrollToControls) {
+    scrollToInteractiveControls();
+  }
 }
 
 function resetToPreset() {
@@ -899,7 +965,8 @@ function initEqTrainer() {
   if (!eqModule || !eqBandPreview) return;
 
   createAtlasShell();
-  setActiveBand(activeBand);
+  setActiveBand(activeBand, { openAccordion: false });
+  setupFloatingSummaryVisibility();
 }
 
 initEqTrainer();

@@ -100,6 +100,7 @@
   }
   .eq-trainer-placeholder {
     margin-top: 18px;
+    padding-bottom: 58px;
   }
   .eq-trainer-placeholder__panel {
     padding: 16px;
@@ -111,13 +112,26 @@
   .eq-atlas-band-list {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 5px;
     overflow-x: visible;
     padding-bottom: 0;
   }
   .eq-band-selector {
-    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 6px;
     flex: initial;
+    min-height: 48px;
+    padding: 7px 10px;
+    border-radius: 10px;
+  }
+  .eq-band-selector strong {
+    font-size: 0.82rem;
+  }
+  .eq-band-selector__label-zh {
+    font-size: 0.78rem;
+  }
+  .eq-band-selector__label-en {
+    font-size: 0.68rem;
   }
   .eq-atlas-summary dl {
     grid-template-columns: 1fr;
