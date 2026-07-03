@@ -10,6 +10,19 @@ const CURVE_RIGHT = 296;
 const CURVE_ZERO_Y = 60;
 const CURVE_GAIN_SCALE = 4.8;
 const CURVE_PASS_DEPTH = 42;
+const FREQUENCY_SLIDER_STEPS = 1000;
+const MIN_GAIN = -12;
+const MAX_GAIN = 12;
+const MIN_Q = 0.4;
+const MAX_Q = 8;
+const PRESET_TOLERANCE = 0.05;
+const FILTER_TYPE_OPTIONS = [
+  { value: "bell", label: "Bell" },
+  { value: "lowShelf", label: "Low Shelf" },
+  { value: "highShelf", label: "High Shelf" },
+  { value: "highPass", label: "High Pass" },
+  { value: "lowPass", label: "Low Pass" }
+];
 const Q_VALUE_TYPES = [
   {
     id: "wide",
@@ -36,8 +49,11 @@ let bandButtons = [];
 let frequencyTickButtons = [];
 let markerNode = null;
 let curvePathNode = null;
+let controlsNode = null;
+let feedbackNode = null;
 let summaryNode = null;
 let panelNode = null;
+let currentSettings = null;
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -49,6 +65,23 @@ function getBandGainValue(band) {
 
 function getBandFilterType(band) {
   return band.filterType || band.curveType || "bell";
+}
+
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(Number(value), min), max);
+}
+
+function createPresetSettings(band) {
+  return {
+    frequency: getBandFrequencyValue(band),
+    gain: getBandGainValue(band),
+    q: Number(band.q) || 1,
+    filterType: getBandFilterType(band)
+  };
+}
+
+function getCurrentSettings() {
+  return currentSettings || createPresetSettings(activeBand);
 }
 
 function formatFrequency(frequency) {
@@ -70,7 +103,8 @@ function formatFrequencyLong(frequency) {
 }
 
 function formatGain(gain) {
-  return `${gain > 0 ? "+" : ""}${gain} dB`;
+  const value = Number(gain);
+  return `${value > 0 ? "+" : ""}${Number.isInteger(value) ? value : value.toFixed(1)} dB`;
 }
 
 function formatFilterType(filterType) {
@@ -129,6 +163,126 @@ function createBoostCutDecisionHints(hints = []) {
     .join("");
 }
 
+function getFrequencySliderValue(frequency) {
+  return Math.round((getFrequencyPositionFromValue(frequency) / 100) * FREQUENCY_SLIDER_STEPS);
+}
+
+function getFrequencyFromSliderValue(sliderValue) {
+  const normalized = clampNumber(sliderValue, 0, FREQUENCY_SLIDER_STEPS) / FREQUENCY_SLIDER_STEPS;
+  const min = Math.log10(MIN_FREQUENCY);
+  const max = Math.log10(MAX_FREQUENCY);
+  return Math.round(10 ** (min + normalized * (max - min)));
+}
+
+function hasCustomAdjustment() {
+  const preset = createPresetSettings(activeBand);
+  const settings = getCurrentSettings();
+
+  return (
+    Math.abs(settings.frequency - preset.frequency) > 1 ||
+    Math.abs(settings.gain - preset.gain) > PRESET_TOLERANCE ||
+    Math.abs(settings.q - preset.q) > PRESET_TOLERANCE ||
+    settings.filterType !== preset.filterType
+  );
+}
+
+function getFilterTypeLabel(filterType) {
+  return (
+    FILTER_TYPE_OPTIONS.find((option) => option.value === filterType)?.label ||
+    formatFilterType(filterType)
+  );
+}
+
+function isFilterTypeRecommended() {
+  return getCurrentSettings().filterType === getBandFilterType(activeBand);
+}
+
+function getFeedbackState() {
+  const settings = getCurrentSettings();
+  const gain = Number(settings.gain);
+  const q = Number(settings.q);
+  const presetFrequency = getBandFrequencyValue(activeBand);
+  const isHeavyBoostRange = [63, 250, 500, 4000, 8000].includes(presetFrequency);
+  const isCustom = hasCustomAdjustment();
+
+  if (gain > 9 || gain < -9) {
+    return {
+      level: "warning",
+      title: "Warning / 警告",
+      message: "Gain adjustment is very strong.",
+      messageZh: "Gain 調整幅度過大，可能讓 EQ 聽起來不自然或造成 headroom 壓力。"
+    };
+  }
+
+  if (q > 6) {
+    return {
+      level: "warning",
+      title: "Warning / 警告",
+      message: "Q value is too narrow.",
+      messageZh: "很窄的 Q 適合處理 feedback 或共振，不適合拿來做大範圍音色塑形。"
+    };
+  }
+
+  if (isHeavyBoostRange && gain > 6) {
+    const warningMap = {
+      63: "63 Hz Boost 過多。這個區域會快速吃掉 headroom，也容易讓 PA 或舞台低頻變得轟。",
+      250: "250 Hz Boost 過多。這個區域容易累積箱音與混濁感，過度提升可能讓聲音變悶。",
+      500: "500 Hz Boost 過多。這個區域容易讓聲音變鼻、變悶，混音會更擁擠。",
+      4000: "4 kHz Boost 過多。這個區域容易帶來刺耳感與聽覺疲勞。",
+      8000: "8 kHz Boost 過多。這個區域容易放大齒音、沙聲與 cymbal 刺點。"
+    };
+
+    return {
+      level: "warning",
+      title: "Warning / 警告",
+      message: "Heavy boost on this band needs care.",
+      messageZh: warningMap[presetFrequency]
+    };
+  }
+
+  if (gain > 6 || gain < -6) {
+    return {
+      level: "notice",
+      title: "Notice / 注意",
+      message: "Boost or cut is getting strong.",
+      messageZh:
+        gain > 6
+          ? "Boost 已經偏多。如果只是想增加存在感，通常先從 +2 到 +4 dB 開始會比較自然。"
+          : "Cut 已經偏多。若聲音變薄或消失，試著縮小削減幅度或調整 Q。"
+    };
+  }
+
+  if (q > 4 || q < 0.7) {
+    return {
+      level: "notice",
+      title: "Notice / 注意",
+      message: "Q value is outside the usual tone-shaping range.",
+      messageZh:
+        q > 4
+          ? "Q 已經偏窄，適合找問題點；若要修飾音色，可以考慮放寬一些。"
+          : "Q 已經偏寬，會影響很大的頻率範圍；適合整體色彩，不適合精準處理。"
+    };
+  }
+
+  if (!isFilterTypeRecommended()) {
+    return {
+      level: "notice",
+      title: "Notice / 注意",
+      message: "Filter type differs from the preset.",
+      messageZh: "目前 Filter Type 已離開建議類型。這可以用來探索，但請留意曲線用途是否符合目標。"
+    };
+  }
+
+  return {
+    level: "good",
+    title: "Good / 合理",
+    message: isCustom
+      ? "Current custom setting is still in a reasonable range."
+      : "Preset recommendation is loaded.",
+    messageZh: "目前設定合理。這個範圍適合用來做音色修飾，不容易造成過度處理。"
+  };
+}
+
 function getFrequencyPositionFromValue(frequency) {
   const value = Math.min(Math.max(frequency, MIN_FREQUENCY), MAX_FREQUENCY);
   const min = Math.log10(MIN_FREQUENCY);
@@ -162,11 +316,11 @@ function getPassAmount(position, centerPosition, q, isHighPass) {
   return 1 / (1 + Math.exp(direction / width));
 }
 
-function getCurveY(position, band) {
-  const centerPosition = getFrequencyPosition(band);
-  const q = Math.max(Number(band.q) || 1, 0.1);
-  const gain = Math.max(Math.min(getBandGainValue(band), 12), -12);
-  const filterType = getBandFilterType(band);
+function getCurveY(position, settings) {
+  const centerPosition = getFrequencyPositionFromValue(settings.frequency);
+  const q = Math.max(Number(settings.q) || 1, 0.1);
+  const gain = clampNumber(settings.gain, MIN_GAIN, MAX_GAIN);
+  const filterType = settings.filterType;
 
   if (filterType === "highShelf") {
     return (
@@ -181,26 +335,26 @@ function getCurveY(position, band) {
   }
 
   if (filterType === "highPass") {
-    return CURVE_ZERO_Y + CURVE_PASS_DEPTH * (1 - getPassAmount(position, centerPosition, q, true));
+    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 18, 66);
+    return CURVE_ZERO_Y + passDepth * (1 - getPassAmount(position, centerPosition, q, true));
   }
 
   if (filterType === "lowPass") {
-    return (
-      CURVE_ZERO_Y + CURVE_PASS_DEPTH * (1 - getPassAmount(position, centerPosition, q, false))
-    );
+    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 18, 66);
+    return CURVE_ZERO_Y + passDepth * (1 - getPassAmount(position, centerPosition, q, false));
   }
 
   return CURVE_ZERO_Y - gain * CURVE_GAIN_SCALE * getBellAmount(position, centerPosition, q);
 }
 
-function getCurvePath(band) {
+function getCurvePath(settings) {
   const points = [];
 
   for (let index = 0; index <= 128; index += 1) {
     const normalized = index / 128;
     const position = normalized * 100;
     const x = getXFromPosition(position);
-    const y = getCurveY(position, band);
+    const y = getCurveY(position, settings);
     points.push(`${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`);
   }
 
@@ -263,6 +417,10 @@ function createAtlasShell() {
       </svg>
     </div>
 
+    <section class="eq-interactive-controls" id="eqInteractiveControls" aria-label="Interactive EQ controls"></section>
+
+    <section class="eq-system-feedback" id="eqSystemFeedback" aria-live="polite"></section>
+
     <div class="eq-atlas-summary" id="eqAtlasSummary"></div>
 
     <div class="eq-atlas-future">
@@ -274,6 +432,8 @@ function createAtlasShell() {
   panelNode = panel;
   markerNode = panel.querySelector("#eqFrequencyMarker");
   curvePathNode = panel.querySelector("#eqCurvePath");
+  controlsNode = panel.querySelector("#eqInteractiveControls");
+  feedbackNode = panel.querySelector("#eqSystemFeedback");
   summaryNode = panel.querySelector("#eqAtlasSummary");
   frequencyTickButtons = eqBands.map(createFrequencyTick);
   panel.querySelector("#eqFrequencyTicks")?.append(...frequencyTickButtons);
@@ -294,17 +454,143 @@ function updateBandButtons() {
   updateButtonState(frequencyTickButtons);
 }
 
+function createFilterTypeButtons(selectedFilterType) {
+  return FILTER_TYPE_OPTIONS.map(
+    (option) => `
+      <button class="eq-filter-control${option.value === selectedFilterType ? " is-active" : ""}"
+        type="button"
+        data-filter-type="${option.value}"
+        aria-pressed="${option.value === selectedFilterType}">
+        ${option.label}
+      </button>
+    `
+  ).join("");
+}
+
+function renderInteractiveControls() {
+  if (!controlsNode) return;
+
+  const settings = getCurrentSettings();
+  controlsNode.innerHTML = `
+    <div class="eq-interactive-controls__header">
+      <div>
+        <span class="eq-interactive-controls__eyebrow">Interactive EQ Trainer</span>
+        <h4>EQ Control Surface</h4>
+      </div>
+      <button class="eq-reset-preset" type="button" data-eq-reset>
+        <span>Reset to Preset</span>
+        <small>回到建議值</small>
+      </button>
+    </div>
+
+    <div class="eq-control-grid">
+      <label class="eq-control">
+        <span class="eq-control__label">Frequency</span>
+        <strong class="eq-control__value" data-eq-frequency-readout>${formatFrequencyLong(settings.frequency)}</strong>
+        <input data-eq-control="frequency" type="range" min="0" max="${FREQUENCY_SLIDER_STEPS}" step="1" value="${getFrequencySliderValue(settings.frequency)}">
+      </label>
+
+      <label class="eq-control">
+        <span class="eq-control__label">Gain</span>
+        <strong class="eq-control__value" data-eq-gain-readout>${formatGain(settings.gain)}</strong>
+        <input data-eq-control="gain" type="range" min="${MIN_GAIN}" max="${MAX_GAIN}" step="0.5" value="${settings.gain}">
+      </label>
+
+      <label class="eq-control">
+        <span class="eq-control__label">Q</span>
+        <strong class="eq-control__value" data-eq-q-readout>${formatQValue(settings.q)}</strong>
+        <input data-eq-control="q" type="range" min="${MIN_Q}" max="${MAX_Q}" step="0.1" value="${settings.q}">
+      </label>
+
+      <div class="eq-control eq-control--filter">
+        <span class="eq-control__label">Filter Type</span>
+        <strong class="eq-control__value" data-eq-filter-readout>${getFilterTypeLabel(settings.filterType)}</strong>
+        <div class="eq-filter-controls" role="group" aria-label="Filter Type">
+          ${createFilterTypeButtons(settings.filterType)}
+        </div>
+      </div>
+    </div>
+  `;
+
+  controlsNode
+    .querySelector('[data-eq-control="frequency"]')
+    ?.addEventListener("input", (event) => {
+      currentSettings = {
+        ...getCurrentSettings(),
+        frequency: getFrequencyFromSliderValue(event.target.value)
+      };
+      updateVisualPanel();
+    });
+
+  controlsNode.querySelector('[data-eq-control="gain"]')?.addEventListener("input", (event) => {
+    currentSettings = {
+      ...getCurrentSettings(),
+      gain: Number(event.target.value)
+    };
+    updateVisualPanel();
+  });
+
+  controlsNode.querySelector('[data-eq-control="q"]')?.addEventListener("input", (event) => {
+    currentSettings = {
+      ...getCurrentSettings(),
+      q: Number(event.target.value)
+    };
+    updateVisualPanel();
+  });
+
+  controlsNode.querySelectorAll("[data-filter-type]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentSettings = {
+        ...getCurrentSettings(),
+        filterType: button.dataset.filterType
+      };
+      updateVisualPanel();
+    });
+  });
+
+  controlsNode.querySelector("[data-eq-reset]")?.addEventListener("click", () => {
+    resetToPreset();
+  });
+}
+
+function renderFeedback() {
+  if (!feedbackNode) return;
+
+  const feedback = getFeedbackState();
+  const isCustom = hasCustomAdjustment();
+  feedbackNode.className = `eq-system-feedback eq-system-feedback--${feedback.level}`;
+  feedbackNode.innerHTML = `
+    <div class="eq-system-feedback__status">
+      <span>${feedback.title}</span>
+      <strong>${isCustom ? "Custom Adjustment" : "Preset Recommendation"}</strong>
+      <small>${isCustom ? "自訂調整中" : "目前為建議值"}</small>
+    </div>
+    <div class="eq-system-feedback__message">
+      <p>${feedback.message}</p>
+      <p>${feedback.messageZh}</p>
+      ${
+        isCustom
+          ? "<p>目前設定已離開建議值，可按 Reset 回到 Preset。</p>"
+          : "<p>目前載入的是此頻段的建議起點。</p>"
+      }
+    </div>
+  `;
+}
+
 function updateVisualPanel() {
-  const position = getFrequencyPosition(activeBand);
-  const gain = getBandGainValue(activeBand);
-  const filterType = getBandFilterType(activeBand);
+  const settings = getCurrentSettings();
+  const position = getFrequencyPositionFromValue(settings.frequency);
+  const gain = settings.gain;
+  const filterType = settings.filterType;
   const memoryTitle = activeBand.phonetic || activeBand.bodyLabel;
   const memorySubtitle = activeBand.phoneticZh || activeBand.bodyReference;
-  const activeQCategoryId = getQCategoryId(activeBand.q);
+  const activeQCategoryId = getQCategoryId(settings.q);
 
   panelNode?.style.setProperty("--eq-active-color", activeBand.color);
   markerNode?.style.setProperty("--eq-marker-position", `${position}%`);
-  curvePathNode?.setAttribute("d", getCurvePath(activeBand));
+  curvePathNode?.setAttribute("d", getCurvePath(settings));
+  renderInteractiveControls();
+  renderFeedback();
 
   if (summaryNode) {
     summaryNode.innerHTML = `
@@ -327,7 +613,7 @@ function updateVisualPanel() {
         <div class="eq-q-value-card__main">${activeBand.qCategory}</div>
         <p>Controls the bandwidth of the filter.<br>控制 EQ 影響的頻率範圍。</p>
         <dl>
-          <div><dt>Current Q</dt><dd>${formatQValue(activeBand.q)}</dd></div>
+          <div><dt>Current Q</dt><dd>${formatQValue(settings.q)}</dd></div>
           <div><dt>Recommended Q</dt><dd>${activeBand.recommendedQ}</dd></div>
         </dl>
         <div class="eq-q-value-card__visuals" aria-label="Q bandwidth comparison">
@@ -376,7 +662,7 @@ function updateVisualPanel() {
 
       <section class="eq-filter-type-card" aria-label="Filter Type">
         <span class="eq-filter-type-card__eyebrow">Filter Type</span>
-        <div class="eq-filter-type-card__main">${activeBand.filterName || formatFilterType(filterType)}</div>
+        <div class="eq-filter-type-card__main">${getFilterTypeLabel(filterType)}</div>
         <p>${activeBand.filterDescription}</p>
         <dl>
           <div><dt>用途</dt><dd>${activeBand.filterDescription}</dd></div>
@@ -389,10 +675,10 @@ function updateVisualPanel() {
       </section>
 
       <dl>
-        <div><dt>Frequency</dt><dd>${formatFrequencyLong(activeBand.frequency)}</dd></div>
+        <div><dt>Frequency</dt><dd>${formatFrequencyLong(settings.frequency)}</dd></div>
         <div><dt>Gain</dt><dd>${formatGain(gain)}</dd></div>
-        <div><dt>Q</dt><dd>${Number(activeBand.q).toFixed(1)}</dd></div>
-        <div><dt>Type</dt><dd>${formatFilterType(filterType)}</dd></div>
+        <div><dt>Q</dt><dd>${formatQValue(settings.q)}</dd></div>
+        <div><dt>Type</dt><dd>${getFilterTypeLabel(filterType)}</dd></div>
         <div><dt>聽感印象</dt><dd>${activeBand.impression}</dd></div>
         <div><dt>常見問題</dt><dd>${activeBand.commonProblem}</dd></div>
         <div><dt>常見處理</dt><dd>${activeBand.commonTreatment}</dd></div>
@@ -405,7 +691,13 @@ function updateVisualPanel() {
 
 function setActiveBand(band) {
   activeBand = band;
+  currentSettings = createPresetSettings(activeBand);
   updateBandButtons();
+  updateVisualPanel();
+}
+
+function resetToPreset() {
+  currentSettings = createPresetSettings(activeBand);
   updateVisualPanel();
 }
 

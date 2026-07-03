@@ -109,16 +109,15 @@
     grid-template-columns: 1fr;
   }
   .eq-atlas-band-list {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scroll-snap-type: x proximity;
+    overflow-x: visible;
+    padding-bottom: 0;
   }
   .eq-band-selector {
-    grid-template-columns: 1fr;
-    flex: 0 0 132px;
-    scroll-snap-align: start;
+    grid-template-columns: 72px minmax(0, 1fr);
+    flex: initial;
   }
   .eq-atlas-summary dl {
     grid-template-columns: 1fr;
