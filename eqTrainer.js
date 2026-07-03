@@ -10,6 +10,26 @@ const CURVE_RIGHT = 296;
 const CURVE_ZERO_Y = 60;
 const CURVE_GAIN_SCALE = 4.8;
 const CURVE_PASS_DEPTH = 42;
+const Q_VALUE_TYPES = [
+  {
+    id: "wide",
+    label: "Wide Q",
+    labelZh: "寬 Q",
+    path: "M 8 48 C 32 48, 36 20, 60 20 C 84 20, 88 48, 112 48"
+  },
+  {
+    id: "medium",
+    label: "Medium Q",
+    labelZh: "中等 Q",
+    path: "M 8 48 C 40 48, 42 20, 60 20 C 78 20, 80 48, 112 48"
+  },
+  {
+    id: "narrow",
+    label: "Narrow Q",
+    labelZh: "窄 Q",
+    path: "M 8 48 C 48 48, 50 20, 60 20 C 70 20, 72 48, 112 48"
+  }
+];
 
 let activeBand = eqBands.find((band) => band.id === DEFAULT_BAND_ID) || eqBands[0];
 let bandButtons = [];
@@ -61,6 +81,38 @@ function formatFilterType(filterType) {
 
 function createFilterUseCaseList(useCases = []) {
   return useCases.map((useCase) => `<li>${useCase}</li>`).join("");
+}
+
+function getQCategoryId(q) {
+  const qValue = Number(q);
+
+  if (qValue <= 1) return "wide";
+  if (qValue <= 2) return "medium";
+  return "narrow";
+}
+
+function formatQValue(q) {
+  return Number(q).toFixed(1);
+}
+
+function createQApplicationList(applications = []) {
+  return applications.map((application) => `<li>${application}</li>`).join("");
+}
+
+function createQValueVisuals(activeQCategoryId) {
+  return Q_VALUE_TYPES.map(
+    (type) => `
+      <div class="eq-q-value-card__type${type.id === activeQCategoryId ? " is-active" : ""}">
+        <svg viewBox="0 0 120 64" role="img" aria-label="${type.label} curve example">
+          <line class="eq-q-value-card__grid" x1="8" y1="48" x2="112" y2="48"></line>
+          <line class="eq-q-value-card__center" x1="60" y1="14" x2="60" y2="54"></line>
+          <path class="eq-q-value-card__curve" d="${type.path}"></path>
+        </svg>
+        <strong>${type.label}</strong>
+        <span>${type.labelZh}</span>
+      </div>
+    `
+  ).join("");
 }
 
 function getFrequencyPositionFromValue(frequency) {
@@ -234,6 +286,7 @@ function updateVisualPanel() {
   const filterType = getBandFilterType(activeBand);
   const memoryTitle = activeBand.phonetic || activeBand.bodyLabel;
   const memorySubtitle = activeBand.phoneticZh || activeBand.bodyReference;
+  const activeQCategoryId = getQCategoryId(activeBand.q);
 
   panelNode?.style.setProperty("--eq-active-color", activeBand.color);
   markerNode?.style.setProperty("--eq-marker-position", `${position}%`);
@@ -253,6 +306,24 @@ function updateVisualPanel() {
           <div><dt>Body Reference</dt><dd>${activeBand.bodyReference}</dd></div>
           <div><dt>快速記憶</dt><dd>${activeBand.memoryHint}</dd></div>
         </dl>
+      </section>
+
+      <section class="eq-q-value-card" aria-label="Q Value">
+        <span class="eq-q-value-card__eyebrow">Q Value / Q 值</span>
+        <div class="eq-q-value-card__main">${activeBand.qCategory}</div>
+        <p>Controls the bandwidth of the filter.<br>控制 EQ 影響的頻率範圍。</p>
+        <dl>
+          <div><dt>Current Q</dt><dd>${formatQValue(activeBand.q)}</dd></div>
+          <div><dt>Recommended Q</dt><dd>${activeBand.recommendedQ}</dd></div>
+        </dl>
+        <div class="eq-q-value-card__visuals" aria-label="Q bandwidth comparison">
+          ${createQValueVisuals(activeQCategoryId)}
+        </div>
+        <p class="eq-q-value-card__description">${activeBand.qDescription}</p>
+        <div class="eq-q-value-card__applications">
+          <strong>Applications</strong>
+          <ul>${createQApplicationList(activeBand.qApplications)}</ul>
+        </div>
       </section>
 
       <section class="eq-filter-type-card" aria-label="Filter Type">
