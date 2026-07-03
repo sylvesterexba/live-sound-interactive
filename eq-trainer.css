@@ -404,6 +404,109 @@
 
 .eq-control--filter {
   grid-column: 1 / -1;
+  position: relative;
+}
+
+.eq-filter-type-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.eq-filter-type-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: rgba(15, 23, 42, 0.68);
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.eq-filter-type-select__chevron {
+  font-size: 0.85rem;
+}
+
+.eq-filter-dropdown {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(8, 15, 30, 0.95);
+  z-index: 5;
+}
+
+.eq-filter-dropdown-item {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.68);
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eq-filter-dropdown-item.is-active,
+.eq-filter-dropdown-item:hover,
+.eq-filter-dropdown-item:focus-visible {
+  border-color: rgba(125, 211, 252, 0.48);
+  background: rgba(15, 23, 42, 0.84);
+  color: #f8fafc;
+  outline: none;
+}
+
+.eq-filter-shape-list {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  padding-top: 10px;
+}
+
+.eq-filter-shape-button {
+  min-width: 72px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.62);
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.eq-filter-shape-button svg {
+  width: 100%;
+  height: 36px;
+  stroke: #94a3b8;
+  stroke-width: 3;
+  fill: none;
+}
+
+.eq-filter-shape-button.is-active {
+  border-color: rgba(250, 204, 21, 0.95);
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.18);
+  color: #f8fafc;
+}
+
+.eq-filter-shape-button.is-active svg {
+  stroke: #facc15;
 }
 
 .eq-control__label {
@@ -616,15 +719,15 @@
 }
 
 .eq-learning-accordion__button {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(90px, 0.7fr) 28px;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  min-height: 52px;
+  min-height: 48px;
   border: 0;
-  padding: 10px 12px;
-  background: transparent;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.65);
   color: #e2e8f0;
   font: inherit;
   text-align: left;
@@ -633,42 +736,79 @@
 
 .eq-learning-accordion__button:hover,
 .eq-learning-accordion__button:focus-visible {
-  background: color-mix(in srgb, var(--eq-active-color, #7dd3fc) 10%, transparent);
+  background: rgba(15, 23, 42, 0.82);
   outline: none;
+}
+
+.eq-learning-accordion__button-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .eq-learning-accordion__title {
   min-width: 0;
   color: #f8fafc;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 1000;
   overflow-wrap: anywhere;
 }
 
 .eq-learning-accordion__summary {
   min-width: 0;
-  justify-self: end;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 999px;
   padding: 4px 8px;
   background: rgba(15, 23, 42, 0.46);
   color: var(--eq-active-color, #7dd3fc);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 900;
   overflow-wrap: anywhere;
   text-align: right;
+  white-space: nowrap;
+}
+
+.eq-learning-accordion__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  color: #cbd5e1;
+  font-size: 0.95rem;
 }
 
 .eq-learning-accordion__icon {
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   border: 1px solid rgba(125, 211, 252, 0.24);
-  border-radius: 8px;
+  border-radius: 10px;
   background: rgba(15, 23, 42, 0.62);
   color: #f8fafc;
-  font-weight: 1000;
+  font-size: 0.95rem;
+}
+
+.eq-learning-accordion__item--purple {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.eq-learning-accordion__item--yellow {
+  border-color: rgba(250, 204, 21, 0.3);
+}
+
+.eq-learning-accordion__item--green {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.eq-learning-accordion__item--teal {
+  border-color: rgba(34, 211, 238, 0.3);
+}
+
+.eq-learning-accordion__item--blue {
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
 .eq-learning-accordion__panel {
@@ -1279,6 +1419,104 @@
     width: auto;
     min-width: 120px;
     padding: 8px 10px;
+  }
+
+  .eq-control-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .eq-control {
+    padding: 10px;
+  }
+
+  .eq-filter-type-select {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .eq-filter-dropdown {
+    margin-top: 8px;
+  }
+
+  .eq-filter-shape-list {
+    padding-top: 8px;
+    gap: 8px;
+  }
+
+  .eq-filter-shape-button {
+    min-width: 62px;
+    padding: 8px 8px;
+  }
+
+  .eq-system-feedback {
+    padding: 12px;
+  }
+
+  .eq-system-feedback__message {
+    gap: 4px;
+  }
+
+  .eq-learning-accordion {
+    gap: 6px;
+  }
+
+  .eq-learning-accordion__button {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .eq-learning-accordion__summary {
+    font-size: 0.7rem;
+    padding: 3px 7px;
+  }
+
+  .eq-floating-summary.is-visible {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    z-index: 120;
+    display: grid;
+    grid-template-columns: auto repeat(4, minmax(0, 1fr)) auto;
+    gap: 8px;
+    border-radius: 14px;
+    padding: 10px 12px;
+    height: 60px;
+    align-items: center;
+    border: 2px solid rgba(250, 204, 21, 0.95);
+    background: rgba(2, 6, 23, 0.88);
+    color: #fff;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.44);
+  }
+
+  .eq-floating-summary__icon,
+  .eq-floating-summary__chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .eq-floating-summary__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .eq-floating-summary span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .eq-learning-accordion__item {
+    border-radius: 14px;
   }
 
   /* Compact control grid */

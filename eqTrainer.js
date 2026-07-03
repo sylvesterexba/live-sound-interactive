@@ -56,6 +56,7 @@ let floatingSummaryNode = null;
 let panelNode = null;
 let currentSettings = null;
 let activeAccordionItem = null;
+let filterDropdownListenerInstalled = false;
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -165,13 +166,13 @@ function createBoostCutDecisionHints(hints = []) {
     .join("");
 }
 
-function createAccordionItem({ id, title, summary, content }) {
+function createAccordionItem({ id, title, summary, content, icon, accentClass }) {
   const isOpen = activeAccordionItem === "all" || activeAccordionItem === id;
   const buttonId = `eqAccordionButton-${id}`;
   const panelId = `eqAccordionPanel-${id}`;
 
   return `
-    <article class="eq-learning-accordion__item${isOpen ? " is-open" : ""}">
+    <article class="eq-learning-accordion__item${isOpen ? " is-open" : ""}${accentClass ? ` ${accentClass}` : ""}">
       <h4>
         <button class="eq-learning-accordion__button"
           type="button"
@@ -179,9 +180,12 @@ function createAccordionItem({ id, title, summary, content }) {
           aria-expanded="${isOpen}"
           aria-controls="${panelId}"
           data-accordion-item="${id}">
-          <span class="eq-learning-accordion__title">${title}</span>
+          <span class="eq-learning-accordion__button-content">
+            <span class="eq-learning-accordion__icon" aria-hidden="true">${icon}</span>
+            <span class="eq-learning-accordion__title">${title}</span>
+          </span>
           <span class="eq-learning-accordion__summary">${summary}</span>
-          <span class="eq-learning-accordion__icon" aria-hidden="true">${isOpen ? "-" : "+"}</span>
+          <span class="eq-learning-accordion__chevron" aria-hidden="true">${isOpen ? "▴" : "▾"}</span>
         </button>
       </h4>
       <div class="eq-learning-accordion__panel"
@@ -508,17 +512,39 @@ function updateBandButtons() {
   updateButtonState(frequencyTickButtons);
 }
 
-function createFilterTypeButtons(selectedFilterType) {
+function createFilterTypeMenu(selectedFilterType) {
   return FILTER_TYPE_OPTIONS.map(
     (option) => `
-      <button class="eq-filter-control${option.value === selectedFilterType ? " is-active" : ""}"
+      <button class="eq-filter-dropdown-item${option.value === selectedFilterType ? " is-active" : ""}"
         type="button"
-        data-filter-type="${option.value}"
-        aria-pressed="${option.value === selectedFilterType}">
+        data-filter-type="${option.value}">
         ${option.label}
       </button>
     `
   ).join("");
+}
+
+function createFilterShapeButtons(selectedFilterType) {
+  return FILTER_TYPE_OPTIONS.map((option) => {
+    const iconPaths = {
+      bell: "M8 28 C20 8 44 8 56 28",
+      lowShelf: "M8 30 L32 30 L48 14 L64 14 L88 14",
+      highShelf: "M8 14 L32 14 L48 14 L64 30 L88 30",
+      highPass: "M8 30 L32 30 L56 18 L88 18",
+      lowPass: "M8 18 L32 18 L56 30 L88 30"
+    };
+    return `
+      <button class="eq-filter-shape-button${option.value === selectedFilterType ? " is-active" : ""}"
+        type="button"
+        data-filter-type="${option.value}"
+        aria-label="${option.label} filter type">
+        <svg viewBox="0 0 96 36" aria-hidden="true">
+          <path d="${iconPaths[option.value]}" />
+        </svg>
+        <span>${option.label}</span>
+      </button>
+    `;
+  }).join("");
 }
 
 function renderInteractiveControls() {
@@ -557,25 +583,31 @@ function renderInteractiveControls() {
       </label>
 
       <div class="eq-control eq-control--filter">
-        <span class="eq-control__label">Filter Type</span>
-        <strong class="eq-control__value" data-eq-filter-readout>${getFilterTypeLabel(settings.filterType)}</strong>
-        <div class="eq-filter-controls" role="group" aria-label="Filter Type">
-          ${createFilterTypeButtons(settings.filterType)}
+        <div class="eq-filter-type-header">
+          <span class="eq-control__label">Type</span>
+          <button class="eq-filter-type-select" type="button" data-filter-dropdown-toggle aria-expanded="false">
+            <strong>${getFilterTypeLabel(settings.filterType)}</strong>
+            <span class="eq-filter-type-select__chevron">▾</span>
+          </button>
+        </div>
+        <div class="eq-filter-dropdown" hidden>
+          ${createFilterTypeMenu(settings.filterType)}
+        </div>
+        <div class="eq-filter-shape-list" role="group" aria-label="Filter Type Shapes">
+          ${createFilterShapeButtons(settings.filterType)}
         </div>
       </div>
     </div>
   `;
 
-  controlsNode
-    .querySelector('[data-eq-control="frequency"]')
-    ?.addEventListener("input", (event) => {
-      currentSettings = {
-        ...getCurrentSettings(),
-        frequency: getFrequencyFromSliderValue(event.target.value)
-      };
-      // Do not open the learning accordion on frequency slider changes.
-      updateVisualPanel();
-    });
+  const frequencyInput = controlsNode.querySelector('[data-eq-control="frequency"]');
+  frequencyInput?.addEventListener("input", (event) => {
+    currentSettings = {
+      ...getCurrentSettings(),
+      frequency: getFrequencyFromSliderValue(event.target.value)
+    };
+    updateVisualPanel();
+  });
 
   controlsNode.querySelector('[data-eq-control="gain"]')?.addEventListener("input", (event) => {
     currentSettings = {
@@ -597,14 +629,46 @@ function renderInteractiveControls() {
 
   controlsNode.querySelectorAll("[data-filter-type]").forEach((button) => {
     button.addEventListener("click", () => {
+      const filterType = button.dataset.filterType;
       currentSettings = {
         ...getCurrentSettings(),
-        filterType: button.dataset.filterType
+        filterType
       };
       activeAccordionItem = "filter-type";
       updateVisualPanel();
+      controlsNode
+        .querySelector("[data-filter-dropdown-toggle]")
+        ?.setAttribute("aria-expanded", "false");
+      controlsNode.querySelector(".eq-filter-dropdown")?.setAttribute("hidden", "true");
     });
   });
+
+  const dropdownToggle = controlsNode.querySelector("[data-filter-dropdown-toggle]");
+  const dropdownMenu = controlsNode.querySelector(".eq-filter-dropdown");
+  dropdownToggle?.addEventListener("click", () => {
+    const isExpanded = dropdownToggle.getAttribute("aria-expanded") === "true";
+    dropdownToggle.setAttribute("aria-expanded", String(!isExpanded));
+    if (dropdownMenu) {
+      if (isExpanded) {
+        dropdownMenu.setAttribute("hidden", "true");
+      } else {
+        dropdownMenu.removeAttribute("hidden");
+      }
+    }
+  });
+
+  if (!filterDropdownListenerInstalled) {
+    document.addEventListener("click", (event) => {
+      const menu = controlsNode?.querySelector(".eq-filter-dropdown");
+      const toggle = controlsNode?.querySelector("[data-filter-dropdown-toggle]");
+      if (!menu || !toggle || menu.hasAttribute("hidden")) return;
+      if (!controlsNode.contains(event.target)) {
+        menu.setAttribute("hidden", "true");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+    filterDropdownListenerInstalled = true;
+  }
 
   controlsNode.querySelector("[data-eq-reset]")?.addEventListener("click", () => {
     resetToPreset();
@@ -640,10 +704,12 @@ function renderFloatingSummary() {
 
   const settings = getCurrentSettings();
   floatingSummaryNode.innerHTML = `
+    <span class="eq-floating-summary__icon" aria-hidden="true">🎚️</span>
     <span>${formatFrequencyLong(settings.frequency)}</span>
     <span>${getFilterTypeLabel(settings.filterType)}</span>
     <span>${formatGain(settings.gain)}</span>
     <span>Q ${formatQValue(settings.q)}</span>
+    <span class="eq-floating-summary__chevron" aria-hidden="true">▴</span>
   `;
   floatingSummaryNode.onclick = scrollToInteractiveControls;
 }
@@ -678,6 +744,8 @@ function renderLearningAccordion(
       id: "ear-memory",
       title: "Ear Memory / 耳朵記憶",
       summary: memoryTitle,
+      icon: "🧠",
+      accentClass: "eq-learning-accordion__item--purple",
       content: `
         <section class="eq-ear-memory-card" aria-label="Ear Memory">
           <span class="eq-ear-memory-card__eyebrow">Ear Memory</span>
@@ -694,6 +762,8 @@ function renderLearningAccordion(
       id: "q-value",
       title: "Q Value / Q 值",
       summary: activeBand.qCategory,
+      icon: "⚡",
+      accentClass: "eq-learning-accordion__item--yellow",
       content: `
         <section class="eq-q-value-card" aria-label="Q Value">
           <span class="eq-q-value-card__eyebrow">Q Value / Q 值</span>
@@ -718,6 +788,8 @@ function renderLearningAccordion(
       id: "boost-cut",
       title: "Boost vs Cut / 提升與削減",
       summary: `${activeBand.boostReason} / ${activeBand.cutReason}`,
+      icon: "🔧",
+      accentClass: "eq-learning-accordion__item--green",
       content: `
         <section class="eq-boost-cut-card" aria-label="${boostCutTeaching.title}">
           <span class="eq-boost-cut-card__eyebrow">${boostCutTeaching.title}</span>
@@ -740,7 +812,7 @@ function renderLearningAccordion(
               </div>
               <dl>
                 <div><dt>${boostCutTeaching.reasonLabel}</dt><dd>${activeBand.cutReason}</dd></div>
-                <div><dt>${boostCutTeaching.suggestionLabel}</dt><dd>${activeBand.cutSuggestion || activeBand.cutAdvice}</dd></div>
+                <div><dt>${boostCutTeaching.suggestionLabel}</dt><dd>${activeBand.cutSuggestion || boostCutTeaching.cutAdvice}</dd></div>
               </dl>
             </article>
           </div>
@@ -758,6 +830,8 @@ function renderLearningAccordion(
       id: "filter-type",
       title: "Filter Type / 濾波器類型",
       summary: getFilterTypeLabel(filterType),
+      icon: "🎚️",
+      accentClass: "eq-learning-accordion__item--teal",
       content: `
         <section class="eq-filter-type-card" aria-label="Filter Type">
           <span class="eq-filter-type-card__eyebrow">Filter Type</span>
@@ -778,6 +852,8 @@ function renderLearningAccordion(
       id: "detail",
       title: "Detail / 詳細資料",
       summary: detailSummary,
+      icon: "📋",
+      accentClass: "eq-learning-accordion__item--blue",
       content: `
         <dl class="eq-detail-list">
           <div><dt>Frequency</dt><dd>${formatFrequencyLong(settings.frequency)}</dd></div>
@@ -819,7 +895,8 @@ function renderLearningAccordion(
 
   summaryNode.querySelectorAll("[data-accordion-item]").forEach((button) => {
     button.addEventListener("click", () => {
-      activeAccordionItem = button.dataset.accordionItem;
+      const itemId = button.dataset.accordionItem;
+      activeAccordionItem = activeAccordionItem === itemId ? null : itemId;
       updateVisualPanel();
     });
   });
