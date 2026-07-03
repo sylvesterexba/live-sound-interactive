@@ -68,6 +68,7 @@
 .eq-band-selector {
   display: grid;
   grid-template-columns: 62px minmax(0, 1fr);
+  grid-template-rows: repeat(2, auto);
   align-items: center;
   gap: 10px;
   border: 1px solid rgba(125, 211, 252, 0.16);
@@ -85,6 +86,7 @@
 }
 
 .eq-band-selector strong {
+  grid-row: 1 / 3;
   color: #f8fafc;
   font-size: 0.95rem;
 }
@@ -92,8 +94,18 @@
 .eq-band-selector span {
   color: #7dd3fc;
   overflow-wrap: anywhere;
-  font-size: 0.88rem;
   font-weight: 900;
+}
+
+.eq-band-selector__label-zh {
+  font-size: 0.92rem;
+  line-height: 1.15;
+}
+
+.eq-band-selector__label-en {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  line-height: 1.15;
 }
 
 .eq-band-selector:hover,
@@ -440,6 +452,10 @@
 }
 
 @media (max-width: 768px) {
+  .eq-band-selector strong {
+    grid-row: auto;
+  }
+
   .eq-frequency-map {
     min-height: 108px;
     margin-inline: 4px;

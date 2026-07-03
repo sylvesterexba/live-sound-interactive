@@ -144,7 +144,8 @@ function createBandButton(band) {
   button.dataset.bandId = band.id;
   button.innerHTML = `
     <strong>${formatFrequencyLong(band.frequency)}</strong>
-    <span>${band.label}</span>
+    <span class="eq-band-selector__label-zh">${band.labelZh || band.label}</span>
+    <span class="eq-band-selector__label-en">${band.labelEn || band.label}</span>
   `;
   button.addEventListener("click", () => setActiveBand(band));
   return button;
