@@ -54,6 +54,7 @@ let feedbackNode = null;
 let summaryNode = null;
 let panelNode = null;
 let currentSettings = null;
+let activeAccordionItem = "ear-memory";
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -161,6 +162,36 @@ function createBoostCutDecisionHints(hints = []) {
       `
     )
     .join("");
+}
+
+function createAccordionItem({ id, title, summary, content }) {
+  const isOpen = activeAccordionItem === id;
+  const buttonId = `eqAccordionButton-${id}`;
+  const panelId = `eqAccordionPanel-${id}`;
+
+  return `
+    <article class="eq-learning-accordion__item${isOpen ? " is-open" : ""}">
+      <h4>
+        <button class="eq-learning-accordion__button"
+          type="button"
+          id="${buttonId}"
+          aria-expanded="${isOpen}"
+          aria-controls="${panelId}"
+          data-accordion-item="${id}">
+          <span class="eq-learning-accordion__title">${title}</span>
+          <span class="eq-learning-accordion__summary">${summary}</span>
+          <span class="eq-learning-accordion__icon" aria-hidden="true">${isOpen ? "−" : "+"}</span>
+        </button>
+      </h4>
+      <div class="eq-learning-accordion__panel"
+        id="${panelId}"
+        role="region"
+        aria-labelledby="${buttonId}"
+        ${isOpen ? "" : "hidden"}>
+        ${content}
+      </div>
+    </article>
+  `;
 }
 
 function getFrequencySliderValue(frequency) {
@@ -519,6 +550,7 @@ function renderInteractiveControls() {
         ...getCurrentSettings(),
         frequency: getFrequencyFromSliderValue(event.target.value)
       };
+      activeAccordionItem = "ear-memory";
       updateVisualPanel();
     });
 
@@ -527,6 +559,7 @@ function renderInteractiveControls() {
       ...getCurrentSettings(),
       gain: Number(event.target.value)
     };
+    activeAccordionItem = "boost-cut";
     updateVisualPanel();
   });
 
@@ -535,6 +568,7 @@ function renderInteractiveControls() {
       ...getCurrentSettings(),
       q: Number(event.target.value)
     };
+    activeAccordionItem = "q-value";
     updateVisualPanel();
   });
 
@@ -544,6 +578,7 @@ function renderInteractiveControls() {
         ...getCurrentSettings(),
         filterType: button.dataset.filterType
       };
+      activeAccordionItem = "filter-type";
       updateVisualPanel();
     });
   });
@@ -575,6 +610,155 @@ function renderFeedback() {
       }
     </div>
   `;
+}
+
+function renderLearningAccordion(
+  settings,
+  gain,
+  filterType,
+  memoryTitle,
+  memorySubtitle,
+  activeQCategoryId
+) {
+  if (!summaryNode) return;
+
+  const detailSummary = `${formatFrequencyLong(settings.frequency)} / ${formatGain(gain)} / Q ${formatQValue(settings.q)}`;
+  const accordionItems = [
+    createAccordionItem({
+      id: "ear-memory",
+      title: "Ear Memory / 耳朵記憶",
+      summary: memoryTitle,
+      content: `
+        <section class="eq-ear-memory-card" aria-label="Ear Memory">
+          <span class="eq-ear-memory-card__eyebrow">Ear Memory</span>
+          <div class="eq-ear-memory-card__main">${memoryTitle}</div>
+          <p>${memorySubtitle}</p>
+          <dl>
+            <div><dt>Body Reference</dt><dd>${activeBand.bodyReference}</dd></div>
+            <div><dt>Quick Memory</dt><dd>${activeBand.quickMemory || activeBand.memoryHint}</dd></div>
+          </dl>
+        </section>
+      `
+    }),
+    createAccordionItem({
+      id: "q-value",
+      title: "Q Value / Q 值",
+      summary: activeBand.qCategory,
+      content: `
+        <section class="eq-q-value-card" aria-label="Q Value">
+          <span class="eq-q-value-card__eyebrow">Q Value / Q 值</span>
+          <div class="eq-q-value-card__main">${activeBand.qCategory}</div>
+          <p>Controls the bandwidth of the filter.<br>控制 EQ 影響的頻率範圍。</p>
+          <dl>
+            <div><dt>Current Q</dt><dd>${formatQValue(settings.q)}</dd></div>
+            <div><dt>Recommended Q</dt><dd>${activeBand.recommendedQ}</dd></div>
+          </dl>
+          <div class="eq-q-value-card__visuals" aria-label="Q bandwidth comparison">
+            ${createQValueVisuals(activeQCategoryId)}
+          </div>
+          <p class="eq-q-value-card__description">${activeBand.qDescription}</p>
+          <div class="eq-q-value-card__applications">
+            <strong>Applications</strong>
+            <ul>${createQApplicationList(activeBand.qApplications)}</ul>
+          </div>
+        </section>
+      `
+    }),
+    createAccordionItem({
+      id: "boost-cut",
+      title: "Boost vs Cut / 提升與削減",
+      summary: `${activeBand.boostReason} / ${activeBand.cutReason}`,
+      content: `
+        <section class="eq-boost-cut-card" aria-label="${boostCutTeaching.title}">
+          <span class="eq-boost-cut-card__eyebrow">${boostCutTeaching.title}</span>
+          <div class="eq-boost-cut-card__columns">
+            <article class="eq-boost-cut-card__side eq-boost-cut-card__side--boost">
+              <div class="eq-boost-cut-card__side-header">
+                <span class="eq-boost-cut-card__icon">${activeBand.boostIcon}</span>
+                <strong>${boostCutTeaching.boostLabel}</strong>
+              </div>
+              <dl>
+                <div><dt>${boostCutTeaching.reasonLabel}</dt><dd>${activeBand.boostReason}</dd></div>
+                <div><dt>${boostCutTeaching.suggestionLabel}</dt><dd>${activeBand.boostSuggestion || activeBand.boostAdvice}</dd></div>
+              </dl>
+            </article>
+
+            <article class="eq-boost-cut-card__side eq-boost-cut-card__side--cut">
+              <div class="eq-boost-cut-card__side-header">
+                <span class="eq-boost-cut-card__icon">${activeBand.cutIcon}</span>
+                <strong>${boostCutTeaching.cutLabel}</strong>
+              </div>
+              <dl>
+                <div><dt>${boostCutTeaching.reasonLabel}</dt><dd>${activeBand.cutReason}</dd></div>
+                <div><dt>${boostCutTeaching.suggestionLabel}</dt><dd>${activeBand.cutSuggestion || activeBand.cutAdvice}</dd></div>
+              </dl>
+            </article>
+          </div>
+          <div class="eq-boost-cut-card__decision">
+            <strong>${boostCutTeaching.decisionTitle}</strong>
+            <div class="eq-boost-cut-card__hint-grid">
+              ${createBoostCutDecisionHints(boostCutTeaching.hints)}
+            </div>
+            <p>${boostCutTeaching.priority}<br>${boostCutTeaching.priorityZh}</p>
+          </div>
+        </section>
+      `
+    }),
+    createAccordionItem({
+      id: "filter-type",
+      title: "Filter Type / 濾波器類型",
+      summary: getFilterTypeLabel(filterType),
+      content: `
+        <section class="eq-filter-type-card" aria-label="Filter Type">
+          <span class="eq-filter-type-card__eyebrow">Filter Type</span>
+          <div class="eq-filter-type-card__main">${getFilterTypeLabel(filterType)}</div>
+          <p>${activeBand.filterDescription}</p>
+          <dl>
+            <div><dt>Preset Type</dt><dd>${activeBand.filterName || getFilterTypeLabel(getBandFilterType(activeBand))}</dd></div>
+            <div><dt>Recommended Q</dt><dd>${activeBand.recommendedQ}</dd></div>
+          </dl>
+          <div class="eq-filter-type-card__use-cases">
+            <strong>Use Cases</strong>
+            <ul>${createFilterUseCaseList(activeBand.filterUseCases)}</ul>
+          </div>
+        </section>
+      `
+    }),
+    createAccordionItem({
+      id: "detail",
+      title: "Detail / 詳細資料",
+      summary: detailSummary,
+      content: `
+        <dl class="eq-detail-list">
+          <div><dt>Frequency</dt><dd>${formatFrequencyLong(settings.frequency)}</dd></div>
+          <div><dt>Gain</dt><dd>${formatGain(gain)}</dd></div>
+          <div><dt>Q</dt><dd>${formatQValue(settings.q)}</dd></div>
+          <div><dt>Type</dt><dd>${getFilterTypeLabel(filterType)}</dd></div>
+          <div><dt>Impression</dt><dd>${activeBand.impression}</dd></div>
+          <div><dt>Common Problem</dt><dd>${activeBand.commonProblem}</dd></div>
+          <div><dt>Common Treatment</dt><dd>${activeBand.commonTreatment}</dd></div>
+          <div><dt>Cut Suggestion</dt><dd>${activeBand.cutSuggestion || activeBand.cutAdvice}</dd></div>
+          <div><dt>Boost Suggestion</dt><dd>${activeBand.boostSuggestion || activeBand.boostAdvice}</dd></div>
+        </dl>
+      `
+    })
+  ].join("");
+
+  summaryNode.innerHTML = `
+    <span class="eq-atlas-summary__eyebrow">Learning Accordion</span>
+    <h3>${formatFrequencyLong(activeBand.frequency)}</h3>
+    <strong>${activeBand.label}</strong>
+    <div class="eq-learning-accordion" data-eq-accordion>
+      ${accordionItems}
+    </div>
+  `;
+
+  summaryNode.querySelectorAll("[data-accordion-item]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeAccordionItem = button.dataset.accordionItem;
+      updateVisualPanel();
+    });
+  });
 }
 
 function updateVisualPanel() {
@@ -686,18 +870,28 @@ function updateVisualPanel() {
         <div><dt>Boost 建議</dt><dd>${activeBand.boostSuggestion || activeBand.boostAdvice}</dd></div>
       </dl>
     `;
+    renderLearningAccordion(
+      settings,
+      gain,
+      filterType,
+      memoryTitle,
+      memorySubtitle,
+      activeQCategoryId
+    );
   }
 }
 
 function setActiveBand(band) {
   activeBand = band;
   currentSettings = createPresetSettings(activeBand);
+  activeAccordionItem = "ear-memory";
   updateBandButtons();
   updateVisualPanel();
 }
 
 function resetToPreset() {
   currentSettings = createPresetSettings(activeBand);
+  activeAccordionItem = "ear-memory";
   updateVisualPanel();
 }
 
