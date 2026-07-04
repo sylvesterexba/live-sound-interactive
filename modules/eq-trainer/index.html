@@ -19,19 +19,42 @@
       <span class="title-en">EQ Trainer</span>
       <span class="title-zh">EQ 頻段聽感訓練</span>
     </h1>
-    <p>EQ Visual Atlas｜EQ 頻段視覺圖鑑</p>
+    <p>Build EQ judgment through frequency memory, visual curves, and interactive control.</p>
+    <p>透過頻段記憶、曲線觀察與互動控制，建立 EQ 判斷力。</p>
   </header>
 
   <main>
-    <section class="academy-module academy-module--eq eq-trainer-placeholder" id="module-eq-trainer" aria-labelledby="moduleEqTitle" data-module="eq-trainer">
-      <div class="eq-trainer-placeholder__panel">
-        <div class="eq-trainer-placeholder__content">
-          <span class="module-kicker">Module 2</span>
-          <h2 id="moduleEqTitle">EQ Trainer</h2>
-          <p class="eq-trainer-placeholder__subtitle">EQ Visual Atlas｜EQ 頻段視覺圖鑑</p>
-          <p class="eq-trainer-placeholder__description">用圖像化方式理解頻率位置、聽感印象與常見 EQ 處理。先建立頻段記憶，再進入樂器與麥克風應用。</p>
-          <div class="eq-band-preview" id="eqBandPreview" aria-label="EQ 頻段預覽"></div>
-        </div>
+    <section class="academy-modules" aria-labelledby="eqCoursesTitle">
+      <div class="academy-modules__header">
+        <span class="module-kicker">Courses</span>
+        <h2 id="eqCoursesTitle">EQ Trainer Courses</h2>
+        <p>依照課程路徑學習 EQ 判斷，再進入個別單元練習。</p>
+      </div>
+
+      <div class="academy-module-grid">
+        <article class="academy-module-card academy-module-card--available">
+          <div class="academy-module-card__topline">
+            <span class="academy-module-card__index">Course 1</span>
+            <span class="academy-module-card__status">6 Lessons / 6 個單元</span>
+          </div>
+          <h3>EQ Fundamentals</h3>
+          <p class="academy-module-card__zh">基礎 EQ</p>
+          <p>Learn frequency areas, ear memory, Q value, boost/cut decisions, and filter types.</p>
+          <p>學習頻段區域、耳朵記憶、Q 值、提升與削減判斷，以及濾波器類型。</p>
+          <a class="academy-module-card__button" href="fundamentals/">Enter Course / 進入課程</a>
+        </article>
+
+        <article class="academy-module-card academy-module-card--coming">
+          <div class="academy-module-card__topline">
+            <span class="academy-module-card__index">Course 2</span>
+            <span class="academy-module-card__status">Coming Soon / 即將推出</span>
+          </div>
+          <h3>Instrument EQ</h3>
+          <p class="academy-module-card__zh">樂器 EQ</p>
+          <p>Apply EQ decisions to vocals, guitars, bass, drums, piano, and acoustic instruments.</p>
+          <p>將 EQ 判斷應用到人聲、吉他、貝斯、鼓組、鋼琴與原聲樂器。</p>
+          <a class="academy-module-card__button" href="instrument-eq/">Coming Soon / 即將推出</a>
+        </article>
       </div>
     </section>
   </main>
@@ -39,7 +62,5 @@
   <footer>
     <p>Live Sound Interactive Academy</p>
   </footer>
-
-  <script type="module" src="../../eqTrainer.js"></script>
 </body>
 </html>

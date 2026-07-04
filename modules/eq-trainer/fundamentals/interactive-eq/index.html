@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive EQ | EQ Fundamentals</title>
+  <link rel="stylesheet" href="../../../../base.css" />
+  <link rel="stylesheet" href="../../../../layout.css" />
+  <link rel="stylesheet" href="../../../../components.css" />
+  <link rel="stylesheet" href="../../../../detail.css" />
+  <link rel="stylesheet" href="../../../../simulator.css" />
+  <link rel="stylesheet" href="../../../../eq-trainer.css" />
+  <link rel="stylesheet" href="../../../../responsive.css" />
+</head>
+<body>
+  <header>
+    <a class="about-button" href="../">← Back to EQ Fundamentals</a>
+    <h1 class="bilingual-title">
+      <span class="title-en">Interactive EQ</span>
+      <span class="title-zh">互動 EQ</span>
+    </h1>
+    <p>Adjust EQ parameters and learn how each decision changes the curve.</p>
+    <p>調整 EQ 參數，觀察每個決定如何改變曲線。</p>
+  </header>
+
+  <main>
+    <section class="academy-module academy-module--eq eq-trainer-placeholder" id="module-eq-trainer" aria-labelledby="moduleEqTitle" data-module="eq-trainer">
+      <div class="eq-trainer-placeholder__panel">
+        <div class="eq-trainer-placeholder__content">
+          <span class="module-kicker">Lesson 3</span>
+          <h2 id="moduleEqTitle">Interactive EQ</h2>
+          <p class="eq-trainer-placeholder__subtitle">EQ Visual Atlas｜EQ 頻段視覺圖鑑</p>
+          <p class="eq-trainer-placeholder__description">用圖像化方式理解頻率位置、聽感印象與常見 EQ 處理。先建立頻段記憶，再進入樂器與麥克風應用。</p>
+          <div class="eq-band-preview" id="eqBandPreview" aria-label="EQ 頻段預覽"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Live Sound Interactive Academy</p>
+  </footer>
+
+  <script type="module" src="../../../../eqTrainer.js"></script>
+</body>
+</html>
