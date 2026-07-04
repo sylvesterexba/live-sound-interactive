@@ -52,6 +52,124 @@
   line-height: 1.7;
 }
 
+.eq-card-grid {
+  gap: 12px;
+}
+
+.eq-card-grid--single {
+  grid-template-columns: minmax(0, 0.72fr);
+}
+
+.eq-compact-card {
+  gap: 8px;
+  min-height: 0;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.eq-compact-card h3 {
+  margin-top: 2px;
+  font-size: 1.2rem;
+  line-height: 1.18;
+}
+
+.eq-compact-card .academy-module-card__zh {
+  margin-top: -3px;
+  font-size: 0.9rem;
+}
+
+.eq-compact-card p:not(.academy-module-card__zh) {
+  line-height: 1.5;
+}
+
+.eq-compact-card .academy-module-card__button {
+  min-height: 34px;
+  margin-top: 2px;
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 0.86rem;
+}
+
+.eq-card--primary {
+  border-color: rgba(34, 211, 238, 0.52);
+  background:
+    linear-gradient(145deg, rgba(8, 47, 73, 0.72), rgba(15, 23, 42, 0.94)),
+    linear-gradient(135deg, rgba(34, 211, 238, 0.12), transparent 42%);
+  box-shadow:
+    inset 0 0 18px rgba(34, 211, 238, 0.08),
+    0 0 0 1px rgba(74, 222, 128, 0.16);
+}
+
+.eq-card--primary .academy-module-card__button {
+  border-color: rgba(34, 211, 238, 0.72);
+  background: rgba(14, 165, 233, 0.24);
+}
+
+.eq-card--disabled {
+  border-color: rgba(100, 116, 139, 0.16);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.68), rgba(30, 41, 59, 0.44));
+  box-shadow: inset 0 0 14px rgba(15, 23, 42, 0.22);
+  cursor: not-allowed;
+}
+
+.eq-card--disabled h3,
+.eq-card--disabled .academy-module-card__zh,
+.eq-card--disabled p:not(.academy-module-card__zh) {
+  opacity: 0.72;
+}
+
+.eq-card--disabled .academy-module-card__index,
+.eq-card--disabled .academy-module-card__status {
+  opacity: 0.82;
+}
+
+.eq-disabled-action {
+  border-color: rgba(100, 116, 139, 0.22);
+  background: rgba(30, 41, 59, 0.44);
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.eq-disabled-action:hover,
+.eq-disabled-action:focus-visible,
+.eq-disabled-action:active {
+  transform: none;
+  border-color: rgba(100, 116, 139, 0.22);
+  background: rgba(30, 41, 59, 0.44);
+  outline: none;
+}
+
+.eq-section-block {
+  margin-bottom: 16px;
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.eq-section-block--primary {
+  border-color: rgba(34, 211, 238, 0.24);
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.36), rgba(15, 23, 42, 0.42));
+}
+
+.eq-section-block .academy-modules__header {
+  margin-bottom: 10px;
+}
+
+.eq-section-block .academy-modules__header h2 {
+  font-size: clamp(1.25rem, 1.9vw, 1.7rem);
+}
+
+.eq-section-block__description {
+  color: #94a3b8;
+  font-size: 0.92rem;
+}
+
+.eq-instrument-card {
+  min-height: 132px;
+}
+
 .eq-band-preview {
   display: grid;
   grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
@@ -1335,6 +1453,69 @@
 }
 
 @media (max-width: 768px) {
+  .eq-card-grid,
+  .eq-card-grid--single {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .eq-section-block {
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .eq-section-block .academy-modules__header {
+    margin-bottom: 8px;
+  }
+
+  .eq-section-block .academy-modules__header h2 {
+    font-size: 1.28rem;
+  }
+
+  .eq-section-block__description {
+    font-size: 0.84rem;
+  }
+
+  .academy-module-card.eq-compact-card {
+    gap: 6px;
+    padding: 11px 12px;
+    border-radius: 12px;
+  }
+
+  .eq-compact-card h3 {
+    font-size: 1.05rem;
+  }
+
+  .eq-compact-card .academy-module-card__zh,
+  .eq-compact-card p:not(.academy-module-card__zh) {
+    font-size: 0.84rem;
+  }
+
+  .eq-compact-card .academy-module-card__topline {
+    gap: 6px;
+    padding-right: 0;
+  }
+
+  .eq-compact-card .academy-module-card__index,
+  .eq-compact-card .academy-module-card__status {
+    min-height: 22px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+  }
+
+  .eq-compact-card .academy-module-card__button {
+    width: auto;
+    min-height: 32px;
+    justify-self: start;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .eq-instrument-card {
+    min-height: 0;
+  }
+
   .eq-band-preview {
     grid-template-columns: 1fr;
   }
