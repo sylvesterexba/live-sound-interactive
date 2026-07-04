@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gain Staging | Live Sound Interactive Academy</title>
+  <link rel="stylesheet" href="../../base.css" />
+  <link rel="stylesheet" href="../../layout.css" />
+  <link rel="stylesheet" href="../../components.css" />
+  <link rel="stylesheet" href="../../detail.css" />
+  <link rel="stylesheet" href="../../simulator.css" />
+  <link rel="stylesheet" href="../../eq-trainer.css" />
+  <link rel="stylesheet" href="../../responsive.css" />
+</head>
+<body>
+  <header>
+    <a class="about-button" href="../../index.html">← Back to Academy</a>
+    <h1 class="bilingual-title">
+      <span class="title-en">Gain Staging</span>
+      <span class="title-zh">增益級距</span>
+    </h1>
+    <p>點選樂器或來源，即可查看建議麥克風、RMS 範圍與 Peak 目標。</p>
+    <button class="about-button" id="aboutButton" type="button" aria-haspopup="dialog" aria-controls="aboutModal">
+      <span class="about-button__icon" aria-hidden="true">i</span>
+      使用指南
+    </button>
+  </header>
+
+  <main>
+    <section class="academy-module academy-module--gain" id="module-gain-staging" aria-labelledby="moduleGainTitle" data-module="gain-staging">
+      <div class="module-heading">
+        <span class="module-kicker">Module 1</span>
+        <h2 id="moduleGainTitle">Gain Staging</h2>
+        <p>用樂器參考值、PFL / Meter 與 Simulator 建立健康訊號與混音平衡。</p>
+      </div>
+
+      <button class="picker-toggle" id="pickerToggle" type="button" aria-controls="mobilePicker" aria-expanded="false">選擇樂器</button>
+      <div class="picker-backdrop" id="pickerBackdrop"></div>
+
+      <section class="control-panel" id="mobilePicker">
+        <div class="filters">
+          <button data-filter="warning" class="active">警示</button>
+          <button data-filter="vocal">人聲</button>
+          <button data-filter="strings">弦樂 / 吉他</button>
+          <button data-filter="woodwind">木管 / 薩克斯</button>
+          <button data-filter="brass">銅管</button>
+          <button data-filter="drums">鼓組</button>
+          <button data-filter="bass">低頻</button>
+          <button data-filter="keyboard">鍵盤 / 其他</button>
+          <button data-filter="playback">播放</button>
+          <button data-filter="all">全部</button>
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="instrument-list">
+          <h2>樂器 / 聲源</h2>
+          <div id="items"></div>
+        </div>
+
+        <aside class="detail-panel">
+          <div class="detail-card" id="detailCard">
+            <!-- Detail header 將文字與 icon 分離，避免響應式版面需要依賴 h2 內部定位。 -->
+            <div class="detail-header">
+              <div class="detail-title">
+                <h2 id="detailName">請選擇一個項目</h2>
+                <p id="detailCategory">顯示推薦麥克風型號、RMS 範圍與 Peak 目標。</p>
+              </div>
+              <div class="detail-icon" id="detailIcon" aria-hidden="true"></div>
+            </div>
+
+            <div class="detail-group detail-group--meter">
+              <h3>RMS / Peak 參考圖示</h3>
+              <div class="pfl-visualizer">
+                <div class="pfl-visualizer__labels" id="pflLabels"></div>
+                <div class="pfl-visualizer__meter" id="pflVisualizer"></div>
+                <div class="pfl-visualizer__info">
+                  <div class="pfl-info-row">
+                    <span>Peak 目標</span>
+                    <strong id="peakHoldValue">-</strong>
+                  </div>
+                  <div class="pfl-info-row">
+                    <span>平均 RMS</span>
+                    <strong id="pflRange">-24 ~ -12 dBFS</strong>
+                  </div>
+                  <div class="pfl-info-row">
+                    <span>Headroom</span>
+                    <strong id="detailHeadroom">-</strong>
+                  </div>
+                </div>
+              </div>
+              <p id="detailPflValue" class="pfl-value">-</p>
+            </div>
+
+            <div class="detail-group detail-group--mic">
+              <h3>建議麥克風類型</h3>
+              <p id="detailMicType">-</p>
+            </div>
+
+            <div class="detail-group detail-group--models">
+              <h3>推薦型號</h3>
+              <p id="detailModels">-</p>
+            </div>
+
+            <div id="pflNote" class="pfl-note detail-note"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="simulator-card" id="gain-simulator" aria-labelledby="simulatorTitle">
+        <div class="simulator-header">
+          <div>
+            <!-- 英中標題分段包起來，窄版時可自然上下換行，不會讓中文被擠在英文尾端。 -->
+            <h2 id="simulatorTitle" class="bilingual-title">
+              <span class="title-en">Gain Staging Simulator</span>
+              <span class="title-zh">增益級距模擬器</span>
+            </h2>
+            <p>先用 Gain / Preamp 把 Input 調到建議範圍，再用 Fader 做輸出音量平衡。</p>
+          </div>
+          <div class="simulator-source" id="simulatorSource">目前聲源：-</div>
+        </div>
+
+        <div class="simulator-grid">
+          <div class="sim-panel sim-panel--gain">
+            <div class="sim-panel-title">
+              <span>Gain / Preamp</span>
+            </div>
+            <button class="gain-knob wing-style-knob" id="gainKnob" type="button" aria-label="調整 Gain" aria-valuemin="0" aria-valuemax="60" aria-valuenow="28">
+              <span class="knob-led-ring" id="knobLedRing" aria-hidden="true"></span>
+              <span class="gain-knob__cap"></span>
+              <span class="gain-knob__mark knob-pointer"></span>
+            </button>
+            <button class="sim-reset-button sim-reset-button--gain" id="gainResetButton" type="button" title="回到建議 Gain" aria-label="回到目前樂器的建議 Gain">
+              <span aria-hidden="true">↺</span>
+            </button>
+            <strong class="control-value" id="gainValue">GAIN +28 dB</strong>
+            <p>決定進入系統的原始訊號大小。Gain 太大會先造成輸入失真。</p>
+          </div>
+
+          <div class="sim-panel sim-panel--meter">
+            <div class="sim-panel-title">
+              <span>Input Meter</span>
+              <strong id="inputReadout">RMS -24 dBFS / Peak -9 dBFS</strong>
+            </div>
+            <div class="sim-meter-row">
+              <div class="sim-meter-labels" id="simInputLabels"></div>
+              <div class="sim-meter">
+                <span>RMS</span>
+                <div class="sim-meter-leds" id="inputRmsMeter"></div>
+              </div>
+              <div class="sim-meter">
+                <span>Peak</span>
+                <div class="sim-meter-leds" id="inputPeakMeter"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-panel sim-panel--fader">
+            <div class="sim-panel-title">
+              <span>Output Fader</span>
+            </div>
+            <div class="wing-fader" id="wingFader">
+              <div class="fader-scale" id="faderScale" aria-hidden="true"></div>
+              <div class="fader-track" aria-hidden="true">
+                <span class="fader-line"></span>
+                <span class="fader-unity"></span>
+                <span class="fader-cap" id="faderCap"><span></span></span>
+              </div>
+              <input class="output-fader" id="outputFader" type="range" min="0" max="1" step="0.001" value="0.18" aria-label="調整 Output Fader" />
+            </div>
+            <button class="sim-reset-button sim-reset-button--fader" id="faderResetButton" type="button" title="回到 0 dB" aria-label="將 Output Fader 回到 0 dB">
+              <span aria-hidden="true">↺</span>
+            </button>
+            <strong class="control-value" id="faderValue">FADER 0.0 dB</strong>
+            <p>Fader 只影響送到輸出或混音中的音量，不會修正 preamp input 過載。</p>
+          </div>
+
+          <div class="sim-panel sim-panel--output">
+            <div class="sim-panel-title">
+              <span>Stereo Output</span>
+              <strong id="outputReadout">L -9 dBFS / R -10 dBFS</strong>
+            </div>
+            <div class="sim-meter-row sim-meter-row--stereo">
+              <div class="sim-meter-labels" id="simOutputLabels"></div>
+              <div class="sim-meter stereo-meter">
+                <span>L</span>
+                <strong class="clip-indicator" id="outputLeftClip">CLIP</strong>
+                <div class="sim-meter-leds" id="outputLeftMeter"></div>
+              </div>
+              <div class="sim-meter stereo-meter">
+                <span>R</span>
+                <strong class="clip-indicator" id="outputRightClip">CLIP</strong>
+                <div class="sim-meter-leds" id="outputRightMeter"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-status-grid">
+          <div class="sim-status" id="inputStatusBox">
+            <strong>Input 狀態</strong>
+            <span id="inputStatusMessage">-</span>
+          </div>
+          <div class="sim-status" id="outputStatusBox">
+            <strong>Output 狀態</strong>
+            <span id="outputStatusMessage">-</span>
+          </div>
+        </div>
+
+        <div class="sim-lesson">
+          <span>流程提示</span>
+          <p>Gain / Preamp 控制進入系統的訊號；Fader 控制送出去的音量。先讓 Input Peak 落在目標範圍，再用 Fader 做混音平衡。Input clip 代表前級過載，拉低 Fader 也無法修復失真。</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- 浮動跳轉按鈕保留文字並加入迷你旋鈕，讓使用者不用讀完整文案也能辨識這是模擬器入口。 -->
+  <button class="floating-sim-button floating-simulator-btn" id="floatingSimButton" type="button" aria-label="前往增益級距模擬器" title="前往 Gain Staging Simulator">
+    <span class="floating-knob-icon" aria-hidden="true">
+      <span class="floating-knob-leds"></span>
+      <span class="floating-knob-body"></span>
+      <span class="floating-knob-pointer"></span>
+    </span>
+    <span class="floating-btn-text">前往模擬器</span>
+  </button>
+
+  <div class="about-modal" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" aria-hidden="true">
+    <div class="about-modal__backdrop" data-about-close></div>
+    <div class="about-modal__panel" role="document">
+      <button class="about-modal__close" type="button" id="aboutClose" aria-label="關閉使用指南">×</button>
+      <span class="about-modal__eyebrow"><span aria-hidden="true">i</span> 使用指南</span>
+      <h2 id="aboutTitle">使用指南</h2>
+      <p class="about-modal__intro">快速了解 Gain Staging、網站功能與 Simulator 操作方式。</p>
+      <div class="about-modal__grid">
+        <section class="about-section--wide">
+          <h3>1. 什麼是 Gain Staging？</h3>
+          <p>Gain Staging（增益級距）是調整音訊系統中各個階段訊號電平的過程。本工具提供常見樂器與聲源的建議參考值，協助建立健康的輸入電平，降低失真風險，並保留足夠 Headroom。</p>
+          <ul>
+            <li>建議 RMS 範圍</li>
+            <li>建議 Peak 範圍</li>
+            <li>建議麥克風類型與推薦型號</li>
+            <li>Headroom 與使用注意事項</li>
+          </ul>
+          <p>也可以透過 Gain Staging Simulator，理解 Gain 與 Fader 的不同作用。</p>
+        </section>
+        <section>
+          <h3>2. 如何使用本工具</h3>
+          <ol class="about-steps">
+            <li><strong>Step 1</strong><span>選擇樂器分類。</span></li>
+            <li><strong>Step 2</strong><span>點選欲查詢的樂器或聲源。</span></li>
+            <li><strong>Step 3</strong><span>查看 RMS、Peak、Headroom、推薦麥克風與注意事項。</span></li>
+            <li><strong>Step 4</strong><span>點擊「前往模擬器」，載入目前樂器設定。</span></li>
+          </ol>
+        </section>
+        <section>
+          <h3>3. Gain Staging Simulator</h3>
+          <dl class="about-definition-list">
+            <dt>Gain / Preamp</dt>
+            <dd>控制訊號進入系統的輸入電平。請先調整 Gain，使 Peak 落在建議範圍內。</dd>
+            <dt>Output Fader</dt>
+            <dd>控制輸出音量。Fader 只會改變輸出大小，不會修復已經發生的 Input Clip。</dd>
+            <dt>Input Meter</dt>
+            <dd>代表 Preamp 後的實際輸入電平，請依照建議 RMS 與 Peak 範圍調整 Gain。</dd>
+            <dt>Output Meter</dt>
+            <dd>代表經過 Fader 後送往主輸出的電平。</dd>
+          </dl>
+        </section>
+        <section>
+          <h3>4. 快速操作</h3>
+          <ul>
+            <li><strong>Reset Pad 狀態</strong>：綠燈表示目前已在建議值 / 預設值；紅燈閃爍表示目前已偏離建議值 / 預設值，可點擊 Pad 快速復位。</li>
+            <li><strong>Gain Knob</strong>：點擊 ↺ Pad，可快速回到建議 Gain。桌機與手機皆可雙擊 Gain Knob。</li>
+            <li><strong>Output Fader</strong>：點擊 ↺ Pad，可快速回到 0 dB。桌機也可雙擊 Output Fader。手機請使用 Pad 復位。</li>
+          </ul>
+        </section>
+        <section class="about-callout about-callout--warning">
+          <h3>5. 常見迷思</h3>
+          <p><strong>重點提示：</strong>Gain 是建立健康的訊號；Fader 是建立平衡的混音。</p>
+          <h4>迷思一：Gain 開小一點比較安全</h4>
+          <p><strong>錯誤觀念：</strong>怕音量太大，所以把 Gain 開得很小，再用 Fader 推大音量。</p>
+          <p><strong>實際影響：</strong></p>
+          <ul>
+            <li>Input 訊號太弱。</li>
+            <li>Compressor 不容易達到 Threshold。</li>
+            <li>Gate / Expander 容易誤動作。</li>
+            <li>Reverb、Delay 等效果器反應較不自然。</li>
+            <li>EQ 調整效果不明顯。</li>
+            <li>訊噪比（SNR）下降，容易放大底噪。</li>
+            <li>混音時需要一直推高 Fader，整體控制變得困難。</li>
+          </ul>
+          <p><strong>正確做法：</strong>先把 Gain 調整到建議 Peak 範圍，再使用 Fader 控制整體混音音量。</p>
+          <h4>迷思二：Gain 太大，再拉低 Fader 就可以</h4>
+          <p><strong>錯誤觀念：</strong>Gain 開太大沒關係，只要把 Fader 拉低即可。</p>
+          <p><strong>實際影響：</strong>如果 Input 已經 Clip，失真已經發生在前級。即使把 Fader 拉低，也無法修復已經失真的訊號。</p>
+          <p><strong>正確做法：</strong></p>
+          <ol class="about-flow">
+            <li>先調整 Gain</li>
+            <li>確認 Input Peak 落在建議範圍</li>
+            <li>再使用 Fader 做輸出音量平衡</li>
+          </ol>
+        </section>
+        <section class="about-callout about-callout--info">
+          <h3>6. 注意事項</h3>
+          <p>本工具提供的是現場音控的建議起點，而非固定標準。實際 Gain 會受到麥克風靈敏度、樂器音量、演奏方式、歌手音量、控台前級設計、PA 系統與演出環境影響。</p>
+          <p>請以耳朵與控台 Meter 為主要依據，本工具提供的是快速建立健康 Gain Structure 的參考值。</p>
+        </section>
+        <section class="about-version about-section--wide">
+          <h3>版本資訊</h3>
+          <p><strong>Version：</strong>v1.0.0</p>
+          <p><strong>Author：</strong>Sylvester</p>
+          <p><strong>Repository：</strong><a href="https://github.com/sylvesterexba/gainStaging" target="_blank" rel="noopener noreferrer">https://github.com/sylvesterexba/gainStaging</a></p>
+        </section>
+      </div>
+      <div class="about-modal__footer">
+        <p>希望這個工具能幫助你更快建立正確的 Gain Staging 觀念。</p>
+        <p>若有任何建議或發現問題，歡迎至 GitHub 提出 Issue 或提供回饋。</p>
+        <a href="https://github.com/sylvesterexba/gainStaging" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>資料來源：Live Sound Gain Staging 參考，建議仍以實際現場調整為主。</p>
+  </footer>
+
+  <!-- 腳本依資料、圖示、模擬器、主 UI 的順序載入，避免模組拆分後出現未定義相依。 -->
+  <script type="module" src="../../script.js"></script>
+</body>
+</html>
