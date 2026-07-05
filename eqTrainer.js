@@ -524,23 +524,31 @@ function createFilterTypeMenu(selectedFilterType) {
   ).join("");
 }
 
+function createFilterShapeIcon(filterType) {
+  const iconPaths = {
+    bell: "M8 26 C20 26 25 26 30 22 C36 14 40 10 48 10 C56 10 60 14 66 22 C71 26 76 26 88 26",
+    lowShelf: "M8 14 C24 14 30 14 35 17 C42 21 44 27 54 27 C64 27 74 27 88 27",
+    highShelf: "M8 27 C22 27 32 27 42 27 C52 27 54 21 61 17 C66 14 72 14 88 14",
+    highPass: "M8 32 C20 32 28 32 36 29 C45 26 47 16 60 16 C70 16 78 16 88 16",
+    lowPass: "M8 16 C18 16 26 16 36 16 C49 16 51 26 60 29 C68 32 76 32 88 32"
+  };
+
+  return `
+    <svg viewBox="0 0 96 40" aria-hidden="true" focusable="false">
+      <path class="eq-filter-shape-button__reference" d="M8 26 H88" />
+      <path class="eq-filter-shape-button__curve" d="${iconPaths[filterType]}" />
+    </svg>
+  `;
+}
+
 function createFilterShapeButtons(selectedFilterType) {
   return FILTER_TYPE_OPTIONS.map((option) => {
-    const iconPaths = {
-      bell: "M8 28 C20 8 44 8 56 28",
-      lowShelf: "M8 30 L32 30 L48 14 L64 14 L88 14",
-      highShelf: "M8 14 L32 14 L48 14 L64 30 L88 30",
-      highPass: "M8 30 L32 30 L56 18 L88 18",
-      lowPass: "M8 18 L32 18 L56 30 L88 30"
-    };
     return `
       <button class="eq-filter-shape-button${option.value === selectedFilterType ? " is-active" : ""}"
         type="button"
         data-filter-type="${option.value}"
         aria-label="${option.label} filter type">
-        <svg viewBox="0 0 96 36" aria-hidden="true">
-          <path d="${iconPaths[option.value]}" />
-        </svg>
+        ${createFilterShapeIcon(option.value)}
         <span>${option.label}</span>
       </button>
     `;

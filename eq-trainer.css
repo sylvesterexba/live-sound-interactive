@@ -597,7 +597,7 @@
   border-radius: 12px;
   padding: 8px 10px;
   background: rgba(15, 23, 42, 0.62);
-  color: #cbd5e1;
+  color: #94a3b8;
   font: inherit;
   font-size: 0.7rem;
   font-weight: 900;
@@ -607,24 +607,46 @@
   justify-items: center;
   text-align: center;
   white-space: nowrap;
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease,
+    color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .eq-filter-shape-button svg {
   width: 100%;
+  max-width: 76px;
   height: 36px;
-  stroke: #94a3b8;
-  stroke-width: 3;
   fill: none;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.eq-filter-shape-button__reference {
+  opacity: 0.24;
+  stroke-width: 1.5;
+}
+
+.eq-filter-shape-button__curve {
+  stroke-width: 3.2;
+}
+
+.eq-filter-shape-button:hover,
+.eq-filter-shape-button:focus-visible {
+  border-color: rgba(125, 211, 252, 0.42);
+  background: rgba(15, 23, 42, 0.82);
+  color: #cbd5e1;
+  outline: none;
 }
 
 .eq-filter-shape-button.is-active {
   border-color: rgba(250, 204, 21, 0.95);
   box-shadow: 0 0 14px rgba(250, 204, 21, 0.18);
-  color: #f8fafc;
-}
-
-.eq-filter-shape-button.is-active svg {
-  stroke: #facc15;
+  color: #facc15;
 }
 
 .eq-control__label {
