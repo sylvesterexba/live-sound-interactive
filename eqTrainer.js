@@ -525,23 +525,24 @@ function createFilterTypeMenu(selectedFilterType) {
 }
 
 function createFilterShapeIcon(filterType) {
-  const iconViewBox = filterType === "bell" ? "0 0 96 40" : "0 0 24 24";
   const iconMarkup = {
-    bell: '<path class="eq-filter-shape-button__curve" d="M 24 25 C 34 25 36.8 23.3 40.8 20 C 44.4 17 48.8 15.8 56 15.8 C 63.2 15.8 67.6 17 71.2 20 C 75.2 23.3 78 25 88 25" />',
+    bell: '<path class="eq-filter-shape-button__curve" d="M 12 3 C 13 7.5 14.5 10 19.5 12 C 14.5 14 13 16.5 12 21 C 11 16.5 9.5 14 4.5 12 C 9.5 10 11 7.5 12 3" />',
     lowShelf: `
-      <path class="eq-filter-shape-button__curve" d="M 3 7.5 C 6.5 7.5 8.5 8 10.5 10 C 12.5 12 14.5 12 18 12 L 22 12" />
-      <path class="eq-filter-shape-button__curve" d="M 3 16.5 C 6.5 16.5 8.5 16 10.5 14 C 12.5 12 14.5 12 18 12 L 22 12" />
+      <path class="eq-filter-shape-button__curve" d="M 3.5 7 C 7.2 7 9.2 8.5 11.3 10.4 C 13.2 12.1 15.3 12.5 20.5 12.5" />
+      <path class="eq-filter-shape-button__curve" d="M 3.5 17 C 7.2 17 9.2 15.5 11.3 13.6 C 13.2 11.9 15.3 11.5 20.5 11.5" />
     `,
     highShelf: `
-      <path class="eq-filter-shape-button__curve" d="M 2 12 L 6 12 C 9.5 12 11.5 12 13.5 10 C 15.5 8 17.5 7.5 21 7.5" />
-      <path class="eq-filter-shape-button__curve" d="M 2 12 L 6 12 C 9.5 12 11.5 12 13.5 14 C 15.5 16 17.5 16.5 21 16.5" />
+      <path class="eq-filter-shape-button__curve" d="M 3.5 11.5 C 8.7 11.5 10.8 11.9 12.7 10.4 C 14.8 8.5 16.8 7 20.5 7" />
+      <path class="eq-filter-shape-button__curve" d="M 3.5 12.5 C 8.7 12.5 10.8 12.1 12.7 13.6 C 14.8 15.5 16.8 17 20.5 17" />
     `,
-    highPass: '<path class="eq-filter-shape-button__curve" d="M 6 18 L 12 8 L 21 8" />',
-    lowPass: '<path class="eq-filter-shape-button__curve" d="M 3 8 L 13 8 L 19 18" />'
+    highPass:
+      '<path class="eq-filter-shape-button__curve" d="M 4 20 C 4.4 15 6.8 11.8 10.2 10 C 12.8 8.6 15.8 8.2 20 8.2" />',
+    lowPass:
+      '<path class="eq-filter-shape-button__curve" d="M 4 7.8 C 8.2 7.8 11.2 8.2 13.8 10 C 17.2 12.2 19.6 15 20 20" />'
   };
 
   return `
-    <svg viewBox="${iconViewBox}" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       ${iconMarkup[filterType]}
     </svg>
   `;
