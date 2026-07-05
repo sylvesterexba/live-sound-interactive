@@ -9,7 +9,7 @@ const CURVE_LEFT = 24;
 const CURVE_RIGHT = 296;
 const CURVE_ZERO_Y = 60;
 const CURVE_GAIN_SCALE = 4.8;
-const CURVE_PASS_DEPTH = 42;
+const CURVE_PASS_DEPTH = 88;
 const FREQUENCY_SLIDER_STEPS = 1000;
 const MIN_GAIN = -12;
 const MAX_GAIN = 12;
@@ -383,12 +383,12 @@ function getCurveY(position, settings) {
   }
 
   if (filterType === "highPass") {
-    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 18, 66);
+    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 72, 110);
     return CURVE_ZERO_Y + passDepth * (1 - getPassAmount(position, centerPosition, q, true));
   }
 
   if (filterType === "lowPass") {
-    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 18, 66);
+    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 72, 110);
     return CURVE_ZERO_Y + passDepth * (1 - getPassAmount(position, centerPosition, q, false));
   }
 
