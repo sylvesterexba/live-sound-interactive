@@ -45,7 +45,6 @@ const Q_VALUE_TYPES = [
 ];
 
 let activeBand = eqBands.find((band) => band.id === DEFAULT_BAND_ID) || eqBands[0];
-let bandButtons = [];
 let frequencyTickButtons = [];
 let markerNode = null;
 let curvePathNode = null;
@@ -56,6 +55,7 @@ let floatingSummaryNode = null;
 let panelNode = null;
 let currentSettings = null;
 let activeAccordionItem = null;
+let curveFrameId = null;
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -408,22 +408,36 @@ function getCurvePath(settings) {
   return points.join(" ");
 }
 
-function createBandButton(band) {
-  const button = document.createElement("button");
-  button.className = "eq-band-selector";
-  button.type = "button";
-  button.dataset.bandId = band.id;
-  button.innerHTML = `
-    <strong>${formatFrequencyLong(band.frequency)}</strong>
-    <span class="eq-band-selector__label-zh">${band.labelZh || band.label}</span>
-    <span class="eq-band-selector__label-en">${band.labelEn || band.label}</span>
-  `;
-  button.addEventListener("click", () => {
-    // On mobile we should not force-open the learning accordion
-    // but we should scroll to the interactive controls so users see the curve immediately.
-    setActiveBand(band, { openAccordion: false, scrollToControls: true });
+function updateCurvePreview(settings = getCurrentSettings()) {
+  const position = getFrequencyPositionFromValue(settings.frequency);
+  markerNode?.style.setProperty("--eq-marker-position", `${position}%`);
+  curvePathNode?.setAttribute("d", getCurvePath(settings));
+}
+
+function scheduleCurvePreviewUpdate() {
+  if (curveFrameId) return;
+
+  curveFrameId = window.requestAnimationFrame(() => {
+    curveFrameId = null;
+    updateCurvePreview();
   });
-  return button;
+}
+
+function updateControlReadouts(settings = getCurrentSettings()) {
+  const frequencyReadout = controlsNode?.querySelector("[data-eq-frequency-readout]");
+  const gainReadout = controlsNode?.querySelector("[data-eq-gain-readout]");
+  const qReadout = controlsNode?.querySelector("[data-eq-q-readout]");
+
+  if (frequencyReadout) frequencyReadout.textContent = formatFrequencyLong(settings.frequency);
+  if (gainReadout) gainReadout.textContent = formatGain(settings.gain);
+  if (qReadout) qReadout.textContent = formatQValue(settings.q);
+}
+
+function updateLiveControlState() {
+  updateControlReadouts();
+  scheduleCurvePreviewUpdate();
+  renderFeedback();
+  renderFloatingSummary();
 }
 
 function createFrequencyTick(band) {
@@ -445,12 +459,6 @@ function createFrequencyTick(band) {
 }
 
 function createAtlasShell() {
-  const bandList = document.createElement("div");
-  bandList.className = "eq-atlas-band-list";
-  bandList.setAttribute("aria-label", "EQ 頻段選擇");
-  bandButtons = eqBands.map(createBandButton);
-  bandList.append(...bandButtons);
-
   const panel = document.createElement("div");
   panel.className = "eq-atlas-panel";
   panel.innerHTML = `
@@ -495,7 +503,7 @@ function createAtlasShell() {
   frequencyTickButtons = eqBands.map(createFrequencyTick);
   panel.querySelector("#eqFrequencyTicks")?.append(...frequencyTickButtons);
 
-  eqBandPreview.replaceChildren(bandList, panel);
+  eqBandPreview.replaceChildren(panel);
 }
 
 function updateButtonState(buttons) {
@@ -507,7 +515,6 @@ function updateButtonState(buttons) {
 }
 
 function updateBandButtons() {
-  updateButtonState(bandButtons);
   updateButtonState(frequencyTickButtons);
 }
 
@@ -601,6 +608,9 @@ function renderInteractiveControls() {
       ...getCurrentSettings(),
       frequency: getFrequencyFromSliderValue(event.target.value)
     };
+    updateLiveControlState();
+  });
+  frequencyInput?.addEventListener("change", () => {
     updateVisualPanel();
   });
 
@@ -610,6 +620,9 @@ function renderInteractiveControls() {
       gain: Number(event.target.value)
     };
     activeAccordionItem = "boost-cut";
+    updateLiveControlState();
+  });
+  controlsNode.querySelector('[data-eq-control="gain"]')?.addEventListener("change", () => {
     updateVisualPanel();
   });
 
@@ -619,6 +632,9 @@ function renderInteractiveControls() {
       q: Number(event.target.value)
     };
     activeAccordionItem = "q-value";
+    updateLiveControlState();
+  });
+  controlsNode.querySelector('[data-eq-control="q"]')?.addEventListener("change", () => {
     updateVisualPanel();
   });
 
@@ -868,7 +884,6 @@ function renderLearningAccordion(
 
 function updateVisualPanel() {
   const settings = getCurrentSettings();
-  const position = getFrequencyPositionFromValue(settings.frequency);
   const gain = settings.gain;
   const filterType = settings.filterType;
   const memoryTitle = activeBand.phonetic || activeBand.bodyLabel;
@@ -876,8 +891,8 @@ function updateVisualPanel() {
   const activeQCategoryId = getQCategoryId(settings.q);
 
   panelNode?.style.setProperty("--eq-active-color", activeBand.color);
-  markerNode?.style.setProperty("--eq-marker-position", `${position}%`);
-  curvePathNode?.setAttribute("d", getCurvePath(settings));
+  panelNode?.style.setProperty("--eq-accent-color", activeBand.color);
+  updateCurvePreview(settings);
   renderInteractiveControls();
   renderFeedback();
   renderFloatingSummary();

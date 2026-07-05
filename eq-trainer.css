@@ -171,9 +171,7 @@
 }
 
 .eq-band-preview {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
-  gap: 16px;
+  display: block;
   margin-top: 8px;
 }
 
@@ -429,7 +427,6 @@
   stroke-linejoin: round;
   stroke-width: 5;
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--eq-active-color, #7dd3fc) 56%, transparent));
-  transition: d 0.22s ease;
 }
 
 .eq-interactive-controls,
@@ -589,9 +586,9 @@
 }
 
 .eq-filter-shape-button.is-active {
-  border-color: rgba(250, 204, 21, 0.95);
-  box-shadow: 0 0 14px rgba(250, 204, 21, 0.18);
-  color: #facc15;
+  border-color: color-mix(in srgb, var(--eq-active-color, #facc15) 88%, rgba(248, 250, 252, 0.24));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--eq-active-color, #facc15) 24%, transparent);
+  color: var(--eq-active-color, #facc15);
 }
 
 .eq-control__label {
@@ -1632,7 +1629,7 @@
     padding: 10px 12px;
     height: 60px;
     align-items: center;
-    border: 2px solid rgba(250, 204, 21, 0.95);
+    border: 2px solid var(--eq-active-color, #facc15);
     background: rgba(2, 6, 23, 0.88);
     color: #fff;
     font: inherit;
@@ -1724,7 +1721,7 @@
     padding: 8px 10px;
     height: 56px;
     align-items: center;
-    border: 2px solid rgba(250, 204, 21, 0.95);
+    border: 2px solid var(--eq-active-color, #facc15);
     background: rgba(2, 6, 23, 0.78);
     color: #fff;
     font: inherit;
