@@ -525,6 +525,7 @@ function createFilterTypeMenu(selectedFilterType) {
 }
 
 function createFilterShapeIcon(filterType) {
+  const iconViewBox = ["highPass", "lowPass"].includes(filterType) ? "0 0 24 24" : "0 0 96 40";
   const iconMarkup = {
     bell: '<path class="eq-filter-shape-button__curve" d="M8 26 C20 26 25 26 30 22 C36 14 40 10 48 10 C56 10 60 14 66 22 C71 26 76 26 88 26" />',
     lowShelf: `
@@ -535,14 +536,12 @@ function createFilterShapeIcon(filterType) {
       <path class="eq-filter-shape-button__curve" d="M8 20 H52 C66 20 72 10 88 10" />
       <path class="eq-filter-shape-button__curve" d="M8 20 H52 C66 20 72 31 88 31" />
     `,
-    highPass:
-      '<path class="eq-filter-shape-button__curve" d="M88 14 H40 C38 14 37 15 37 17 V32 H30" />',
-    lowPass:
-      '<path class="eq-filter-shape-button__curve" d="M8 14 H56 C58 14 59 15 59 17 V32 H66" />'
+    highPass: '<path class="eq-filter-shape-button__curve" d="M 6 18 L 12 8 L 21 8" />',
+    lowPass: '<path class="eq-filter-shape-button__curve" d="M 3 8 L 13 8 L 19 18" />'
   };
 
   return `
-    <svg viewBox="0 0 96 40" aria-hidden="true" focusable="false">
+    <svg viewBox="${iconViewBox}" aria-hidden="true" focusable="false">
       ${iconMarkup[filterType]}
     </svg>
   `;
