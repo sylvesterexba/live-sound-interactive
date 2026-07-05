@@ -525,18 +525,25 @@ function createFilterTypeMenu(selectedFilterType) {
 }
 
 function createFilterShapeIcon(filterType) {
-  const iconPaths = {
-    bell: "M8 26 C20 26 25 26 30 22 C36 14 40 10 48 10 C56 10 60 14 66 22 C71 26 76 26 88 26",
-    lowShelf: "M8 14 C24 14 30 14 35 17 C42 21 44 27 54 27 C64 27 74 27 88 27",
-    highShelf: "M8 27 C22 27 32 27 42 27 C52 27 54 21 61 17 C66 14 72 14 88 14",
-    highPass: "M8 32 C20 32 28 32 36 29 C45 26 47 16 60 16 C70 16 78 16 88 16",
-    lowPass: "M8 16 C18 16 26 16 36 16 C49 16 51 26 60 29 C68 32 76 32 88 32"
+  const iconMarkup = {
+    bell: '<path class="eq-filter-shape-button__curve" d="M8 26 C20 26 25 26 30 22 C36 14 40 10 48 10 C56 10 60 14 66 22 C71 26 76 26 88 26" />',
+    lowShelf: `
+      <path class="eq-filter-shape-button__curve" d="M8 10 C24 10 30 20 44 20 H88" />
+      <path class="eq-filter-shape-button__curve" d="M8 31 C24 31 30 20 44 20 H88" />
+    `,
+    highShelf: `
+      <path class="eq-filter-shape-button__curve" d="M8 20 H52 C66 20 72 10 88 10" />
+      <path class="eq-filter-shape-button__curve" d="M8 20 H52 C66 20 72 31 88 31" />
+    `,
+    highPass:
+      '<path class="eq-filter-shape-button__curve" d="M88 14 H40 C38 14 37 15 37 17 V32 H30" />',
+    lowPass:
+      '<path class="eq-filter-shape-button__curve" d="M8 14 H56 C58 14 59 15 59 17 V32 H66" />'
   };
 
   return `
     <svg viewBox="0 0 96 40" aria-hidden="true" focusable="false">
-      <path class="eq-filter-shape-button__reference" d="M8 26 H88" />
-      <path class="eq-filter-shape-button__curve" d="${iconPaths[filterType]}" />
+      ${iconMarkup[filterType]}
     </svg>
   `;
 }

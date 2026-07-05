@@ -626,11 +626,6 @@
   stroke-linejoin: round;
 }
 
-.eq-filter-shape-button__reference {
-  opacity: 0.24;
-  stroke-width: 1.5;
-}
-
 .eq-filter-shape-button__curve {
   stroke-width: 3.2;
 }
