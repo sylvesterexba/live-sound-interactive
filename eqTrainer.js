@@ -529,12 +529,12 @@ function createFilterShapeIcon(filterType) {
   const iconMarkup = {
     bell: '<path class="eq-filter-shape-button__curve" d="M8 26 C20 26 25 26 30 22 C36 14 40 10 48 10 C56 10 60 14 66 22 C71 26 76 26 88 26" />',
     lowShelf: `
-      <path class="eq-filter-shape-button__curve" d="M 5 8 C 8 8 9.5 8.5 11 10 C 12.5 11.5 14 12 17 12 L 21 12" />
-      <path class="eq-filter-shape-button__curve" d="M 5 16 C 8 16 9.5 15.5 11 14 C 12.5 12.5 14 12 17 12 L 21 12" />
+      <path class="eq-filter-shape-button__curve" d="M 3 7.5 C 6.5 7.5 8.5 8 10.5 10 C 12.5 12 14.5 12 18 12 L 22 12" />
+      <path class="eq-filter-shape-button__curve" d="M 3 16.5 C 6.5 16.5 8.5 16 10.5 14 C 12.5 12 14.5 12 18 12 L 22 12" />
     `,
     highShelf: `
-      <path class="eq-filter-shape-button__curve" d="M 3 12 L 7 12 C 10 12 11.5 11.5 13 10 C 14.5 8.5 16 8 19 8" />
-      <path class="eq-filter-shape-button__curve" d="M 3 12 L 7 12 C 10 12 11.5 12.5 13 14 C 14.5 15.5 16 16 19 16" />
+      <path class="eq-filter-shape-button__curve" d="M 2 12 L 6 12 C 9.5 12 11.5 12 13.5 10 C 15.5 8 17.5 7.5 21 7.5" />
+      <path class="eq-filter-shape-button__curve" d="M 2 12 L 6 12 C 9.5 12 11.5 12 13.5 14 C 15.5 16 17.5 16.5 21 16.5" />
     `,
     highPass: '<path class="eq-filter-shape-button__curve" d="M 6 18 L 12 8 L 21 8" />',
     lowPass: '<path class="eq-filter-shape-button__curve" d="M 3 8 L 13 8 L 19 18" />'
