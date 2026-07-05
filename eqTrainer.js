@@ -527,7 +527,7 @@ function createFilterTypeMenu(selectedFilterType) {
 function createFilterShapeIcon(filterType) {
   const iconViewBox = filterType === "bell" ? "0 0 96 40" : "0 0 24 24";
   const iconMarkup = {
-    bell: '<path class="eq-filter-shape-button__curve" d="M8 26 C20 26 25 26 30 22 C36 14 40 10 48 10 C56 10 60 14 66 22 C71 26 76 26 88 26" />',
+    bell: '<path class="eq-filter-shape-button__curve" d="M 24 25 C 34 25 36.8 23.3 40.8 20 C 44.4 17 48.8 15.8 56 15.8 C 63.2 15.8 67.6 17 71.2 20 C 75.2 23.3 78 25 88 25" />',
     lowShelf: `
       <path class="eq-filter-shape-button__curve" d="M 3 7.5 C 6.5 7.5 8.5 8 10.5 10 C 12.5 12 14.5 12 18 12 L 22 12" />
       <path class="eq-filter-shape-button__curve" d="M 3 16.5 C 6.5 16.5 8.5 16 10.5 14 C 12.5 12 14.5 12 18 12 L 22 12" />
