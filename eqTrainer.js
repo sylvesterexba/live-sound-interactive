@@ -56,7 +56,6 @@ let floatingSummaryNode = null;
 let panelNode = null;
 let currentSettings = null;
 let activeAccordionItem = null;
-let filterDropdownListenerInstalled = false;
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -512,18 +511,6 @@ function updateBandButtons() {
   updateButtonState(frequencyTickButtons);
 }
 
-function createFilterTypeMenu(selectedFilterType) {
-  return FILTER_TYPE_OPTIONS.map(
-    (option) => `
-      <button class="eq-filter-dropdown-item${option.value === selectedFilterType ? " is-active" : ""}"
-        type="button"
-        data-filter-type="${option.value}">
-        ${option.label}
-      </button>
-    `
-  ).join("");
-}
-
 function createFilterShapeIcon(filterType) {
   const iconMarkup = {
     bell: '<path class="eq-filter-shape-button__curve" d="M 12 3 C 13 7.5 14.5 10 19.5 12 C 14.5 14 13 16.5 12 21 C 11 16.5 9.5 14 4.5 12 C 9.5 10 11 7.5 12 3" />',
@@ -600,13 +587,6 @@ function renderInteractiveControls() {
       <div class="eq-control eq-control--filter">
         <div class="eq-filter-type-header">
           <span class="eq-control__label">Type</span>
-          <button class="eq-filter-type-select" type="button" data-filter-dropdown-toggle aria-expanded="false">
-            <strong>${getFilterTypeLabel(settings.filterType)}</strong>
-            <span class="eq-filter-type-select__chevron">▾</span>
-          </button>
-        </div>
-        <div class="eq-filter-dropdown" hidden>
-          ${createFilterTypeMenu(settings.filterType)}
         </div>
         <div class="eq-filter-shape-list" role="group" aria-label="Filter Type Shapes">
           ${createFilterShapeButtons(settings.filterType)}
@@ -651,39 +631,8 @@ function renderInteractiveControls() {
       };
       activeAccordionItem = "filter-type";
       updateVisualPanel();
-      controlsNode
-        .querySelector("[data-filter-dropdown-toggle]")
-        ?.setAttribute("aria-expanded", "false");
-      controlsNode.querySelector(".eq-filter-dropdown")?.setAttribute("hidden", "true");
     });
   });
-
-  const dropdownToggle = controlsNode.querySelector("[data-filter-dropdown-toggle]");
-  const dropdownMenu = controlsNode.querySelector(".eq-filter-dropdown");
-  dropdownToggle?.addEventListener("click", () => {
-    const isExpanded = dropdownToggle.getAttribute("aria-expanded") === "true";
-    dropdownToggle.setAttribute("aria-expanded", String(!isExpanded));
-    if (dropdownMenu) {
-      if (isExpanded) {
-        dropdownMenu.setAttribute("hidden", "true");
-      } else {
-        dropdownMenu.removeAttribute("hidden");
-      }
-    }
-  });
-
-  if (!filterDropdownListenerInstalled) {
-    document.addEventListener("click", (event) => {
-      const menu = controlsNode?.querySelector(".eq-filter-dropdown");
-      const toggle = controlsNode?.querySelector("[data-filter-dropdown-toggle]");
-      if (!menu || !toggle || menu.hasAttribute("hidden")) return;
-      if (!controlsNode.contains(event.target)) {
-        menu.setAttribute("hidden", "true");
-        toggle.setAttribute("aria-expanded", "false");
-      }
-    });
-    filterDropdownListenerInstalled = true;
-  }
 
   controlsNode.querySelector("[data-eq-reset]")?.addEventListener("click", () => {
     resetToPreset();
