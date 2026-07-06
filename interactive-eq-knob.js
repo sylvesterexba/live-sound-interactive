@@ -1,6 +1,8 @@
 const KNOB_MIN_ANGLE = -135;
 const KNOB_MAX_ANGLE = 135;
 const KNOB_DRAG_PIXELS = 180;
+const DOUBLE_TAP_DELAY = 320;
+const TAP_MOVEMENT_THRESHOLD = 8;
 
 function clampNumber(value, min, max) {
   return Math.min(Math.max(Number(value), min), max);
@@ -73,14 +75,18 @@ export function renderEqKnobControl({
   `;
 }
 
-export function bindEqKnobControl(knobNode, { getValue, onInput, onChange }) {
+export function bindEqKnobControl(knobNode, { getValue, onInput, onChange, onReset }) {
   const min = Number(knobNode.dataset.eqKnobMin);
   const max = Number(knobNode.dataset.eqKnobMax);
   const step = Number(knobNode.dataset.eqKnobStep);
   const rangeInput = knobNode.parentElement?.querySelector(".eq-knob__range");
+  let startPointerX = 0;
   let startPointerY = 0;
   let startValue = 0;
   let hasDragged = false;
+  let lastTapTime = 0;
+  let lastTapX = 0;
+  let lastTapY = 0;
 
   function syncKnob(value) {
     const clampedValue = clampNumber(value, min, max);
@@ -99,6 +105,7 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange }) {
   knobNode.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     knobNode.setPointerCapture(event.pointerId);
+    startPointerX = event.clientX;
     startPointerY = event.clientY;
     startValue = Number(getValue());
     hasDragged = false;
@@ -107,6 +114,9 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange }) {
 
   knobNode.addEventListener("pointermove", (event) => {
     if (!knobNode.hasPointerCapture(event.pointerId)) return;
+
+    const movement = Math.hypot(event.clientX - startPointerX, event.clientY - startPointerY);
+    if (movement <= TAP_MOVEMENT_THRESHOLD) return;
 
     const travel = startPointerY - event.clientY;
     const valueRange = max - min;
@@ -122,7 +132,23 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange }) {
     }
 
     knobNode.classList.remove("is-dragging");
-    if (hasDragged) onChange(Number(getValue()));
+    if (hasDragged) {
+      onChange(Number(getValue()));
+      return;
+    }
+
+    const now = window.performance.now();
+    const tapDistance = Math.hypot(event.clientX - lastTapX, event.clientY - lastTapY);
+
+    if (now - lastTapTime <= DOUBLE_TAP_DELAY && tapDistance <= TAP_MOVEMENT_THRESHOLD) {
+      lastTapTime = 0;
+      onReset();
+      return;
+    }
+
+    lastTapTime = now;
+    lastTapX = event.clientX;
+    lastTapY = event.clientY;
   });
 
   knobNode.addEventListener("pointercancel", (event) => {
@@ -138,6 +164,12 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange }) {
     event.preventDefault();
     const direction = event.deltaY > 0 ? -1 : 1;
     commitValue(getNextValue(getValue(), direction * step, { min, max, step }), true);
+  });
+
+  knobNode.addEventListener("dblclick", (event) => {
+    event.preventDefault();
+    lastTapTime = 0;
+    onReset();
   });
 
   knobNode.addEventListener("keydown", (event) => {

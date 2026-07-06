@@ -550,7 +550,8 @@ function bindKnobControls() {
     bindEqKnobControl(knobNode, {
       getValue: binding.getValue,
       onInput: binding.onInput,
-      onChange: updateVisualPanel
+      onChange: updateVisualPanel,
+      onReset: resetToPreset
     });
   });
 }
@@ -565,10 +566,6 @@ function renderInteractiveControls() {
         <span class="eq-interactive-controls__eyebrow">Interactive EQ Trainer</span>
         <h4>EQ Control Surface</h4>
       </div>
-      <button class="eq-reset-preset" type="button" data-eq-reset>
-        <span>Reset to Preset</span>
-        <small>回到建議值</small>
-      </button>
     </div>
 
     <div class="eq-control-grid">
@@ -598,10 +595,6 @@ function renderInteractiveControls() {
       updateVisualPanel();
     });
   });
-
-  controlsNode.querySelector("[data-eq-reset]")?.addEventListener("click", () => {
-    resetToPreset();
-  });
 }
 
 function renderFeedback() {
@@ -619,11 +612,7 @@ function renderFeedback() {
     <div class="eq-system-feedback__message">
       <p>${feedback.message}</p>
       <p>${feedback.messageZh}</p>
-      ${
-        isCustom
-          ? "<p>目前設定已離開建議值，可按 Reset 回到 Preset。</p>"
-          : "<p>目前載入的是此頻段的建議起點。</p>"
-      }
+      ${isCustom ? "<p>目前設定已離開建議值。</p>" : "<p>目前載入的是此頻段的建議起點。</p>"}
     </div>
   `;
 }
