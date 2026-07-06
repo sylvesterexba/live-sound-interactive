@@ -55,6 +55,8 @@ let feedbackNode = null;
 let summaryNode = null;
 let floatingSummaryNode = null;
 let panelNode = null;
+let frequencyMapNode = null;
+let filterShapePanelNode = null;
 let currentSettings = null;
 let activeAccordionItem = null;
 
@@ -241,11 +243,11 @@ function isMobileViewport() {
   return window.matchMedia("(max-width: 768px)").matches;
 }
 
-function scrollToInteractiveControls() {
+function scrollToFrequencyMap() {
   if (!isMobileViewport()) return;
 
   window.requestAnimationFrame(() => {
-    controlsNode?.scrollIntoView({ behavior: "smooth", block: "start" });
+    frequencyMapNode?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 
@@ -336,11 +338,43 @@ function getFeedbackState() {
 }
 
 function getFrequencyPosition(band) {
-  return getFrequencyPositionFromValue(getBandFrequencyValue(band));
+  return getFrequencyAtlasPositionFromValue(getBandFrequencyValue(band));
+}
+
+function getFrequencyAtlasPositionFromValue(frequency) {
+  const bandEntries = eqBands
+    .map((band, index) => ({
+      frequency: getBandFrequencyValue(band),
+      position: eqBands.length <= 1 ? 50 : 4 + (index / (eqBands.length - 1)) * 92
+    }))
+    .sort((a, b) => a.frequency - b.frequency);
+
+  if (!bandEntries.length) return 0;
+  if (frequency <= bandEntries[0].frequency) return bandEntries[0].position;
+
+  const lastEntry = bandEntries[bandEntries.length - 1];
+  if (frequency >= lastEntry.frequency) return lastEntry.position;
+
+  for (let index = 0; index < bandEntries.length - 1; index += 1) {
+    const currentEntry = bandEntries[index];
+    const nextEntry = bandEntries[index + 1];
+
+    if (frequency <= nextEntry.frequency) {
+      const frequencyRange = nextEntry.frequency - currentEntry.frequency;
+      const normalized = (frequency - currentEntry.frequency) / frequencyRange;
+      return currentEntry.position + normalized * (nextEntry.position - currentEntry.position);
+    }
+  }
+
+  return lastEntry.position;
 }
 
 function updateCurvePreview(settings = getCurrentSettings()) {
   updateEqCurvePreview({ markerNode, curvePathNode, settings });
+  markerNode?.style.setProperty(
+    "--eq-marker-position",
+    `${getFrequencyAtlasPositionFromValue(settings.frequency)}%`
+  );
 }
 
 const scheduleCurvePreviewUpdate = createEqCurvePreviewScheduler(updateCurvePreview);
@@ -381,8 +415,7 @@ function createFrequencyTick(band) {
     <small>${band.phonetic || band.bodyLabel}</small>
   `;
   button.addEventListener("click", () => {
-    // Do not force-open accordion when selecting a tick/preset; just update and scroll on mobile.
-    setActiveBand(band, { openAccordion: false, scrollToControls: true });
+    setActiveBand(band, { openAccordion: false });
   });
   return button;
 }
@@ -398,14 +431,18 @@ function createAtlasShell() {
         <span class="eq-frequency-axis__marker" id="eqFrequencyMarker"></span>
       </div>
 
-      <svg class="eq-curve-visual" viewBox="0 0 320 120" role="img" aria-labelledby="eqCurveTitle eqCurveDesc">
-        <title id="eqCurveTitle">Parametric EQ curve preview</title>
-        <desc id="eqCurveDesc">The curve is generated from the selected band's frequency, gain, Q and filter type.</desc>
-        <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="28" x2="296" y2="28"></line>
-        <line class="eq-curve-visual__grid" x1="24" y1="60" x2="296" y2="60"></line>
-        <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="92" x2="296" y2="92"></line>
-        <path class="eq-curve-visual__path" id="eqCurvePath" d=""></path>
-      </svg>
+      <div class="eq-response-layout">
+        <svg class="eq-curve-visual" viewBox="0 0 320 120" role="img" aria-labelledby="eqCurveTitle eqCurveDesc">
+          <title id="eqCurveTitle">Parametric EQ curve preview</title>
+          <desc id="eqCurveDesc">The curve is generated from the selected band's frequency, gain, Q and filter type.</desc>
+          <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="28" x2="296" y2="28"></line>
+          <line class="eq-curve-visual__grid" x1="24" y1="60" x2="296" y2="60"></line>
+          <line class="eq-curve-visual__grid eq-curve-visual__grid--soft" x1="24" y1="92" x2="296" y2="92"></line>
+          <path class="eq-curve-visual__path" id="eqCurvePath" d=""></path>
+        </svg>
+
+        <section class="eq-filter-shape-panel" id="eqFilterShapePanel" aria-label="Filter Type Shapes"></section>
+      </div>
     </div>
 
     <section class="eq-interactive-controls" id="eqInteractiveControls" aria-label="Interactive EQ controls"></section>
@@ -419,12 +456,14 @@ function createAtlasShell() {
       <span>Microphone Response: Coming Later</span>
     </div>
 
-    <button class="eq-floating-summary" type="button" id="eqFloatingSummary" aria-label="Scroll to EQ controls"></button>
+    <button class="eq-floating-summary" type="button" id="eqFloatingSummary" aria-label="Scroll to EQ frequency map"></button>
   `;
 
   panelNode = panel;
+  frequencyMapNode = panel.querySelector(".eq-frequency-map");
   markerNode = panel.querySelector("#eqFrequencyMarker");
   curvePathNode = panel.querySelector("#eqCurvePath");
+  filterShapePanelNode = panel.querySelector("#eqFilterShapePanel");
   controlsNode = panel.querySelector("#eqInteractiveControls");
   feedbackNode = panel.querySelector("#eqSystemFeedback");
   summaryNode = panel.querySelector("#eqAtlasSummary");
@@ -463,6 +502,34 @@ function createFilterShapeButtons(selectedFilterType) {
       </button>
     `;
   }).join("");
+}
+
+function bindFilterShapeButtons() {
+  filterShapePanelNode?.querySelectorAll("[data-filter-type]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const filterType = button.dataset.filterType;
+      currentSettings = {
+        ...getCurrentSettings(),
+        filterType
+      };
+      activeAccordionItem = "filter-type";
+      updateVisualPanel();
+    });
+  });
+}
+
+function renderFilterShapeControls(settings = getCurrentSettings()) {
+  if (!filterShapePanelNode) return;
+
+  filterShapePanelNode.innerHTML = `
+    <div class="eq-filter-type-header">
+      <span class="eq-control__label">Type</span>
+    </div>
+    <div class="eq-filter-shape-list" role="group" aria-label="Filter Type Shapes">
+      ${createFilterShapeButtons(settings.filterType)}
+    </div>
+  `;
+  bindFilterShapeButtons();
 }
 
 function createKnobControls(settings) {
@@ -570,31 +637,10 @@ function renderInteractiveControls() {
 
     <div class="eq-control-grid">
       ${createKnobControls(settings)}
-
-      <div class="eq-control eq-control--filter">
-        <div class="eq-filter-type-header">
-          <span class="eq-control__label">Type</span>
-        </div>
-        <div class="eq-filter-shape-list" role="group" aria-label="Filter Type Shapes">
-          ${createFilterShapeButtons(settings.filterType)}
-        </div>
-      </div>
     </div>
   `;
 
   bindKnobControls();
-
-  controlsNode.querySelectorAll("[data-filter-type]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const filterType = button.dataset.filterType;
-      currentSettings = {
-        ...getCurrentSettings(),
-        filterType
-      };
-      activeAccordionItem = "filter-type";
-      updateVisualPanel();
-    });
-  });
 }
 
 function renderFeedback() {
@@ -622,14 +668,12 @@ function renderFloatingSummary() {
 
   const settings = getCurrentSettings();
   floatingSummaryNode.innerHTML = `
-    <span class="eq-floating-summary__icon" aria-hidden="true">🎚️</span>
-    <span>${formatFrequencyLong(settings.frequency)}</span>
     <span>${getFilterTypeLabel(settings.filterType)}</span>
     <span>${formatGain(settings.gain)}</span>
+    <span>${formatFrequencyLong(settings.frequency)}</span>
     <span>Q ${formatQValue(settings.q)}</span>
-    <span class="eq-floating-summary__chevron" aria-hidden="true">▴</span>
   `;
-  floatingSummaryNode.onclick = scrollToInteractiveControls;
+  floatingSummaryNode.onclick = scrollToFrequencyMap;
 }
 
 function updateFloatingSummaryVisibility() {
@@ -831,6 +875,7 @@ function updateVisualPanel() {
   panelNode?.style.setProperty("--eq-active-color", activeBand.color);
   panelNode?.style.setProperty("--eq-accent-color", activeBand.color);
   updateCurvePreview(settings);
+  renderFilterShapeControls(settings);
   renderInteractiveControls();
   renderFeedback();
   renderFloatingSummary();
@@ -948,7 +993,7 @@ function setActiveBand(band, { openAccordion = true, scrollToControls = false } 
   updateVisualPanel();
 
   if (scrollToControls) {
-    scrollToInteractiveControls();
+    scrollToFrequencyMap();
   }
 }
 

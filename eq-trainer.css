@@ -254,6 +254,13 @@
   gap: 14px;
 }
 
+.eq-response-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(118px, 142px);
+  gap: 10px;
+  align-items: stretch;
+}
+
 .eq-frequency-map {
   position: relative;
   min-height: 94px;
@@ -484,6 +491,16 @@
   position: relative;
 }
 
+.eq-filter-shape-panel {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.34);
+}
+
 .eq-control--knob {
   justify-items: center;
   min-height: 178px;
@@ -499,7 +516,7 @@
 
 .eq-filter-shape-list {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 8px;
   align-items: center;
   padding-top: 6px;
@@ -508,7 +525,7 @@
 .eq-filter-shape-button {
   position: relative;
   min-width: 0;
-  min-height: 74px;
+  min-height: 58px;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 12px;
   padding: 8px 6px;
@@ -533,8 +550,8 @@
 
 .eq-filter-shape-button svg {
   width: 100%;
-  max-width: 52px;
-  height: 32px;
+  max-width: 44px;
+  height: 28px;
   fill: none;
   overflow: visible;
   stroke: currentColor;
@@ -1587,6 +1604,11 @@
     margin-inline: 4px;
   }
 
+  .eq-response-layout {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
   .eq-frequency-map__tick {
     min-width: 44px;
   }
@@ -1663,6 +1685,7 @@
   }
 
   .eq-filter-shape-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     padding-top: 6px;
   }
@@ -1709,7 +1732,7 @@
     left: 12px;
     z-index: 120;
     display: grid;
-    grid-template-columns: auto repeat(4, minmax(0, 1fr)) auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     border-radius: 14px;
     padding: 10px 12px;
@@ -1723,20 +1746,6 @@
     font-weight: 900;
     text-align: center;
     box-shadow: 0 10px 22px rgba(2, 6, 23, 0.44);
-  }
-
-  .eq-floating-summary__icon,
-  .eq-floating-summary__chevron {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .eq-floating-summary__icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.06);
   }
 
   .eq-floating-summary span {
