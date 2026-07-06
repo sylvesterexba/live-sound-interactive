@@ -1,18 +1,19 @@
 import { boostCutTeaching, eqBands } from "./eqData.js";
+import { renderEqTypeIcon } from "./interactive-eq-icons.js";
+import {
+  MAX_FREQUENCY,
+  MAX_GAIN,
+  MIN_FREQUENCY,
+  MIN_GAIN,
+  createEqCurvePreviewScheduler,
+  getFrequencyPositionFromValue,
+  updateEqCurvePreview
+} from "./interactive-eq-graph.js";
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
 const DEFAULT_BAND_ID = "eq-1khz";
-const MIN_FREQUENCY = 20;
-const MAX_FREQUENCY = 20000;
-const CURVE_LEFT = 24;
-const CURVE_RIGHT = 296;
-const CURVE_ZERO_Y = 60;
-const CURVE_GAIN_SCALE = 4.8;
-const CURVE_PASS_DEPTH = 88;
 const FREQUENCY_SLIDER_STEPS = 1000;
-const MIN_GAIN = -12;
-const MAX_GAIN = 12;
 const MIN_Q = 0.4;
 const MAX_Q = 8;
 const PRESET_TOLERANCE = 0.05;
@@ -55,7 +56,6 @@ let floatingSummaryNode = null;
 let panelNode = null;
 let currentSettings = null;
 let activeAccordionItem = null;
-let curveFrameId = null;
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);
@@ -330,98 +330,15 @@ function getFeedbackState() {
   };
 }
 
-function getFrequencyPositionFromValue(frequency) {
-  const value = Math.min(Math.max(frequency, MIN_FREQUENCY), MAX_FREQUENCY);
-  const min = Math.log10(MIN_FREQUENCY);
-  const max = Math.log10(MAX_FREQUENCY);
-  return ((Math.log10(value) - min) / (max - min)) * 100;
-}
-
 function getFrequencyPosition(band) {
   return getFrequencyPositionFromValue(getBandFrequencyValue(band));
 }
 
-function getXFromPosition(position) {
-  return CURVE_LEFT + (position / 100) * (CURVE_RIGHT - CURVE_LEFT);
-}
-
-function getBellAmount(position, centerPosition, q) {
-  const width = Math.min(Math.max(28 / q, 5), 42);
-  const distance = (position - centerPosition) / width;
-  return Math.exp(-0.5 * distance * distance);
-}
-
-function getShelfAmount(position, centerPosition, q, isHighShelf) {
-  const width = Math.min(Math.max(13 / q, 3.8), 28);
-  const direction = isHighShelf ? centerPosition - position : position - centerPosition;
-  return 1 / (1 + Math.exp(direction / width));
-}
-
-function getPassAmount(position, centerPosition, q, isHighPass) {
-  const width = Math.min(Math.max(10 / q, 3), 24);
-  const direction = isHighPass ? centerPosition - position : position - centerPosition;
-  return 1 / (1 + Math.exp(direction / width));
-}
-
-function getCurveY(position, settings) {
-  const centerPosition = getFrequencyPositionFromValue(settings.frequency);
-  const q = Math.max(Number(settings.q) || 1, 0.1);
-  const gain = clampNumber(settings.gain, MIN_GAIN, MAX_GAIN);
-  const filterType = settings.filterType;
-
-  if (filterType === "highShelf") {
-    return (
-      CURVE_ZERO_Y - gain * CURVE_GAIN_SCALE * getShelfAmount(position, centerPosition, q, true)
-    );
-  }
-
-  if (filterType === "lowShelf") {
-    return (
-      CURVE_ZERO_Y - gain * CURVE_GAIN_SCALE * getShelfAmount(position, centerPosition, q, false)
-    );
-  }
-
-  if (filterType === "highPass") {
-    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 72, 110);
-    return CURVE_ZERO_Y + passDepth * (1 - getPassAmount(position, centerPosition, q, true));
-  }
-
-  if (filterType === "lowPass") {
-    const passDepth = clampNumber(CURVE_PASS_DEPTH - gain * 2, 72, 110);
-    return CURVE_ZERO_Y + passDepth * (1 - getPassAmount(position, centerPosition, q, false));
-  }
-
-  return CURVE_ZERO_Y - gain * CURVE_GAIN_SCALE * getBellAmount(position, centerPosition, q);
-}
-
-function getCurvePath(settings) {
-  const points = [];
-
-  for (let index = 0; index <= 128; index += 1) {
-    const normalized = index / 128;
-    const position = normalized * 100;
-    const x = getXFromPosition(position);
-    const y = getCurveY(position, settings);
-    points.push(`${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`);
-  }
-
-  return points.join(" ");
-}
-
 function updateCurvePreview(settings = getCurrentSettings()) {
-  const position = getFrequencyPositionFromValue(settings.frequency);
-  markerNode?.style.setProperty("--eq-marker-position", `${position}%`);
-  curvePathNode?.setAttribute("d", getCurvePath(settings));
+  updateEqCurvePreview({ markerNode, curvePathNode, settings });
 }
 
-function scheduleCurvePreviewUpdate() {
-  if (curveFrameId) return;
-
-  curveFrameId = window.requestAnimationFrame(() => {
-    curveFrameId = null;
-    updateCurvePreview();
-  });
-}
+const scheduleCurvePreviewUpdate = createEqCurvePreviewScheduler(updateCurvePreview);
 
 function updateControlReadouts(settings = getCurrentSettings()) {
   const frequencyReadout = controlsNode?.querySelector("[data-eq-frequency-readout]");
@@ -519,27 +436,7 @@ function updateBandButtons() {
 }
 
 function createFilterShapeIcon(filterType) {
-  const iconMarkup = {
-    bell: '<path class="eq-filter-shape-button__curve" d="M 12 3 C 13 7.5 14.5 10 19.5 12 C 14.5 14 13 16.5 12 21 C 11 16.5 9.5 14 4.5 12 C 9.5 10 11 7.5 12 3" />',
-    lowShelf: `
-      <path class="eq-filter-shape-button__curve" d="M 3.5 7 C 7.2 7 9.2 8.5 11.3 10.4 C 13.2 12.1 15.3 12.5 20.5 12.5" />
-      <path class="eq-filter-shape-button__curve" d="M 3.5 17 C 7.2 17 9.2 15.5 11.3 13.6 C 13.2 11.9 15.3 11.5 20.5 11.5" />
-    `,
-    highShelf: `
-      <path class="eq-filter-shape-button__curve" d="M 3.5 11.5 C 8.7 11.5 10.8 11.9 12.7 10.4 C 14.8 8.5 16.8 7 20.5 7" />
-      <path class="eq-filter-shape-button__curve" d="M 3.5 12.5 C 8.7 12.5 10.8 12.1 12.7 13.6 C 14.8 15.5 16.8 17 20.5 17" />
-    `,
-    highPass:
-      '<path class="eq-filter-shape-button__curve" d="M 4 20 C 4.4 15 6.8 11.8 10.2 10 C 12.8 8.6 15.8 8.2 20 8.2" />',
-    lowPass:
-      '<path class="eq-filter-shape-button__curve" d="M 4 7.8 C 8.2 7.8 11.2 8.2 13.8 10 C 17.2 12.2 19.6 15 20 20" />'
-  };
-
-  return `
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      ${iconMarkup[filterType]}
-    </svg>
-  `;
+  return renderEqTypeIcon(filterType);
 }
 
 function createFilterShapeButtons(selectedFilterType) {
