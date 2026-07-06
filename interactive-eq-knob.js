@@ -17,7 +17,7 @@ function getNormalizedValue(value, min, max) {
   return (clampNumber(value, min, max) - min) / (max - min);
 }
 
-function getAngle(value, min, max) {
+export function getKnobAngle(value, min, max) {
   return KNOB_MIN_ANGLE + getNormalizedValue(value, min, max) * (KNOB_MAX_ANGLE - KNOB_MIN_ANGLE);
 }
 
@@ -36,7 +36,7 @@ export function renderEqKnobControl({
   step,
   readoutAttribute
 }) {
-  const angle = getAngle(value, min, max);
+  const angle = getKnobAngle(value, min, max);
 
   return `
     <label class="eq-control eq-control--knob">
@@ -90,7 +90,7 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange, onRes
 
   function syncKnob(value) {
     const clampedValue = clampNumber(value, min, max);
-    knobNode.style.setProperty("--eq-knob-angle", `${getAngle(clampedValue, min, max)}deg`);
+    knobNode.style.setProperty("--eq-knob-angle", `${getKnobAngle(clampedValue, min, max)}deg`);
     knobNode.setAttribute("aria-valuenow", String(clampedValue));
     if (rangeInput) rangeInput.value = String(clampedValue);
   }

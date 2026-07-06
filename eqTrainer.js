@@ -9,7 +9,7 @@ import {
   getFrequencyPositionFromValue,
   updateEqCurvePreview
 } from "./interactive-eq-graph.js";
-import { bindEqKnobControl, renderEqKnobControl } from "./interactive-eq-knob.js";
+import { bindEqKnobControl, getKnobAngle, renderEqKnobControl } from "./interactive-eq-knob.js";
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
@@ -214,6 +214,14 @@ function getFrequencyFromSliderValue(sliderValue) {
 
 function createKnobReadoutAttribute(controlName) {
   return `data-eq-${controlName}-readout`;
+}
+
+function renderSummaryMiniKnob(value, min, max) {
+  return `
+    <span class="eq-floating-summary__mini-knob" aria-hidden="true" style="--eq-mini-knob-angle: ${getKnobAngle(value, min, max)}deg;">
+      <span class="eq-floating-summary__mini-indicator"></span>
+    </span>
+  `;
 }
 
 function hasCustomAdjustment() {
@@ -668,10 +676,22 @@ function renderFloatingSummary() {
 
   const settings = getCurrentSettings();
   floatingSummaryNode.innerHTML = `
-    <span>${getFilterTypeLabel(settings.filterType)}</span>
-    <span>${formatGain(settings.gain)}</span>
-    <span>${formatFrequencyLong(settings.frequency)}</span>
-    <span>Q ${formatQValue(settings.q)}</span>
+    <span class="eq-floating-summary__item eq-floating-summary__item--type">
+      <span class="eq-floating-summary__type-icon" aria-hidden="true">${renderEqTypeIcon(settings.filterType)}</span>
+      <span>${getFilterTypeLabel(settings.filterType)}</span>
+    </span>
+    <span class="eq-floating-summary__item">
+      ${renderSummaryMiniKnob(settings.gain, MIN_GAIN, MAX_GAIN)}
+      <span>${formatGain(settings.gain)}</span>
+    </span>
+    <span class="eq-floating-summary__item">
+      ${renderSummaryMiniKnob(getFrequencySliderValue(settings.frequency), 0, FREQUENCY_SLIDER_STEPS)}
+      <span>${formatFrequency(settings.frequency)}</span>
+    </span>
+    <span class="eq-floating-summary__item">
+      ${renderSummaryMiniKnob(settings.q, MIN_Q, MAX_Q)}
+      <span>Q ${formatQValue(settings.q)}</span>
+    </span>
   `;
   floatingSummaryNode.onclick = scrollToFrequencyMap;
 }

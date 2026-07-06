@@ -1610,7 +1610,7 @@
   }
 
   .eq-curve-visual {
-    min-height: 204px;
+    min-height: 268px;
   }
 
   .eq-frequency-map__tick {
@@ -1737,7 +1737,7 @@
     z-index: 120;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
     border-radius: 14px;
     padding: 10px 12px;
     height: 60px;
@@ -1746,7 +1746,7 @@
     background: rgba(2, 6, 23, 0.88);
     color: #fff;
     font: inherit;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 900;
     text-align: center;
     box-shadow: 0 10px 22px rgba(2, 6, 23, 0.44);
@@ -1756,6 +1756,56 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .eq-floating-summary__item {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .eq-floating-summary__type-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: var(--eq-active-color, #facc15);
+  }
+
+  .eq-floating-summary__type-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .eq-floating-summary__mini-knob {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.18);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 42% 42%, rgba(248, 250, 252, 0.16), transparent 35%),
+      rgba(15, 23, 42, 0.92);
+    box-shadow:
+      inset 0 0 0 3px rgba(30, 41, 59, 0.72),
+      0 0 8px color-mix(in srgb, var(--eq-active-color, #facc15) 22%, transparent);
+  }
+
+  .eq-floating-summary__mini-indicator {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    width: 2px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--eq-active-color, #facc15);
+    transform: translateX(-50%) rotate(var(--eq-mini-knob-angle));
+    transform-origin: 50% 6px;
+    box-shadow: 0 0 6px color-mix(in srgb, var(--eq-active-color, #facc15) 70%, transparent);
   }
 
   .eq-learning-accordion__item {
@@ -1815,7 +1865,7 @@
     z-index: 120;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
+    gap: 4px;
     border-radius: 12px;
     padding: 8px 10px;
     height: 56px;
@@ -1824,7 +1874,7 @@
     background: rgba(2, 6, 23, 0.78);
     color: #fff;
     font: inherit;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 900;
     text-align: center;
     box-shadow: 0 10px 22px rgba(2, 6, 23, 0.44);
@@ -1858,6 +1908,22 @@
 
   .eq-knob-control {
     width: min(100%, 62px);
+  }
+
+  .eq-floating-summary.is-visible {
+    gap: 3px;
+    padding: 8px;
+    font-size: 0.68rem;
+  }
+
+  .eq-floating-summary__item {
+    gap: 3px;
+  }
+
+  .eq-floating-summary__type-icon,
+  .eq-floating-summary__mini-knob {
+    width: 14px;
+    height: 14px;
   }
 
   .eq-knob::before {
