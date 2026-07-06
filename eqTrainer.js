@@ -169,7 +169,7 @@ function createBoostCutDecisionHints(hints = []) {
 }
 
 function createAccordionItem({ id, title, summary, content, icon, accentClass }) {
-  const isOpen = activeAccordionItem === "all" || activeAccordionItem === id;
+  const isOpen = activeAccordionItem === id;
   const buttonId = `eqAccordionButton-${id}`;
   const panelId = `eqAccordionPanel-${id}`;
 
@@ -461,11 +461,6 @@ function createAtlasShell() {
     <section class="eq-system-feedback" id="eqSystemFeedback" aria-live="polite"></section>
 
     <div class="eq-atlas-summary" id="eqAtlasSummary"></div>
-
-    <div class="eq-atlas-future">
-      <span>Instrument EQ Curves: Coming Later</span>
-      <span>Microphone Response: Coming Later</span>
-    </div>
 
     <button class="eq-floating-summary" type="button" id="eqFloatingSummary" aria-label="Scroll to EQ frequency map"></button>
   `;
@@ -859,24 +854,10 @@ function renderLearningAccordion(
     <span class="eq-atlas-summary__eyebrow">Learning Accordion</span>
     <h3>${formatFrequencyLong(activeBand.frequency)}</h3>
     <strong>${activeBand.label}</strong>
-    <div class="eq-learning-accordion__actions" aria-label="Learning card controls">
-      <button type="button" data-accordion-action="collapse">Collapse All</button>
-      <button type="button" data-accordion-action="expand">Expand All</button>
-    </div>
     <div class="eq-learning-accordion" data-eq-accordion>
       ${accordionItems}
     </div>
   `;
-
-  summaryNode.querySelector('[data-accordion-action="collapse"]')?.addEventListener("click", () => {
-    activeAccordionItem = null;
-    updateVisualPanel();
-  });
-
-  summaryNode.querySelector('[data-accordion-action="expand"]')?.addEventListener("click", () => {
-    activeAccordionItem = "all";
-    updateVisualPanel();
-  });
 
   summaryNode.querySelectorAll("[data-accordion-item]").forEach((button) => {
     button.addEventListener("click", () => {
