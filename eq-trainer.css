@@ -550,8 +550,8 @@
 
 .eq-filter-shape-button svg {
   width: 100%;
-  max-width: 44px;
-  height: 28px;
+  max-width: 52px;
+  height: 34px;
   fill: none;
   overflow: visible;
   stroke: currentColor;
@@ -1691,20 +1691,20 @@
   .eq-filter-shape-list {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
-    padding-top: 6px;
+    padding-top: 3px;
   }
 
   .eq-filter-shape-button {
-    min-height: 56px;
-    padding: 6px 4px;
+    min-height: 50px;
+    padding: 5px 4px;
     border-radius: 10px;
     font-size: 0.62rem;
     gap: 4px;
   }
 
   .eq-filter-shape-button svg {
-    max-width: 40px;
-    height: 28px;
+    max-width: 46px;
+    height: 32px;
   }
 
   .eq-system-feedback {
@@ -1769,8 +1769,8 @@
   .eq-floating-summary__type-icon {
     display: inline-flex;
     flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     color: var(--eq-active-color, #facc15);
   }
 
@@ -1783,8 +1783,8 @@
     position: relative;
     display: inline-block;
     flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
+    width: 19px;
+    height: 19px;
     border: 1px solid rgba(226, 232, 240, 0.18);
     border-radius: 50%;
     background:
@@ -1797,14 +1797,14 @@
 
   .eq-floating-summary__mini-indicator {
     position: absolute;
-    top: 2px;
+    top: 3px;
     left: 50%;
     width: 2px;
-    height: 6px;
+    height: 7px;
     border-radius: 999px;
     background: var(--eq-active-color, #facc15);
     transform: translateX(-50%) rotate(var(--eq-mini-knob-angle));
-    transform-origin: 50% 6px;
+    transform-origin: 50% 6.5px;
     box-shadow: 0 0 6px color-mix(in srgb, var(--eq-active-color, #facc15) 70%, transparent);
   }
 
@@ -1922,8 +1922,8 @@
 
   .eq-floating-summary__type-icon,
   .eq-floating-summary__mini-knob {
-    width: 14px;
-    height: 14px;
+    width: 17px;
+    height: 17px;
   }
 
   .eq-knob::before {
@@ -1945,13 +1945,13 @@
   }
 
   .eq-filter-shape-button {
-    min-height: 48px;
-    padding: 6px 3px;
+    min-height: 43px;
+    padding: 4px 3px;
   }
 
   .eq-filter-shape-button svg {
-    max-width: 34px;
-    height: 30px;
+    max-width: 38px;
+    height: 32px;
   }
 
   .eq-filter-shape-button span {
@@ -1970,12 +1970,12 @@
   }
 
   .eq-filter-shape-button {
-    min-height: 44px;
-    padding: 5px 2px;
+    min-height: 40px;
+    padding: 4px 2px;
   }
 
   .eq-filter-shape-button svg {
-    max-width: 30px;
-    height: 28px;
+    max-width: 34px;
+    height: 30px;
   }
 }
