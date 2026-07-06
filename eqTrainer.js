@@ -9,6 +9,7 @@ import {
   getFrequencyPositionFromValue,
   updateEqCurvePreview
 } from "./interactive-eq-graph.js";
+import { bindEqKnobControl, renderEqKnobControl } from "./interactive-eq-knob.js";
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
@@ -18,11 +19,11 @@ const MIN_Q = 0.4;
 const MAX_Q = 8;
 const PRESET_TOLERANCE = 0.05;
 const FILTER_TYPE_OPTIONS = [
-  { value: "bell", label: "Bell" },
+  { value: "highPass", label: "Low Cut" },
   { value: "lowShelf", label: "Low Shelf" },
+  { value: "bell", label: "Bell" },
   { value: "highShelf", label: "High Shelf" },
-  { value: "highPass", label: "High Pass" },
-  { value: "lowPass", label: "Low Pass" }
+  { value: "lowPass", label: "High Cut" }
 ];
 const Q_VALUE_TYPES = [
   {
@@ -209,6 +210,10 @@ function getFrequencyFromSliderValue(sliderValue) {
   return Math.round(10 ** (min + normalized * (max - min)));
 }
 
+function createKnobReadoutAttribute(controlName) {
+  return `data-eq-${controlName}-readout`;
+}
+
 function hasCustomAdjustment() {
   const preset = createPresetSettings(activeBand);
   const settings = getCurrentSettings();
@@ -344,10 +349,17 @@ function updateControlReadouts(settings = getCurrentSettings()) {
   const frequencyReadout = controlsNode?.querySelector("[data-eq-frequency-readout]");
   const gainReadout = controlsNode?.querySelector("[data-eq-gain-readout]");
   const qReadout = controlsNode?.querySelector("[data-eq-q-readout]");
+  const frequencyKnob = controlsNode?.querySelector('[data-eq-knob="frequency"]');
+  const gainKnob = controlsNode?.querySelector('[data-eq-knob="gain"]');
+  const qKnob = controlsNode?.querySelector('[data-eq-knob="q"]');
 
   if (frequencyReadout) frequencyReadout.textContent = formatFrequencyLong(settings.frequency);
   if (gainReadout) gainReadout.textContent = formatGain(settings.gain);
   if (qReadout) qReadout.textContent = formatQValue(settings.q);
+
+  frequencyKnob?.setAttribute("aria-valuetext", formatFrequencyLong(settings.frequency));
+  gainKnob?.setAttribute("aria-valuetext", formatGain(settings.gain));
+  qKnob?.setAttribute("aria-valuetext", formatQValue(settings.q));
 }
 
 function updateLiveControlState() {
@@ -453,6 +465,96 @@ function createFilterShapeButtons(selectedFilterType) {
   }).join("");
 }
 
+function createKnobControls(settings) {
+  return [
+    renderEqKnobControl({
+      id: "gain",
+      label: "Gain",
+      value: settings.gain,
+      valueText: formatGain(settings.gain),
+      min: MIN_GAIN,
+      max: MAX_GAIN,
+      step: 0.5,
+      readoutAttribute: createKnobReadoutAttribute("gain")
+    }),
+    renderEqKnobControl({
+      id: "frequency",
+      label: "Frequency",
+      value: getFrequencySliderValue(settings.frequency),
+      valueText: formatFrequencyLong(settings.frequency),
+      min: 0,
+      max: FREQUENCY_SLIDER_STEPS,
+      step: 1,
+      readoutAttribute: createKnobReadoutAttribute("frequency")
+    }),
+    renderEqKnobControl({
+      id: "q",
+      label: "Q",
+      value: settings.q,
+      valueText: formatQValue(settings.q),
+      min: MIN_Q,
+      max: MAX_Q,
+      step: 0.1,
+      readoutAttribute: createKnobReadoutAttribute("q")
+    })
+  ].join("");
+}
+
+function updateFrequencyFromControlValue(value) {
+  currentSettings = {
+    ...getCurrentSettings(),
+    frequency: getFrequencyFromSliderValue(value)
+  };
+  updateLiveControlState();
+}
+
+function updateGainFromControlValue(value) {
+  currentSettings = {
+    ...getCurrentSettings(),
+    gain: Number(value)
+  };
+  activeAccordionItem = "boost-cut";
+  updateLiveControlState();
+}
+
+function updateQFromControlValue(value) {
+  currentSettings = {
+    ...getCurrentSettings(),
+    q: Number(value)
+  };
+  activeAccordionItem = "q-value";
+  updateLiveControlState();
+}
+
+function bindKnobControls() {
+  const knobBindings = {
+    frequency: {
+      getValue: () => getFrequencySliderValue(getCurrentSettings().frequency),
+      onInput: updateFrequencyFromControlValue
+    },
+    gain: {
+      getValue: () => getCurrentSettings().gain,
+      onInput: updateGainFromControlValue
+    },
+    q: {
+      getValue: () => getCurrentSettings().q,
+      onInput: updateQFromControlValue
+    }
+  };
+
+  controlsNode.querySelectorAll("[data-eq-knob]").forEach((knobNode) => {
+    const binding = knobBindings[knobNode.dataset.eqKnob];
+
+    if (!binding) return;
+
+    bindEqKnobControl(knobNode, {
+      getValue: binding.getValue,
+      onInput: binding.onInput,
+      onChange: updateVisualPanel
+    });
+  });
+}
+
 function renderInteractiveControls() {
   if (!controlsNode) return;
 
@@ -470,23 +572,7 @@ function renderInteractiveControls() {
     </div>
 
     <div class="eq-control-grid">
-      <label class="eq-control">
-        <span class="eq-control__label">Frequency</span>
-        <strong class="eq-control__value" data-eq-frequency-readout>${formatFrequencyLong(settings.frequency)}</strong>
-        <input data-eq-control="frequency" type="range" min="0" max="${FREQUENCY_SLIDER_STEPS}" step="1" value="${getFrequencySliderValue(settings.frequency)}">
-      </label>
-
-      <label class="eq-control">
-        <span class="eq-control__label">Gain</span>
-        <strong class="eq-control__value" data-eq-gain-readout>${formatGain(settings.gain)}</strong>
-        <input data-eq-control="gain" type="range" min="${MIN_GAIN}" max="${MAX_GAIN}" step="0.5" value="${settings.gain}">
-      </label>
-
-      <label class="eq-control">
-        <span class="eq-control__label">Q</span>
-        <strong class="eq-control__value" data-eq-q-readout>${formatQValue(settings.q)}</strong>
-        <input data-eq-control="q" type="range" min="${MIN_Q}" max="${MAX_Q}" step="0.1" value="${settings.q}">
-      </label>
+      ${createKnobControls(settings)}
 
       <div class="eq-control eq-control--filter">
         <div class="eq-filter-type-header">
@@ -499,41 +585,7 @@ function renderInteractiveControls() {
     </div>
   `;
 
-  const frequencyInput = controlsNode.querySelector('[data-eq-control="frequency"]');
-  frequencyInput?.addEventListener("input", (event) => {
-    currentSettings = {
-      ...getCurrentSettings(),
-      frequency: getFrequencyFromSliderValue(event.target.value)
-    };
-    updateLiveControlState();
-  });
-  frequencyInput?.addEventListener("change", () => {
-    updateVisualPanel();
-  });
-
-  controlsNode.querySelector('[data-eq-control="gain"]')?.addEventListener("input", (event) => {
-    currentSettings = {
-      ...getCurrentSettings(),
-      gain: Number(event.target.value)
-    };
-    activeAccordionItem = "boost-cut";
-    updateLiveControlState();
-  });
-  controlsNode.querySelector('[data-eq-control="gain"]')?.addEventListener("change", () => {
-    updateVisualPanel();
-  });
-
-  controlsNode.querySelector('[data-eq-control="q"]')?.addEventListener("input", (event) => {
-    currentSettings = {
-      ...getCurrentSettings(),
-      q: Number(event.target.value)
-    };
-    activeAccordionItem = "q-value";
-    updateLiveControlState();
-  });
-  controlsNode.querySelector('[data-eq-control="q"]')?.addEventListener("change", () => {
-    updateVisualPanel();
-  });
+  bindKnobControls();
 
   controlsNode.querySelectorAll("[data-filter-type]").forEach((button) => {
     button.addEventListener("click", () => {
