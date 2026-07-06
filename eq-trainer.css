@@ -242,7 +242,7 @@
 
 .eq-atlas-panel {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   border: 1px solid rgba(125, 211, 252, 0.16);
   border-radius: 18px;
   padding: 16px;
@@ -251,13 +251,13 @@
 
 .eq-atlas-visual {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .eq-response-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(118px, 142px);
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
 }
 
@@ -503,7 +503,7 @@
 
 .eq-control--knob {
   justify-items: center;
-  min-height: 178px;
+  min-height: 160px;
   padding: 12px 10px 14px;
   text-align: center;
 }
@@ -595,7 +595,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: min(100%, 116px);
+  width: min(100%, 100px);
   aspect-ratio: 1;
   touch-action: none;
   user-select: none;
@@ -1606,7 +1606,11 @@
 
   .eq-response-layout {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .eq-curve-visual {
+    min-height: 204px;
   }
 
   .eq-frequency-map__tick {
@@ -1671,12 +1675,12 @@
   }
 
   .eq-control--knob {
-    min-height: 142px;
+    min-height: 128px;
     padding: 10px 6px 12px;
   }
 
   .eq-knob-control {
-    width: min(100%, 86px);
+    width: min(100%, 74px);
   }
 
   .eq-knob__indicator {
@@ -1836,11 +1840,11 @@
 
 @media (max-width: 480px) {
   .eq-control-grid {
-    gap: 6px;
+    gap: 5px;
   }
 
   .eq-control--knob {
-    min-height: 126px;
+    min-height: 112px;
     padding: 8px 5px 10px;
   }
 
@@ -1853,7 +1857,7 @@
   }
 
   .eq-knob-control {
-    width: min(100%, 72px);
+    width: min(100%, 62px);
   }
 
   .eq-knob::before {
