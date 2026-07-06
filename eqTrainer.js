@@ -9,7 +9,7 @@ import {
   getFrequencyPositionFromValue,
   updateEqCurvePreview
 } from "./interactive-eq-graph.js";
-import { bindEqKnobControl, getKnobAngle, renderEqKnobControl } from "./interactive-eq-knob.js";
+import { bindEqKnobControl, renderEqKnobControl, renderMiniKnob } from "./interactive-eq-knob.js";
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
@@ -217,11 +217,14 @@ function createKnobReadoutAttribute(controlName) {
 }
 
 function renderSummaryMiniKnob(value, min, max) {
-  return `
-    <span class="eq-floating-summary__mini-knob" aria-hidden="true" style="--eq-mini-knob-angle: ${getKnobAngle(value, min, max)}deg;">
-      <span class="eq-floating-summary__mini-indicator"></span>
-    </span>
-  `;
+  return renderMiniKnob({
+    value,
+    min,
+    max,
+    className: "eq-floating-summary__mini-knob",
+    indicatorClassName: "eq-floating-summary__mini-indicator",
+    angleProperty: "--eq-mini-knob-angle"
+  });
 }
 
 function hasCustomAdjustment() {

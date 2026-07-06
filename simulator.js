@@ -12,6 +12,7 @@ import {
   simulatorMeterMarks,
   valueToFaderPosition
 } from "./data.js";
+import { getKnobAngle, getKnobArcAngle, renderMiniKnob } from "./interactive-eq-knob.js";
 
 const simulatorSource = document.getElementById("simulatorSource");
 const gainKnob = document.getElementById("gainKnob");
@@ -41,6 +42,7 @@ const outputStatusMessage = document.getElementById("outputStatusMessage");
 const gainSimulator = document.getElementById("gain-simulator");
 const floatingSimButton = document.getElementById("floatingSimButton");
 const floatingSimButtonText = floatingSimButton?.querySelector(".floating-btn-text");
+const floatingSimKnobIcon = floatingSimButton?.querySelector(".floating-knob-icon");
 let currentGain = 28;
 let currentFader = 0;
 let simulatedInputRMS = -24;
@@ -143,9 +145,8 @@ function updateFloatingButtonState() {
 
 function updateFloatingKnobIcon() {
   if (!floatingSimButton) return;
-  const gainRatio = clamp(currentGain / 60, 0, 1);
-  const pointerAngle = -135 + gainRatio * 270;
-  const gainArcDeg = gainRatio * 270;
+  const pointerAngle = getKnobAngle(currentGain, 0, 60);
+  const gainArcDeg = getKnobArcAngle(currentGain, 0, 60);
   const statusLevel = getInputStatusLevel();
   const statusColorMap = {
     low: "#7dd3fc",
@@ -183,6 +184,22 @@ function updateFloatingKnobIcon() {
     "title",
     isAtSimulator ? `回到頁面上方，${gainText}` : `前往 Gain Staging Simulator，${gainText}`
   );
+}
+
+function initFloatingKnobIcon() {
+  if (!floatingSimKnobIcon) return;
+
+  floatingSimKnobIcon.outerHTML = renderMiniKnob({
+    value: currentGain,
+    min: 0,
+    max: 60,
+    className: "floating-knob-icon",
+    arcClassName: "floating-knob-leds",
+    bodyClassName: "floating-knob-body",
+    indicatorClassName: "floating-knob-pointer",
+    angleProperty: "--floating-knob-rotation",
+    arcProperty: "--floating-gain-angle"
+  });
 }
 
 function resetGainToRecommended() {
@@ -500,7 +517,7 @@ export function setSimulatorProfile(item) {
 
 function updateKnob() {
   if (!gainKnob || !gainValue) return;
-  const rotation = -135 + (currentGain / 60) * 270;
+  const rotation = getKnobAngle(currentGain, 0, 60);
   gainKnob.style.setProperty("--knob-rotation", `${rotation}deg`);
   gainKnob.style.setProperty("--knob-angle", `${rotation}deg`);
   gainKnob.setAttribute("aria-valuenow", String(Math.round(currentGain)));
@@ -829,6 +846,7 @@ function initSimulator() {
   [inputRmsMeter, inputPeakMeter, outputLeftMeter, outputRightMeter].forEach(createSimulatorMeter);
   renderFaderScale();
   initKnobLedRing();
+  initFloatingKnobIcon();
   bindGainKnob();
   bindOutputFader();
   bindFaderPointerControl();
