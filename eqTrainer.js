@@ -13,6 +13,8 @@ import { bindEqKnobControl, renderEqKnobControl, renderMiniKnob } from "./intera
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
+const isStandaloneMode =
+  new window.URLSearchParams(window.location.search).get("standalone") === "1";
 const DEFAULT_BAND_ID = "eq-1khz";
 const FREQUENCY_SLIDER_STEPS = 1000;
 const MIN_Q = 0.4;
@@ -59,6 +61,8 @@ let frequencyMapNode = null;
 let filterShapePanelNode = null;
 let currentSettings = null;
 let activeAccordionItem = null;
+
+document.body.classList.toggle("eq-lab-standalone", isStandaloneMode);
 
 function getBandFrequencyValue(band) {
   return Number(band.frequency);

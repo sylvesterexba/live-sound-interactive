@@ -75,6 +75,19 @@
   main {
     padding: 16px;
   }
+  .eq-lab-standalone .eq-lab-page-header {
+    padding: 14px 16px 10px;
+  }
+  .eq-lab-standalone .eq-lab-standalone-hero h1 {
+    font-size: 1.65rem;
+  }
+  .eq-lab-standalone .eq-lab-standalone-hero p {
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+  .eq-lab-standalone main {
+    padding-top: 8px;
+  }
   .academy-module-grid {
     grid-template-columns: 1fr;
   }
@@ -105,6 +118,9 @@
   .eq-trainer-placeholder__panel {
     padding: 16px;
     border-radius: 18px;
+  }
+  .eq-lab-standalone .eq-trainer-placeholder__panel {
+    padding: 12px;
   }
   .eq-band-preview {
     grid-template-columns: 1fr;

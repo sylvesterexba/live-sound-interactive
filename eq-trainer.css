@@ -52,6 +52,52 @@
   line-height: 1.7;
 }
 
+.eq-lab-standalone-hero {
+  display: none;
+}
+
+.eq-lab-standalone .eq-course-only,
+.eq-lab-standalone .eq-lab-course-hero,
+.eq-lab-standalone .eq-lab-lesson-intro {
+  display: none;
+}
+
+.eq-lab-standalone .eq-lab-page-header {
+  padding: 18px 24px 12px;
+}
+
+.eq-lab-standalone .eq-lab-standalone-hero {
+  display: block;
+}
+
+.eq-lab-standalone .eq-lab-standalone-hero h1 {
+  font-size: clamp(1.75rem, 2.4vw, 2.45rem);
+}
+
+.eq-lab-standalone .eq-lab-standalone-hero p {
+  margin-top: 8px;
+}
+
+.eq-lab-standalone main {
+  padding-top: 12px;
+}
+
+.eq-lab-standalone .eq-trainer-placeholder {
+  margin-top: 0;
+}
+
+.eq-lab-standalone .eq-trainer-placeholder__panel {
+  padding-top: 14px;
+}
+
+.eq-lab-standalone .eq-trainer-placeholder__content {
+  gap: 8px;
+}
+
+.eq-lab-standalone .eq-band-preview {
+  margin-top: 0;
+}
+
 .eq-card-grid {
   gap: 12px;
 }
