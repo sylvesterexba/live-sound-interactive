@@ -1,212 +1,135 @@
-# Live Sound Interactive Academy Architecture
+# Live Sound Interactive Architecture
 
 ## 1. Purpose
 
-本文件定義 Live Sound Interactive Academy 的資訊架構（Information Architecture），統一 `Academy`、`Module`、`Course`、`Lesson` 的命名與使用方式。
+This document describes the current product and technical architecture for Live Sound Interactive.
 
-本次整理只處理結構定義與命名一致性，不改動既有互動功能、UI 行為或資料夾位置。
-
-## 2. Canonical Hierarchy
+The current user-facing structure is concept based:
 
 ```text
-Academy
-└── Module
-    └── Course
-        └── Lesson
+Live Sound Interactive
+├── Gain Staging
+├── EQ Curves
+├── Dynamic Compression (Planned)
+└── Noise Gate (Planned)
 ```
 
-## 3. Definitions
+The previous course-style information architecture is no longer the product model. Current navigation should not introduce Trainer, Course, or Lesson paths for new work.
 
-### Academy
+## 2. Product Naming
 
-- 定義：整個學習平台的最上層品牌與入口。
-- 目前對應：`/index.html`
-- 使用方式：只用來表示整個 Live Sound Interactive Academy，不拿來指稱單一工具、單一課程或單一單元。
+Current brand:
 
-### Module
+- `Live Sound Interactive`
+- `現場音控互動`
 
-- 定義：Academy 內的一個主題領域。
-- 特徵：通常有自己的 landing page，負責介紹主題、列出底下的 Course，或提供該主題的核心入口。
-- 目前例子：
-  - `Gain Staging`
-  - `EQ Trainer`
+Current user-facing feature names:
 
-### Course
+- `Gain Staging / 增益級距`
+- `EQ Curves / EQ 曲線`
+- `Dynamic Compression / 動態壓縮` (Planned)
+- `Noise Gate / 噪音閘門` (Planned)
 
-- 定義：Module 內的一組課程內容。
-- 特徵：聚焦單一學習路徑，底下可再拆成多個 Lesson。
-- 目前例子：
-  - `EQ Fundamentals`
-  - `Instrument EQ`
-
-### Lesson
-
-- 定義：Course 內最小的可學習單元或互動頁面。
-- 特徵：可獨立閱讀、練習或操作。
-- 目前例子：
-  - `Frequency Atlas`
-  - `Ear Memory`
-  - `Q Value`
-  - `Boost vs Cut`
-  - `Filter Types`
-  - `Interactive EQ Lab`
-
-## 4. Current State
-
-### Academy
+Avoid using the following as current product names or navigation concepts:
 
 - `Live Sound Interactive Academy`
+- `現場音控互動學院`
+- `Academy`
+- `Module 1` / `Module 2`
+- `EQ Trainer`
+- `Interactive EQ Lab`
+- `EQ Fundamentals`
+- `Instrument EQ`
+- Course or Lesson as the current product navigation model
+- Trainer, Interactive, or Lab as current feature names
 
-### Current Modules
+## 3. User-Facing Navigation
 
-#### Module 1: Gain Staging
+Users enter available tools directly from the home page:
 
-- 路徑：`/modules/gain-staging/`
-- 狀態：Available
-- 目前性質：單一 Module 頁
-- 備註：
-  - 目前頁面同時承擔 Module landing 與核心互動入口。
-  - `Gain Staging Simulator` 是此 Module 內的互動體驗名稱，不應拿來取代 Module 名稱本身。
-  - 目前尚未拆成獨立 Course / Lesson 頁，這是現況上的特例，不是新的正式層級。
+- Home -> Gain Staging
+- Home -> EQ Curves
 
-#### Module 2: EQ Trainer
+Users no longer need to pass through EQ Trainer, EQ Fundamentals, Instrument EQ, or any course-style intermediate page.
 
-- 路徑：`/modules/eq-trainer/`
-- 狀態：In Development
-- 目前性質：標準 Module landing page
+Dynamic Compression and Noise Gate are shown as planned concepts only. They should not link to pages until the features exist.
 
-Current Courses:
+## 4. Existing Physical Folder Paths
 
-- `Course 1: EQ Fundamentals`
-- `Course 2: Instrument EQ`
+The current file tree still contains historical EQ paths. These paths are retained for deployment stability and to avoid mixing a naming cleanup with a file migration.
 
-#### Course 1: EQ Fundamentals
-
-- 路徑：`/modules/eq-trainer/fundamentals/`
-- 狀態：Partially Available
-
-Current Lessons:
-
-- `Lesson 1: Frequency Atlas` - Coming Soon
-- `Lesson 2: Ear Memory` - Coming Soon
-- `Lesson 3: Q Value` - Coming Soon
-- `Lesson 4: Boost vs Cut` - Coming Soon
-- `Lesson 5: Filter Types` - Coming Soon
-- `Lesson 6: Interactive EQ Lab` - Available
-
-#### Course 2: Instrument EQ
-
-- 路徑：`/modules/eq-trainer/instrument-eq/`
-- 狀態：Coming Soon
-- 備註：屬於 `EQ Trainer` Module 之下的 Course，不應再被視為 Academy 首頁上的獨立 Module。
-
-## 5. Future Planned Modules
-
-以下項目目前以 Academy future modules 概念存在，適合延續成獨立 Module：
-
-- `PFL Trainer`
-- `Compression Trainer`
-- `Gate Trainer`
-- `Source Tone Guide`
-- `Microphone Trainer`
-- `Ear Training`
-
-規劃原則：
-
-- 若主題已屬於現有 Module 之下的 Course，應優先放回既有 Module 管理。
-- Academy 首頁上的 Future Modules 不應與既有 Course 重名，以免混淆層級。
-
-## 6. Folder Structure Recommendation
-
-本次不移動任何資料夾；以下是與現況相容的建議結構：
+Key runtime pages:
 
 ```text
-/
-├── index.html                          # Academy landing page
-├── ARCHITECTURE.md
-├── README.md
-├── modules/
-│   ├── gain-staging/
-│   │   └── index.html                  # Module landing page, currently also hosts the core interactive experience
-│   └── eq-trainer/
-│       ├── index.html                  # Module landing page
-│       ├── fundamentals/
-│       │   ├── index.html              # Course landing page
-│       │   ├── frequency-atlas/
-│       │   │   └── index.html          # Lesson 1
-│       │   ├── ear-memory/
-│       │   │   └── index.html          # Lesson 2
-│       │   ├── q-value/
-│       │   │   └── index.html          # Lesson 3
-│       │   ├── boost-vs-cut/
-│       │   │   └── index.html          # Lesson 4
-│       │   ├── filter-types/
-│       │   │   └── index.html          # Lesson 5
-│       │   └── interactive-eq/
-│       │       └── index.html          # Lesson 6
-│       └── instrument-eq/
-│           └── index.html              # Course landing page
+index.html
+modules/gain-staging/index.html
+modules/eq-trainer/fundamentals/interactive-eq/index.html
 ```
 
-## 7. Naming Rules
+EQ Curves currently runs from:
 
-### English Canonical Terms
+```text
+modules/eq-trainer/fundamentals/interactive-eq/
+```
 
-- `Academy`
-- `Module`
-- `Course`
-- `Lesson`
+This is a historical physical path, not the current product name.
 
-禁止混用：
+Do not treat `modules/eq-trainer/`, `fundamentals/`, or `interactive-eq/` as current product hierarchy. They are technical debt until a dedicated migration is planned.
 
-- 不要把 `Module` 寫成 `Tool`
-- 不要把 `Lesson` 寫成 `Page`
-- 不要把 `Course` 與 `Section` 當成同一層
+## 5. Runtime Dependencies
 
-### Chinese Display Terms
+### Home
 
-- `Academy` = `學院`
-- `Module` = `模組`
-- `Course` = `課程`
-- `Lesson` = `單元`
+- Page: `index.html`
+- CSS: `base.css`, `layout.css`, `components.css`, `responsive.css`
+- JavaScript: none
 
-備註：
+### Gain Staging
 
-- 中文可依內容語氣寫成 `互動單元`、`學習單元`，但對應英文概念仍應是 `Lesson`。
-- `Section` 若仍需存在，只能作為 Course 內的視覺分組或編排說明，不能取代正式層級。
+- Page: `modules/gain-staging/index.html`
+- CSS: `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `responsive.css`
+- JavaScript entry: `script.js`
+- Supporting runtime files:
+  - `simulator.js`
+  - `pflMeter.js`
+  - `data.js`
+  - `icons.js`
+  - `components/knob.js`
 
-### Page Title Convention
+### EQ Curves
 
-建議依頁面層級顯示：
+- Page: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
+- CSS: `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`
+- JavaScript entry: `eqTrainer.js`
+- Supporting runtime files:
+  - `eqData.js`
+  - `interactive-eq-graph.js`
+  - `interactive-eq-knob.js`
+  - `interactive-eq-icons.js`
+  - `components/knob.js`
 
-- Academy page:
-  - `Live Sound Interactive Academy`
-- Module page:
-  - `{Module Name} | Module {N} | Live Sound Interactive Academy`
-- Course page:
-  - `{Course Name} | Course {N} | {Module Name} | Module {N} | Live Sound Interactive Academy`
-- Lesson page:
-  - `{Lesson Name} | Lesson {N} | {Course Name} | Course {N} | {Module Name} | Module {N} | Live Sound Interactive Academy`
+## 6. Future Migration Notes
 
-### Meta Description Convention
+If EQ Curves is moved later, handle it as an independent refactor:
 
-- Module page：描述 Module 的學習主題與核心入口。
-- Course page：描述該 Course 在對應 Module 中的位置與學習範圍。
-- Lesson page：描述該 Lesson 在對應 Course 中的位置與具體練習內容。
+- create or choose the new path intentionally
+- update links, metadata, deployment paths, and any canonical references together
+- preserve the existing route or provide a redirect if needed
+- verify Gain Staging and EQ Curves on desktop, tablet, and mobile
 
-## 8. Naming Audit Summary
+Recommended future paths for planned concepts:
 
-本次整理中已確認的重點：
+```text
+modules/dynamic-compression/
+modules/noise-gate/
+```
 
-- `Gain Staging` 應作為 Module 名稱，`Gain Staging Simulator` 為其互動內容名稱。
-- `EQ Trainer` 為 Module 名稱。
-- `EQ Fundamentals`、`Instrument EQ` 為 Course 名稱。
-- `Frequency Atlas`、`Ear Memory`、`Q Value`、`Boost vs Cut`、`Filter Types`、`Interactive EQ Lab` 為 Lesson 名稱。
-- README 舊有的 `Course / Section / Lesson` 已調整為正式的 `Module / Course / Lesson` 命名。
-- Lesson 與 Course 頁的 `<title>` 與 meta description 已補齊層級資訊。
+Do not create new Trainer, Course, or Lesson style paths for planned features.
 
-## 9. Follow-up Notes
+## 7. Development Direction
 
-- 若未來要把 `Gain Staging` 進一步拆成 Course / Lesson，應在不改變教學邏輯的前提下進行。
-- 若 Academy 首頁要持續展示 future modules，應先檢查名稱是否與既有 Course 衝突。
-- 所有新頁面都應先套用本文件的命名規範，再進入 UI 與互動開發。
+- Keep user-facing naming concept based.
+- Keep physical-path migration separate from UI copy changes.
+- Keep Gain Staging and EQ Curves runtime logic independent.
+- Promote shared code only when at least two features truly need the same helper.
+- Add new planned features on `develop` first, then merge to `main` after validation.

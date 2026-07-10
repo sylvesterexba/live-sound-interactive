@@ -1,5 +1,28 @@
 # MODULE_BOUNDARY_REVIEW
 
+## Document Status
+
+Historical architecture review with current naming notes.
+
+This document preserves the technical boundary analysis of the existing files while updating user-facing names to the current product language.
+
+Current product names:
+
+- `Academy Home` -> `Home`
+- `EQ Trainer` -> `EQ Curves`
+- `Interactive EQ Lab` -> `EQ Curves`
+
+Historical technical names still present in the codebase:
+
+- `eq-trainer.css`
+- `eqTrainer.js`
+- `modules/eq-trainer/...`
+- `modules/eq-trainer/fundamentals/interactive-eq/...`
+
+These are historical technical names and have not yet been refactored. Do not rename or move them unless a task explicitly requests that migration.
+
+The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and Academy / Module / Course / Lesson information architecture are no longer current product planning. Their files may still exist as retained historical paths.
+
 ## Current Structure
 
 ### Top-level
@@ -35,155 +58,128 @@
 - `modules/eq-trainer/fundamentals/interactive-eq/index.html`
 - `modules/eq-trainer/instrument-eq/index.html`
 
-### Module/page map
+### Current user-facing page map
 
-- Academy Home: `index.html`
-- Gain Staging Module: `modules/gain-staging/index.html`
-- EQ Trainer Module: `modules/eq-trainer/index.html`
-- EQ Fundamentals Course: `modules/eq-trainer/fundamentals/index.html`
-- Instrument EQ Course: `modules/eq-trainer/instrument-eq/index.html`
-- Interactive EQ Lab: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
-- EQ Fundamentals placeholder lessons:
-  - `fundamentals/frequency-atlas/index.html`
-  - `fundamentals/ear-memory/index.html`
-  - `fundamentals/q-value/index.html`
-  - `fundamentals/boost-vs-cut/index.html`
-  - `fundamentals/filter-types/index.html`
+- Home: `index.html`
+- Gain Staging: `modules/gain-staging/index.html`
+- EQ Curves: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
+- Dynamic Compression: planned, no runtime page yet
+- Noise Gate: planned, no runtime page yet
 
-### Assets
+### Retained historical paths
 
-- `assets/` currently only contains `assets/.gitkeep`
-- There is also a tracked top-level file named `h origin develop`, which is not part of any module runtime and appears to be an accidental text artifact rather than a web asset
+- `modules/eq-trainer/index.html`
+- `modules/eq-trainer/fundamentals/index.html`
+- `modules/eq-trainer/instrument-eq/index.html`
+- `modules/eq-trainer/fundamentals/frequency-atlas/index.html`
+- `modules/eq-trainer/fundamentals/ear-memory/index.html`
+- `modules/eq-trainer/fundamentals/q-value/index.html`
+- `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`
+- `modules/eq-trainer/fundamentals/filter-types/index.html`
+
+These paths should not be used to justify current product naming. They are retained technical structure.
 
 ## Asset Ownership
 
-### Academy Shared
+### Shared
 
 #### HTML containers
 
 - `index.html`
 - `modules/gain-staging/index.html`
-- `modules/eq-trainer/index.html`
-- `modules/eq-trainer/fundamentals/index.html`
-- `modules/eq-trainer/instrument-eq/index.html`
-- All EQ lesson placeholder pages
+- `modules/eq-trainer/fundamentals/interactive-eq/index.html`
+- Retained historical EQ pages listed above
 
 #### CSS
 
 - `base.css`
-  - Global body and bilingual title foundation
-  - Evidence: `base.css:5-24`
+  - Global body and bilingual title foundation.
 - `layout.css`
-  - Shared page shell and common section/grid structure
-  - Evidence: `layout.css:2-17`, `layout.css:20-42`, `layout.css:112`
+  - Shared page shell and common section/grid structure.
+  - Also contains some Gain Staging layout rules.
 - `components.css`
-  - Shared Academy card styles and shared button shell
-  - Evidence: `components.css:36-139`
+  - Shared UI, homepage concept entries, and some Gain Staging UI.
+- `responsive.css`
+  - Shared responsive rules plus Home, Gain Staging, and EQ Curves responsive overrides.
 
 #### JavaScript
 
 - `components/knob.js`
-  - Shared knob value normalization, angle calculation, arc calculation, and mini knob rendering
-  - Current users: `simulator.js` and `interactive-eq-knob.js`
+  - Shared knob value normalization, angle calculation, arc calculation, and mini knob rendering.
+  - Current users: `simulator.js` and `interactive-eq-knob.js`.
 
-### Gain Staging
+## Gain Staging Ownership
 
-#### CSS
+### CSS
 
 - `detail.css`
-  - Gain Staging detail panel and PFL meter styles
-  - Evidence: `detail.css:2-238`
+  - Gain Staging detail panel and PFL meter styles.
 - `simulator.css`
-  - Gain Staging simulator, gain knob, fader, input/output meters, reset pads
-  - Evidence: `simulator.css:2-650`
+  - Gain Staging simulator, gain knob, fader, input/output meters, reset pads.
 - `components.css`
-  - Contains Gain-specific UI mixed into shared file:
-    - filter buttons: `components.css:146-156`
-    - item cards/icons/meta chips: `components.css:161-322`
-    - floating simulator button: `components.css:326-424`
-    - about modal: `components.css:425-598`
+  - Contains Gain-specific UI mixed into a shared file.
 - `layout.css`
-  - Contains Gain-specific layout mixed into shared file:
-    - picker toggle/backdrop: `layout.css:78-82`
-    - control panel: `layout.css:82-88`
-    - filters: `layout.css:88-92`
-    - gain page split layout and instrument list: `layout.css:94-107`
+  - Contains Gain-specific layout mixed into a shared file.
 - `responsive.css`
-  - Contains Gain-specific RWD behavior mixed into shared file:
-    - simulator/detail/mobile filter drawer rules: `responsive.css:3-68`, `responsive.css:167-391`
+  - Contains Gain-specific RWD behavior mixed into shared responsive rules.
 
-#### JavaScript
+### JavaScript
 
 - `script.js`
-  - Gain Staging page bootstrap, item list, detail panel, drawer, about modal
-  - Evidence: `script.js:2-5`, `script.js:7-170`
+  - Gain Staging page bootstrap, item list, detail panel, drawer, about modal.
 - `simulator.js`
-  - Gain Staging simulator state, meters, fader/gain interactions
-  - Uses shared knob helper from `components/knob.js`; no longer depends on the EQ-specific knob wrapper
-  - Evidence: `simulator.js:2-15`, `simulator.js:17-889`
+  - Gain Staging simulator state, meters, fader/gain interactions.
+  - Uses shared knob helper from `components/knob.js`.
 - `pflMeter.js`
-  - Gain Staging PFL detail meter animation
-  - Evidence: `pflMeter.js:2-228`
+  - Gain Staging PFL detail meter animation.
 - `icons.js`
-  - Gain Staging source/mic icon rendering
-  - Evidence: `icons.js:1-135`
+  - Gain Staging source/mic icon rendering.
 - `data.js`
-  - Gain Staging source catalog plus simulator/PFL shared scales and helpers
-  - Evidence: `data.js:3-512`
+  - Gain Staging source catalog plus simulator/PFL shared scales and helpers.
 
-### EQ Trainer
+## EQ Curves Ownership
 
-#### CSS
+### CSS
 
 - `eq-trainer.css`
-  - Entire file is EQ-specific even though it sits at project root
-  - Evidence:
-    - EQ Trainer cards/placeholders: `eq-trainer.css:2-215`
-    - Interactive EQ Lab shell and controls: `eq-trainer.css:219-1684`
+  - Current EQ Curves controls, graph, filter type UI, floating summary, and retained historical EQ styles.
+  - The filename is historical and has not yet been refactored.
 - `responsive.css`
-  - Contains EQ-specific standalone lab responsive rules
-  - Evidence: `responsive.css:78-88`, `responsive.css:114-155`
+  - Contains EQ Curves responsive behavior mixed into shared responsive rules.
 
-#### JavaScript
+### JavaScript
 
 - `eqTrainer.js`
-  - Interactive EQ Lab bootstrap and UI rendering
-  - Evidence: `eqTrainer.js:1-12`, `eqTrainer.js:14-879`
+  - EQ Curves bootstrap and UI rendering.
+  - Historical filename; current user-facing feature name is EQ Curves.
 - `eqData.js`
-  - EQ band dataset and boost/cut teaching copy
-  - Evidence: `eqData.js:1-347`
+  - EQ band dataset and teaching copy.
 - `interactive-eq-graph.js`
-  - EQ curve math/render helpers
-  - Evidence: `interactive-eq-graph.js:1-105`
+  - EQ curve math/render helpers.
 - `interactive-eq-knob.js`
-  - Interactive EQ Lab-specific knob rendering and interaction wrapper
-  - Uses shared knob helper from `components/knob.js`
-  - Evidence: `interactive-eq-knob.js:1-173`
+  - EQ Curves knob rendering and interaction wrapper.
+  - Uses shared knob helper from `components/knob.js`.
 - `interactive-eq-icons.js`
-  - EQ filter type icon renderer
-  - Evidence: `interactive-eq-icons.js:17`
+  - EQ filter type icon renderer.
 
-### Interactive EQ Lab
+### Runtime Entry
 
-- Runtime entry page: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
-- Directly loaded JS: `eqTrainer.js`
-- Indirect JS dependency chain:
-  - `eqTrainer.js` -> `eqData.js`
-  - `eqTrainer.js` -> `interactive-eq-icons.js`
-  - `eqTrainer.js` -> `interactive-eq-graph.js`
-  - `eqTrainer.js` -> `interactive-eq-knob.js`
+- Page: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
+- Direct JS: `eqTrainer.js`
 - Primary CSS: `eq-trainer.css`
 
-### Unclear or Mixed Responsibility
+This path is historical technical structure. It does not mean the product should still be named EQ Trainer or Interactive EQ Lab.
+
+## Unclear or Mixed Responsibility
 
 - `components.css`
-  - Mixes Academy-shared cards with Gain-only list/detail/about/floating simulator UI
+  - Mixes shared UI, homepage concept entries, and Gain-only list/detail/about/floating simulator UI.
 - `layout.css`
-  - Mixes Academy shell with Gain-only picker/filter/instrument layout
+  - Mixes shared shell with Gain-only picker/filter/instrument layout.
 - `responsive.css`
-  - Mixes Academy-shared responsive rules with both Gain-only and EQ-only responsive rules
+  - Mixes shared, Home, Gain-only, and EQ-only responsive rules.
 - `data.js`
-  - Mixes Gain source data with simulator scales, PFL scales, and utility functions
+  - Mixes Gain source data with simulator scales, PFL scales, and utility functions.
 - Root placement of EQ files:
   - `eqTrainer.js`
   - `eqData.js`
@@ -195,120 +191,69 @@
 
 ### Shared CSS actually shared
 
-- `base.css` and `layout.css` provide page-level foundation used across Academy Home, Gain Staging, and EQ pages
-- `components.css` contains truly shared Academy card/button styles, but is not cleanly shared because Gain-only UI is embedded in the same file
+- `base.css` and `layout.css` provide page-level foundation used across Home, Gain Staging, and EQ Curves.
+- `components.css` contains shared UI but is not cleanly shared because Gain-only UI and homepage concept-entry styles are embedded in the same file.
 
-### Module-specific CSS currently in root
+### Feature-specific CSS currently in root
 
-- Gain-only:
-  - `detail.css`
-  - `simulator.css`
-  - Large parts of `components.css`
-  - Large parts of `layout.css`
-  - Large parts of `responsive.css`
-- EQ-only:
-  - `eq-trainer.css`
-  - Parts of `responsive.css`
+Gain-only:
+
+- `detail.css`
+- `simulator.css`
+- Large parts of `components.css`
+- Large parts of `layout.css`
+- Large parts of `responsive.css`
+
+EQ Curves:
+
+- `eq-trainer.css`
+- Parts of `responsive.css`
 
 ### Broad selector risk
 
-- `base.css:5` uses global `body`
-- `layout.css:2`, `layout.css:8`, `layout.css:12`, `layout.css:17`, `layout.css:112` style raw `header`, `main`, `footer`
-- `responsive.css:75` styles raw `main`
-- `components.css:598` and `responsive.css:290-334` rely on body state classes such as `body.about-open` and `body.picker-open`
-- `eqTrainer.js:65` adds `eq-lab-standalone` to `document.body`, and `eq-trainer.css:59-97` plus `responsive.css:78-88` react to that body-level class
+- `base.css` uses global `body`.
+- `layout.css` styles raw `header`, `main`, and `footer`.
+- `responsive.css` styles raw `main`.
+- Gain Staging and EQ Curves both use body-level state classes.
 
-These are not currently breaking other modules because only matching pages load the relevant JS state, but they increase the chance of future cross-page side effects if more pages begin reusing shared shells.
-
-### Duplicate or overlapping style patterns
-
-- Academy cards are styled in `components.css`, then EQ-specific card variants layer additional appearance in `eq-trainer.css:101-215`
-- Responsive overrides for simulator/detail/picker are separated into `responsive.css`, but because every page loads that file, non-Gain pages carry unused Gain-specific responsive rules
-- Interactive EQ mini-knob visuals exist in `eq-trainer.css`, while Gain Staging floating knob markup is rendered from `simulator.js` using shared output from `components/knob.js`
-
-### Current page-level CSS loading
-
-Current HTML loading now matches page intent:
-
-- Academy Home: `index.html:23-26`
-  - loads `base.css`, `layout.css`, `components.css`, `responsive.css`
-- Gain Staging: `modules/gain-staging/index.html:23-28`
-  - loads shared CSS plus `detail.css` and `simulator.css`
-- EQ Trainer / EQ Fundamentals / Instrument EQ:
-  - `modules/eq-trainer/index.html:23-27`
-  - `modules/eq-trainer/fundamentals/index.html:23-27`
-  - `modules/eq-trainer/instrument-eq/index.html:23-27`
-  - each loads shared CSS plus `eq-trainer.css`
-- Interactive EQ Lab: `modules/eq-trainer/fundamentals/interactive-eq/index.html:23-27`
-  - loads shared CSS plus `eq-trainer.css`
-- EQ placeholder lesson pages:
-  - `modules/eq-trainer/fundamentals/frequency-atlas/index.html:23-26`
-  - `modules/eq-trainer/fundamentals/ear-memory/index.html:23-26`
-  - `modules/eq-trainer/fundamentals/q-value/index.html:23-26`
-  - `modules/eq-trainer/fundamentals/boost-vs-cut/index.html:23-26`
-  - `modules/eq-trainer/fundamentals/filter-types/index.html:23-26`
-  - each loads shared CSS only
-
-Remaining inefficiency is now concentrated inside mixed shared files such as `components.css`, `layout.css`, and `responsive.css`, not in obvious per-page over-loading.
+These are not currently confirmed breaking issues, but they increase the chance of future cross-page side effects.
 
 ## JavaScript Responsibility and Load Review
 
 ### Gain Staging ownership
 
-- `script.js` is Gain-only and assumes Gain DOM IDs/classes exist
-- `simulator.js` is Gain-only and assumes simulator DOM IDs/classes exist
-- `pflMeter.js` is Gain-only and assumes PFL detail DOM exists
-- `icons.js` is Gain-only content logic for source and mic visuals
-- `data.js` is Gain-only content plus simulator/PFL math
+- `script.js` is Gain Staging only and assumes Gain DOM IDs/classes exist.
+- `simulator.js` is Gain Staging only and assumes simulator DOM IDs/classes exist.
+- `pflMeter.js` is Gain Staging only and assumes PFL detail DOM exists.
+- `icons.js` is Gain Staging content logic for source and mic visuals.
+- `data.js` is Gain Staging content plus simulator/PFL math.
 
-### EQ Trainer ownership
+### EQ Curves ownership
 
-- `eqTrainer.js` is Interactive EQ Lab only
-- `eqData.js` is EQ-only data
-- `interactive-eq-graph.js` is EQ-only rendering math
-- `interactive-eq-knob.js` is EQ-only wrapper code for the Interactive EQ Lab knob DOM, binding, and reset behavior
-- `interactive-eq-icons.js` is EQ-only icon rendering
+- `eqTrainer.js` is EQ Curves only.
+- `eqData.js` is EQ-only data.
+- `interactive-eq-graph.js` is EQ-only rendering math.
+- `interactive-eq-knob.js` is EQ-only wrapper code for knob DOM, binding, and reset behavior.
+- `interactive-eq-icons.js` is EQ-only icon rendering.
 
 ### Shared JavaScript ownership
 
-- `components/knob.js` is the shared knob utility boundary
+- `components/knob.js` is the shared knob utility boundary.
 - Current shared exports:
   - `normalizeKnobValue`
   - `getKnobAngle`
   - `getKnobArcAngle`
   - `renderMiniKnob`
 - Current users:
-  - `simulator.js` imports shared helpers directly from `components/knob.js`
-  - `interactive-eq-knob.js` imports and re-exports shared helpers while keeping EQ-specific wrapper behavior local
+  - `simulator.js`
+  - `interactive-eq-knob.js`
 
-### Cross-module dependencies
+### Pages loading JavaScript
 
-- `script.js` imports only Gain files:
-  - `data.js`, `icons.js`, `simulator.js`, `pflMeter.js`
-- `eqTrainer.js` imports only EQ files:
-  - `eqData.js`, `interactive-eq-icons.js`, `interactive-eq-graph.js`, `interactive-eq-knob.js`
-- Completed first-stage improvement:
-  - `simulator.js` now imports `getKnobAngle`, `getKnobArcAngle`, and `renderMiniKnob` from `components/knob.js`
-  - `interactive-eq-knob.js` now imports shared helpers from `components/knob.js` and retains EQ-specific wrapper exports such as `renderEqKnobControl` and `bindEqKnobControl`
-  - Gain Staging no longer depends directly on the EQ-specific knob wrapper
-
-### Global variable and naming collision review
-
-- All runtime code uses ES modules, so there is no current evidence of classic browser global variable pollution
-- There is no direct assignment to `window.someName`
-- Current collision risk is indirect:
-  - global body class toggles in `script.js` and `eqTrainer.js`
-  - very broad DOM queries such as `document.querySelectorAll(".filters button")` in `script.js:20`
-  - page-wide ID assumptions in both `script.js` and `simulator.js`
-
-### Pages loading unnecessary JavaScript
-
-- Academy Home loads no JS
-- EQ Trainer, EQ Fundamentals, Instrument EQ, and all placeholder EQ lessons load no JS
-- Gain Staging loads only `script.js` at `modules/gain-staging/index.html:344`
-- Interactive EQ Lab loads only `eqTrainer.js` at `modules/eq-trainer/fundamentals/interactive-eq/index.html:71`
-
-So the JS load relationship is currently efficient at the HTML level. The main problem is not over-loading JS per page. The problem is that several JS files with module-specific ownership live in the shared root, and one helper already crosses module boundaries.
+- Home loads no JS.
+- Gain Staging loads `script.js`.
+- EQ Curves loads `eqTrainer.js`.
+- Retained historical EQ overview, intermediate, and placeholder pages load no JS unless changed later.
 
 ## Data Boundary Review
 
@@ -316,184 +261,100 @@ So the JS load relationship is currently efficient at the HTML level. The main p
 
 Current contents:
 
-- Gain source catalog: `data.js:3-363`
-- PFL scale data: `data.js:364-367`
-- Simulator fader curve and tick data: `data.js:368-394`
-- Shared numeric helpers for Gain simulator/PFL: `data.js:397-512`
+- Gain source catalog
+- PFL scale data
+- Simulator fader curve and tick data
+- Numeric helpers for Gain simulator/PFL
 
 Assessment:
 
-- Belongs to Gain Staging, not Academy Shared
-- Internally couples content data and simulator presentation math in one file
-- Good for a small module, but risky for future growth because source catalog changes and simulator math changes will touch the same file
+- Belongs to Gain Staging.
+- Internally couples content data and simulator presentation math in one file.
+- Acceptable for current size, but future growth may justify a split.
 
 ### `eqData.js`
 
 Current contents:
 
-- EQ band dataset: `eqData.js:1-336`
-- Teaching copy for boost vs cut: `eqData.js:337-347`
+- EQ band dataset
+- EQ teaching copy
 
 Assessment:
 
-- Belongs to EQ Trainer / Interactive EQ Lab
-- Couples band metadata with lesson copy
-- Still manageable, but likely to grow quickly when Course 2, instrument-specific decisions, or ear-training content arrive
+- Belongs to EQ Curves.
+- Couples band defaults with teaching text.
+- Still manageable, but may grow when future EQ-specific content is added.
 
-### Cross-module data coupling
+### Cross-feature data coupling
 
-- No direct import from Gain data into EQ runtime
-- No direct import from EQ data into Gain runtime
-- This is good and is the cleanest boundary in the current codebase
-
-### Repeated or overlapping field patterns
-
-- Gain `data.js` stores source descriptors such as `name`, `category`, `note`, `models`, `micType`, `rms`, `peak`, `headroom`
-- EQ `eqData.js` stores band descriptors such as `frequency`, `label`, `filterType`, `q`, `commonProblem`, `commonTreatment`
-- There is no immediate field duplication bug, but both files mix content copy and behavioral defaults
-
-### Growth risk for future modules
-
-- Compressor, Gate, or Ear Training would likely need:
-  - their own content dataset
-  - their own scale/threshold/math helpers
-  - their own interaction defaults
-- If current patterns continue, root-level files similar to `data.js` and `eqData.js` will accumulate, and root ownership will become harder to reason about
-- `data.js` especially shows a pattern where one file becomes both a content registry and a utility bucket
-
-## HTML Resource Load Matrix
-
-| Page                                                        | CSS                                                                                         | JS             | Notes                                            |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
-| `index.html`                                                | `base.css`, `layout.css`, `components.css`, `responsive.css`                                | none           | Academy Home now loads shared CSS only           |
-| `modules/gain-staging/index.html`                           | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `responsive.css` | `script.js`    | Gain Staging keeps Gain-only CSS only where used |
-| `modules/eq-trainer/index.html`                             | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | none           | EQ module overview keeps EQ styling only         |
-| `modules/eq-trainer/fundamentals/index.html`                | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | none           | EQ course overview keeps EQ styling only         |
-| `modules/eq-trainer/instrument-eq/index.html`               | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | none           | Instrument EQ overview keeps EQ styling only     |
-| `modules/eq-trainer/fundamentals/interactive-eq/index.html` | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | `eqTrainer.js` | Lab keeps EQ styling only plus EQ runtime        |
-| EQ placeholder lesson pages                                 | `base.css`, `layout.css`, `components.css`, `responsive.css`                                | none           | Placeholder lessons now load shared CSS only     |
+- No direct import from Gain data into EQ Curves runtime.
+- No direct import from EQ data into Gain Staging runtime.
+- This remains the cleanest boundary in the current codebase.
 
 ## Findings
 
 ### Critical
 
-- None confirmed from current code. The project is not presently showing a hard runtime collision between Gain Staging and EQ Trainer.
+- None confirmed from current code.
 
 ### High
 
-- Gain Staging dependency on EQ Lab helper code has completed first-stage cleanup.
-  - Previous location: `simulator.js:15`
-  - Previous state: `simulator.js` imported `interactive-eq-knob.js`
-  - Current state: `simulator.js` imports shared knob helpers from `components/knob.js`
-  - Current ownership:
-    - `components/knob.js`: shared knob utility
-    - `interactive-eq-knob.js`: Interactive EQ Lab-specific knob wrapper
-    - `simulator.js`: Gain Staging simulator using shared knob utility
-  - Impact: Gain Staging no longer depends directly on the EQ-specific wrapper for floating knob rendering and gain angle calculations
+- Shared root contains multiple feature-owned implementation files.
+  - Current state: physical location implies shared ownership, but functional ownership is mostly feature-specific.
+  - Impact: maintainers must open files to learn ownership instead of inferring it from structure.
 
-- Page-level CSS trimming has completed at the HTML boundary.
-  - Location: `index.html:23-26`, `modules/gain-staging/index.html:23-28`, EQ overview/course/lab pages at `23-27`, placeholder lessons at `23-26`
-  - Current state: shared-only pages now load shared CSS only, Gain keeps Gain-only CSS, and EQ pages keep `eq-trainer.css`
-  - Impact: lower unused CSS payload and clearer per-page ownership than the previous universal bundle
-  - Remaining risk: mixed ownership still exists inside `components.css`, `layout.css`, and `responsive.css`
-
-- Shared root contains multiple module-owned implementation files.
-  - Location: top-level `eqTrainer.js`, `eqData.js`, `interactive-eq-graph.js`, `interactive-eq-knob.js`, `interactive-eq-icons.js`, `script.js`, `simulator.js`, `pflMeter.js`, `data.js`
-  - Current state: physical location implies "shared", but functional ownership is mostly module-specific
-  - Impact: maintainers must open files to learn ownership instead of inferring it from structure
-  - Future risk: future modules will likely repeat the pattern and flatten the root further
+- Page-level CSS trimming has previously improved the HTML boundary.
+  - Home loads shared CSS only.
+  - Gain Staging keeps Gain-specific CSS.
+  - EQ Curves keeps `eq-trainer.css`.
+  - Remaining risk: mixed ownership still exists inside `components.css`, `layout.css`, and `responsive.css`.
 
 ### Medium
 
-- Shared CSS files contain module-only sections.
-  - Location:
-    - `components.css:146-598`
-    - `layout.css:78-107`
-    - `responsive.css:3-68`, `responsive.css:78-155`, `responsive.css:167-391`
-  - Current state: Academy shared and module-specific styles are mixed together
-  - Impact: extracting or changing one module requires touching files that also affect others
-  - Future risk: stylesheet ownership will get harder to review, split, or test safely
-
+- Shared CSS files contain feature-only sections.
 - `data.js` mixes content data, meter constants, fader curves, and utility functions.
-  - Location: `data.js:3-512`
-  - Current state: one file is both source database and simulator/PFL utility layer
-  - Impact: unrelated edits share the same file and review surface
-  - Future risk: a Compressor/Gate/Ear Training expansion following this pattern will create large hybrid data/logic files
-
-- `eqData.js` mixes EQ band data and lesson copy.
-  - Location: `eqData.js:1-347`
-  - Current state: band defaults and teaching text live together
-  - Impact: content-only edits and behavior-facing preset edits are coupled
-  - Future risk: Course 2 and instrument-specific EQ guidance can bloat this file quickly
-
+- `eqData.js` mixes EQ band data and teaching copy.
 - Body-level state classes are used as page-mode switches.
-  - Location:
-    - `script.js:28-40`, `script.js:123`
-    - `eqTrainer.js:65`
-    - `components.css:598`
-    - `responsive.css:290-334`
-    - `eq-trainer.css:59-97`
-  - Current state: modal, picker, and EQ standalone modes all rely on `body` classes
-  - Impact: still functional today, but page-wide state grows more fragile as more modules become interactive
-  - Future risk: multiple interactive modules on one shared shell would need stricter scoping
 
 ### Low
 
 - Broad shared element selectors increase future cascade sensitivity.
-  - Location: `layout.css:2-17`, `layout.css:112`, `responsive.css:75`
-  - Current state: `header`, `main`, `footer`, and `body` are styled directly
-  - Impact: fine for the current small site, but less explicit than page-shell classes
-  - Future risk: standalone pages or embedded layouts may require more overrides
-
 - Root `assets/` is effectively unused.
-  - Location: `assets/.gitkeep`
-  - Current state: no active shared image/font/media asset structure yet
-  - Impact: none today
-  - Future risk: future assets may be scattered across root unless ownership rules are defined before expansion
-
-- Tracked file `h origin develop` has unclear purpose.
-  - Location: project root
-  - Current state: appears to contain terminal help text, not web runtime code
-  - Impact: no current module collision, but it adds noise to repository structure review
-  - Future risk: unclear non-runtime artifacts in root make ownership audits harder
+- Any unclear non-runtime artifacts in root should be reviewed separately before cleanup.
 
 ## Recommended Boundaries
 
-### Academy Shared
+### Shared
 
-- Shared page shell and typography foundation
-- Shared Academy card components
-- Shared navigation/back button patterns if they stay visually identical across modules
-- Shared static assets once real shared media exists
+- Shared page shell and typography foundation.
+- Shared navigation/back button patterns if they stay visually identical across features.
+- Shared static assets once real shared media exists.
+- Neutral utilities used by at least two features, such as `components/knob.js`.
 
 ### Gain Staging
 
-- Gain landing page and simulator page markup
-- Instrument/source list, detail panel, PFL meter, simulator, floating simulator CTA
-- Gain source data and gain-specific icon logic
-- Gain-only responsive drawer/simulator/detail behavior
+- Gain Staging page markup.
+- Instrument/source list, detail panel, PFL meter, simulator, floating simulator CTA.
+- Gain source data and gain-specific icon logic.
+- Gain-only responsive drawer/simulator/detail behavior.
 
-### EQ Trainer
+### EQ Curves
 
-- EQ landing page, course pages, lesson pages, Interactive EQ Lab
-- EQ card variants and placeholder lesson styling
-- EQ band data and EQ-specific teaching copy
-- EQ graph, filter icon, knob, accordion, floating summary
-- EQ-only responsive standalone-lab behavior
+- EQ Curves runtime page.
+- EQ graph, filter type icon, knob, floating summary, and EQ controls.
+- EQ band data and EQ-specific teaching copy.
+- EQ-only responsive behavior.
 
-### Shared utility boundary
+### Planned Features
 
-Only promote something to shared when:
+Suggested future paths:
 
-- it is already used by more than one module
-- the name is domain-neutral
-- the API is intentionally stable across modules
+```text
+modules/dynamic-compression/
+modules/noise-gate/
+```
 
-Current knob boundary after first-stage cleanup:
-
-- `components/knob.js` is the neutral shared knob utility boundary.
-- `simulator.js` consumes shared knob helpers directly from `components/knob.js`.
-- `interactive-eq-knob.js` is the Interactive EQ Lab-specific wrapper and sources its shared knob helpers from `components/knob.js`.
+Do not create new Trainer / Course / Lesson style paths for planned features.
 
 ## Suggested Future Structure
 
@@ -502,155 +363,85 @@ This is a suggested direction only. No file moves are proposed in this review.
 ```text
 /
   index.html
-  academy/
+  shared/
     css/
-      base.css
-      layout.css
-      components.css
-      responsive.css
-    assets/
+    js/
+      controls/
   modules/
     gain-staging/
       index.html
       css/
-        detail.css
-        simulator.css
-        responsive.css
       js/
-        page.js
-        simulator.js
-        pfl-meter.js
-        icons.js
       data/
-        sources.js
-        simulator-scales.js
-    eq-trainer/
+    eq-curves/
       index.html
       css/
-        module.css
-        responsive.css
-      fundamentals/
-        index.html
-        interactive-eq/
-          index.html
-          js/
-            page.js
-            graph.js
-            knob.js
-            icons.js
-          data/
-            eq-bands.js
-            teaching-copy.js
-      instrument-eq/
-        index.html
-  shared/
-    js/
-      ui/
-      math/
-      controls/
+      js/
+      data/
+    dynamic-compression/
+      index.html
+    noise-gate/
+      index.html
 ```
+
+Do not write documentation as though this structure already exists. It is only a possible future migration target.
 
 ## Migration Plan
 
 ### Step 1
 
-- Modification goal: document and label current ownership without moving files
-- Suggested scope: add ownership comments or an architecture note per CSS/JS/data file
-- Risk: very low
-- Validation: confirm behavior unchanged and review ownership map with file list
+- Goal: document current ownership without moving files.
+- Risk: very low.
+- Validation: confirm behavior unchanged and review ownership map with file list.
 
 ### Step 2
 
-- Modification goal: stop loading clearly unused CSS per page
-- Suggested scope:
-  - Home should load only Academy shared CSS plus any homepage-specific CSS
-  - Gain page should stop loading `eq-trainer.css`
-  - EQ pages should stop loading `detail.css` and `simulator.css`
-- Risk: medium because some shared styling may currently be accidentally inherited from the wrong file
-- Validation:
-  - visual smoke check on Home, Gain Staging, EQ Trainer, EQ Fundamentals, Instrument EQ, Interactive EQ Lab
-  - inspect browser console for missing asset or selector regressions
+- Goal: keep page-level CSS loading aligned with actual runtime needs.
+- Risk: medium because shared styling may be accidentally inherited from mixed files.
+- Validation: visual smoke check on Home, Gain Staging, and EQ Curves.
 
 ### Step 3
 
-- Modification goal: extract mixed Gain sections from shared CSS into Gain-owned files
-- Suggested scope:
-  - move Gain list/filter/about/floating button styles out of `components.css`
-  - move Gain picker/instrument layout out of `layout.css`
-  - move Gain mobile drawer/detail/simulator rules out of `responsive.css`
-- Risk: medium because ordering and cascade dependencies may exist
-- Validation:
-  - compare Gain Staging desktop/tablet/mobile layouts before and after
-  - confirm Academy and EQ pages look unchanged
+- Goal: extract mixed Gain Staging sections from shared CSS into Gain-owned files.
+- Risk: medium because ordering and cascade dependencies may exist.
+- Validation: compare Gain Staging desktop/tablet/mobile layouts before and after.
 
 ### Step 4
 
-- Modification goal: isolate EQ CSS ownership
-- Suggested scope:
-  - keep EQ rules under a dedicated EQ stylesheet tree
-  - keep EQ standalone responsive rules with EQ styles rather than in root `responsive.css`
-- Risk: low to medium
-- Validation:
-  - smoke test EQ Trainer, EQ Fundamentals, Instrument EQ, Interactive EQ Lab
-  - verify no Gain page visual change
+- Goal: isolate EQ Curves CSS ownership.
+- Risk: low to medium.
+- Validation: smoke test EQ Curves and verify no Gain Staging visual change.
 
 ### Step 5
 
-- Status: completed first-stage cleanup
-- Modification goal: break the Gain -> EQ helper dependency
-- Suggested scope:
-  - create a neutral shared knob helper with domain-neutral naming
-  - update Gain Staging to consume shared knob helpers directly
-  - keep EQ-specific knob wrapper behavior in `interactive-eq-knob.js`
+- Status: completed first-stage cleanup.
+- Goal: break the Gain Staging to EQ-specific helper dependency.
 - Completed scope:
   - added `components/knob.js`
   - updated `simulator.js` to import shared helpers from `components/knob.js`
   - updated `interactive-eq-knob.js` to import and re-export shared helpers from `components/knob.js`
-- Remaining scope:
-  - none for this first-stage boundary cleanup
-- Risk after completion: low, because shared helper ownership is now explicit and the EQ wrapper remains module-specific
-- Validation:
-  - verify Gain floating button knob state
-  - verify Gain knob status colors
-  - verify EQ knob drag/wheel/keyboard/reset behaviors
 
 ### Step 6
 
-- Modification goal: separate data content from control/math constants
-- Suggested scope:
-  - split Gain source catalog from simulator/PFL constants
-  - split EQ band presets from lesson copy
-- Risk: medium because import paths and named exports will change
-- Validation:
-  - Gain source list renders correctly
-  - PFL and simulator still compute expected scales
-  - EQ Lab presets and teaching panels render correctly
+- Goal: separate data content from control/math constants.
+- Risk: medium because import paths and named exports will change.
+- Validation: Gain source list, PFL, simulator, EQ presets, and EQ graph all still render correctly.
 
 ### Step 7
 
-- Modification goal: move module-owned JS/data files under module folders
-- Suggested scope:
-  - Gain JS/data under `modules/gain-staging/`
-  - EQ JS/data under `modules/eq-trainer/`
-- Risk: medium because relative import paths and HTML module script paths will change
-- Validation:
-  - page-by-page load test
-  - console check for 404 or import resolution errors
+- Goal: move feature-owned JS/data files under feature folders.
+- Risk: medium because relative import paths and HTML module script paths will change.
+- Validation: page-by-page load test and console check for 404/import resolution errors.
 
 ### Step 8
 
-- Modification goal: define a real shared boundary for future modules
-- Suggested scope:
-  - only after Compressor, Gate, or Ear Training requirements are clearer
-  - promote only proven multi-module helpers into `shared/`
-- Risk: low if postponed until actual reuse appears
-- Validation:
-  - confirm each shared helper has at least two real consumers
-  - confirm module-local helpers were not prematurely generalized
+- Goal: define a real shared boundary for planned features.
+- Risk: low if postponed until actual reuse appears.
+- Validation: confirm each shared helper has at least two real consumers.
 
 ## Bottom Line
 
-- Current runtime isolation is better than the file tree suggests because HTML only loads `script.js` on Gain Staging and `eqTrainer.js` on Interactive EQ Lab
-- Current CSS isolation is much weaker than the JS isolation because every page loads every module stylesheet
-- The previous most concrete JS code-boundary problem, `simulator.js` importing `interactive-eq-knob.js`, has completed first-stage cleanup through `components/knob.js`
-- The biggest maintenance risk is not an active bug today. It is that module-specific CSS, JS, and data already live in shared root locations, so future modules will likely deepen the coupling unless boundaries are tightened before expansion
+- Current runtime isolation is better than the file tree suggests because Home loads no JS, Gain Staging loads `script.js`, and EQ Curves loads `eqTrainer.js`.
+- Current CSS isolation is weaker because several shared files still contain mixed feature ownership.
+- The biggest maintenance risk is not an active runtime bug today. It is that feature-specific CSS, JS, and data still live in shared root locations.
+- Product naming has moved to concept names, while some physical paths and filenames remain historical technical debt.
