@@ -12,7 +12,7 @@ import {
   simulatorMeterMarks,
   valueToFaderPosition
 } from "./data.js";
-import { getKnobAngle, getKnobArcAngle, renderMiniKnob } from "./interactive-eq-knob.js";
+import { getKnobAngle, getKnobArcAngle, renderMiniKnob } from "./components/knob.js";
 
 const simulatorSource = document.getElementById("simulatorSource");
 const gainKnob = document.getElementById("gainKnob");
