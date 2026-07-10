@@ -224,36 +224,32 @@ These are not currently breaking other modules because only matching pages load 
 
 - Academy cards are styled in `components.css`, then EQ-specific card variants layer additional appearance in `eq-trainer.css:101-215`
 - Responsive overrides for simulator/detail/picker are separated into `responsive.css`, but because every page loads that file, non-Gain pages carry unused Gain-specific responsive rules
-- Interactive EQ mini-knob visuals exist in `eq-trainer.css`, while Gain Staging floating knob markup is rendered from `simulator.js` using EQ knob helper output
+- Interactive EQ mini-knob visuals exist in `eq-trainer.css`, while Gain Staging floating knob markup is rendered from `simulator.js` using shared output from `components/knob.js`
 
-### Pages loading unnecessary CSS
+### Current page-level CSS loading
 
-All audited pages load the same seven CSS files:
+Current HTML loading now matches page intent:
 
-- `base.css`
-- `layout.css`
-- `components.css`
-- `detail.css`
-- `simulator.css`
-- `eq-trainer.css`
-- `responsive.css`
+- Academy Home: `index.html:23-26`
+  - loads `base.css`, `layout.css`, `components.css`, `responsive.css`
+- Gain Staging: `modules/gain-staging/index.html:23-28`
+  - loads shared CSS plus `detail.css` and `simulator.css`
+- EQ Trainer / EQ Fundamentals / Instrument EQ:
+  - `modules/eq-trainer/index.html:23-27`
+  - `modules/eq-trainer/fundamentals/index.html:23-27`
+  - `modules/eq-trainer/instrument-eq/index.html:23-27`
+  - each loads shared CSS plus `eq-trainer.css`
+- Interactive EQ Lab: `modules/eq-trainer/fundamentals/interactive-eq/index.html:23-27`
+  - loads shared CSS plus `eq-trainer.css`
+- EQ placeholder lesson pages:
+  - `modules/eq-trainer/fundamentals/frequency-atlas/index.html:23-26`
+  - `modules/eq-trainer/fundamentals/ear-memory/index.html:23-26`
+  - `modules/eq-trainer/fundamentals/q-value/index.html:23-26`
+  - `modules/eq-trainer/fundamentals/boost-vs-cut/index.html:23-26`
+  - `modules/eq-trainer/fundamentals/filter-types/index.html:23-26`
+  - each loads shared CSS only
 
-This happens on:
-
-- Academy Home: `index.html:23-29`
-- Gain Staging: `modules/gain-staging/index.html:23-29`
-- EQ Trainer: `modules/eq-trainer/index.html:23-29`
-- EQ Fundamentals: `modules/eq-trainer/fundamentals/index.html:23-29`
-- Instrument EQ: `modules/eq-trainer/instrument-eq/index.html:23-29`
-- Interactive EQ Lab: `modules/eq-trainer/fundamentals/interactive-eq/index.html:23-29`
-- EQ placeholder lesson pages: all use the same pattern at lines `23-29`
-
-Observed waste:
-
-- Academy Home loads Gain-only `detail.css` and `simulator.css`, and EQ-only `eq-trainer.css`
-- Gain Staging loads EQ-only `eq-trainer.css`
-- EQ pages load Gain-only `detail.css` and `simulator.css`
-- Placeholder EQ lesson pages load full simulator/detail CSS even though they render only simple hero/section content
+Remaining inefficiency is now concentrated inside mixed shared files such as `components.css`, `layout.css`, and `responsive.css`, not in obvious per-page over-loading.
 
 ## JavaScript Responsibility and Load Review
 
@@ -367,15 +363,15 @@ Assessment:
 
 ## HTML Resource Load Matrix
 
-| Page                                                        | CSS                                                                                                           | JS             | Notes                                            |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
-| `index.html`                                                | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` | none           | Home loads both Gain-only and EQ-only CSS        |
-| `modules/gain-staging/index.html`                           | same 7 CSS files                                                                                              | `script.js`    | Gain page also loads EQ-only CSS                 |
-| `modules/eq-trainer/index.html`                             | same 7 CSS files                                                                                              | none           | EQ page loads Gain-only CSS                      |
-| `modules/eq-trainer/fundamentals/index.html`                | same 7 CSS files                                                                                              | none           | Course page loads Gain-only CSS                  |
-| `modules/eq-trainer/instrument-eq/index.html`               | same 7 CSS files                                                                                              | none           | Placeholder course loads Gain-only CSS           |
-| `modules/eq-trainer/fundamentals/interactive-eq/index.html` | same 7 CSS files                                                                                              | `eqTrainer.js` | Lab page loads Gain-only CSS                     |
-| EQ placeholder lesson pages                                 | same 7 CSS files                                                                                              | none           | Most expensive CSS load relative to content size |
+| Page                                                        | CSS                                                                                         | JS             | Notes                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
+| `index.html`                                                | `base.css`, `layout.css`, `components.css`, `responsive.css`                                | none           | Academy Home now loads shared CSS only           |
+| `modules/gain-staging/index.html`                           | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `responsive.css` | `script.js`    | Gain Staging keeps Gain-only CSS only where used |
+| `modules/eq-trainer/index.html`                             | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | none           | EQ module overview keeps EQ styling only         |
+| `modules/eq-trainer/fundamentals/index.html`                | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | none           | EQ course overview keeps EQ styling only         |
+| `modules/eq-trainer/instrument-eq/index.html`               | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | none           | Instrument EQ overview keeps EQ styling only     |
+| `modules/eq-trainer/fundamentals/interactive-eq/index.html` | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              | `eqTrainer.js` | Lab keeps EQ styling only plus EQ runtime        |
+| EQ placeholder lesson pages                                 | `base.css`, `layout.css`, `components.css`, `responsive.css`                                | none           | Placeholder lessons now load shared CSS only     |
 
 ## Findings
 
@@ -395,11 +391,11 @@ Assessment:
     - `simulator.js`: Gain Staging simulator using shared knob utility
   - Impact: Gain Staging no longer depends directly on the EQ-specific wrapper for floating knob rendering and gain angle calculations
 
-- Every major page loads all module CSS regardless of actual need.
-  - Location: `index.html:23-29`, `modules/gain-staging/index.html:23-29`, all EQ pages at `23-29`
-  - Current state: Gain-only `detail.css` and `simulator.css` plus EQ-only `eq-trainer.css` are always loaded together
-  - Impact: style payload is larger than necessary and future selector overlap has a larger blast radius
-  - Future risk: as modules grow, unused CSS load and accidental cascade interactions will grow with them
+- Page-level CSS trimming has completed at the HTML boundary.
+  - Location: `index.html:23-26`, `modules/gain-staging/index.html:23-28`, EQ overview/course/lab pages at `23-27`, placeholder lessons at `23-26`
+  - Current state: shared-only pages now load shared CSS only, Gain keeps Gain-only CSS, and EQ pages keep `eq-trainer.css`
+  - Impact: lower unused CSS payload and clearer per-page ownership than the previous universal bundle
+  - Remaining risk: mixed ownership still exists inside `components.css`, `layout.css`, and `responsive.css`
 
 - Shared root contains multiple module-owned implementation files.
   - Location: top-level `eqTrainer.js`, `eqData.js`, `interactive-eq-graph.js`, `interactive-eq-knob.js`, `interactive-eq-icons.js`, `script.js`, `simulator.js`, `pflMeter.js`, `data.js`
@@ -495,9 +491,9 @@ Only promote something to shared when:
 
 Current knob boundary after first-stage cleanup:
 
-- `components/knob.js` is the neutral shared knob helper.
-- `interactive-eq-knob.js` is not the shared boundary name anymore; it now represents the Interactive EQ Lab-specific knob wrapper.
+- `components/knob.js` is the neutral shared knob utility boundary.
 - `simulator.js` consumes shared knob helpers directly from `components/knob.js`.
+- `interactive-eq-knob.js` is the Interactive EQ Lab-specific wrapper and sources its shared knob helpers from `components/knob.js`.
 
 ## Suggested Future Structure
 

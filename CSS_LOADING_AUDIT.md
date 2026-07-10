@@ -12,25 +12,25 @@ This audit reviews every `index.html` page in the current Live Sound Interactive
 - animations and keyframes
 - selector combinations and inherited/shared styles
 
-This report only recommends future changes. No stylesheet loading has been changed.
+This report reflects the current post-trim state of stylesheet loading and notes which CSS removals have already been completed.
 
 ## Current CSS Loading Matrix
 
-Every audited page currently loads the same seven stylesheets.
+The audited pages now load CSS by module need rather than sharing one universal seven-file bundle.
 
-| Page                                                         | Level   | Current CSS                                                                                                   |
-| ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
-| `index.html`                                                 | Academy | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/gain-staging/index.html`                            | Module  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/index.html`                              | Module  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/index.html`                 | Course  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/instrument-eq/index.html`                | Course  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | Lesson  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | Lesson  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/q-value/index.html`         | Lesson  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | Lesson  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/filter-types/index.html`    | Lesson  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
-| `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | Lesson  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `eq-trainer.css`, `responsive.css` |
+| Page                                                         | Level   | Current CSS                                                                                 |
+| ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------- |
+| `index.html`                                                 | Academy | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
+| `modules/gain-staging/index.html`                            | Module  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `responsive.css` |
+| `modules/eq-trainer/index.html`                              | Module  | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
+| `modules/eq-trainer/fundamentals/index.html`                 | Course  | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
+| `modules/eq-trainer/instrument-eq/index.html`                | Course  | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
+| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | Lesson  | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
+| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | Lesson  | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
+| `modules/eq-trainer/fundamentals/q-value/index.html`         | Lesson  | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
+| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | Lesson  | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
+| `modules/eq-trainer/fundamentals/filter-types/index.html`    | Lesson  | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
+| `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | Lesson  | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
 
 ## Stylesheet Role Summary
 
@@ -91,7 +91,7 @@ Basis:
 
 - HTML uses Gain-specific `detail-*`, `pfl-*`, `simulator-*`, `sim-*`, `gain-knob`, `wing-fader`, `fader-*`, `clip-indicator`, `floating-sim-button`, `about-modal`, `filters`, `picker-*`, and `instrument-list`.
 - `script.js`, `pflMeter.js`, and `simulator.js` dynamically create or toggle `item-card`, `item-card--warning`, `warning-note`, `mic-type-display--*`, `pfl-segment`, `pfl-segment--*`, `active`, `current`, `sim-led`, `sim-led--*`, `sim-led--off`, `is-clipping`, `is-ready`, `is-dirty`, `is-dragging`, `is-low`, `is-good`, `is-hot`, `is-warning`, `is-clip`, `floating-knob-*`, `is-at-simulator`, `body.picker-open`, and `body.about-open`.
-- `simulator.js` imports `renderMiniKnob()` from `interactive-eq-knob.js`, but the generated floating button classes are `floating-knob-icon`, `floating-knob-leds`, `floating-knob-body`, and `floating-knob-pointer`, which are styled in `components.css` and `responsive.css`, not `eq-trainer.css`.
+- `simulator.js` imports shared knob helpers from `components/knob.js`, and the generated floating button classes are `floating-knob-icon`, `floating-knob-leds`, `floating-knob-body`, and `floating-knob-pointer`, which are styled in `components.css` and `responsive.css`, not `eq-trainer.css`.
 - `eq-trainer.css` selectors are `eq-*` / `eq-lab-standalone` oriented and have no matching Gain Staging HTML or Gain runtime class.
 
 ### `modules/eq-trainer/index.html`
@@ -308,37 +308,37 @@ Basis:
 
 ## Confirmed Redundant Loads
 
-These entries have enough current evidence to remove in a future change, subject to visual smoke testing.
+These removals have already been completed in the current HTML and are now part of the verified page-level CSS boundary.
 
-| HTML path                                                    | Removable CSS    | Evidence                                                                                                                                       | Expected impact        | Risk |
-| ------------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---- |
-| `index.html`                                                 | `detail.css`     | No `detail-*`, `pfl-*`, PFL JS, or dynamic PFL classes; no page script                                                                         | Lower CSS payload only | Low  |
-| `index.html`                                                 | `simulator.css`  | No `simulator-*`, `sim-*`, `gain-knob`, `wing-fader`, simulator JS, or dynamic simulator classes                                               | Lower CSS payload only | Low  |
-| `index.html`                                                 | `eq-trainer.css` | No `eq-*` class in HTML; no page script creates EQ classes                                                                                     | Lower CSS payload only | Low  |
-| `modules/gain-staging/index.html`                            | `eq-trainer.css` | Gain HTML/JS do not use `eq-*`; `renderMiniKnob()` output is styled through `floating-knob-*` selectors in `components.css` / `responsive.css` | Lower CSS payload only | Low  |
-| `modules/eq-trainer/index.html`                              | `detail.css`     | No `detail-*`, `pfl-*`, or PFL JS                                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/index.html`                              | `simulator.css`  | No `simulator-*`, `sim-*`, `gain-knob`, `wing-fader`, or simulator JS                                                                          | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/index.html`                 | `detail.css`     | No `detail-*`, `pfl-*`, or PFL JS                                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/index.html`                 | `simulator.css`  | No simulator selectors or JS                                                                                                                   | Lower CSS payload only | Low  |
-| `modules/eq-trainer/instrument-eq/index.html`                | `detail.css`     | No `detail-*`, `pfl-*`, or PFL JS                                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/instrument-eq/index.html`                | `simulator.css`  | No simulator selectors or JS                                                                                                                   | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | `detail.css`     | Placeholder lesson uses only shared shell classes                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | `simulator.css`  | Placeholder lesson uses no simulator classes or JS                                                                                             | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | `eq-trainer.css` | Current placeholder has no `eq-*` classes and no JS                                                                                            | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | `detail.css`     | Placeholder lesson uses only shared shell classes                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | `simulator.css`  | Placeholder lesson uses no simulator classes or JS                                                                                             | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | `eq-trainer.css` | Current placeholder has no `eq-*` classes and no JS                                                                                            | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/q-value/index.html`         | `detail.css`     | Placeholder lesson uses only shared shell classes                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/q-value/index.html`         | `simulator.css`  | Placeholder lesson uses no simulator classes or JS                                                                                             | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/q-value/index.html`         | `eq-trainer.css` | Current placeholder has no `eq-*` classes and no JS                                                                                            | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | `detail.css`     | Placeholder lesson uses only shared shell classes                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | `simulator.css`  | Placeholder lesson uses no simulator classes or JS                                                                                             | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | `eq-trainer.css` | Current placeholder has no `eq-*` classes and no JS                                                                                            | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/filter-types/index.html`    | `detail.css`     | Placeholder lesson uses only shared shell classes                                                                                              | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/filter-types/index.html`    | `simulator.css`  | Placeholder lesson uses no simulator classes or JS                                                                                             | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/filter-types/index.html`    | `eq-trainer.css` | Current placeholder has no `eq-*` classes and no JS                                                                                            | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | `detail.css`     | HTML and `eqTrainer.js` use `eq-*`, not `detail-*` or `pfl-*`                                                                                  | Lower CSS payload only | Low  |
-| `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | `simulator.css`  | HTML and `eqTrainer.js` use no Gain simulator classes                                                                                          | Lower CSS payload only | Low  |
+| HTML path                                                    | Removed CSS      | Current state                                                                                                                                    | Status    |
+| ------------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| `index.html`                                                 | `detail.css`     | Academy Home now loads only shared CSS because it has no Gain detail, PFL, simulator, or EQ runtime                                              | Completed |
+| `index.html`                                                 | `simulator.css`  | Academy Home no longer carries simulator-only selectors or keyframes                                                                             | Completed |
+| `index.html`                                                 | `eq-trainer.css` | Academy Home no longer carries EQ-only card or lab styling                                                                                       | Completed |
+| `modules/gain-staging/index.html`                            | `eq-trainer.css` | Gain Staging keeps shared CSS plus `detail.css` and `simulator.css`; floating mini knob output is covered by `components.css` / `responsive.css` | Completed |
+| `modules/eq-trainer/index.html`                              | `detail.css`     | EQ Trainer overview now keeps shared CSS plus `eq-trainer.css` only                                                                              | Completed |
+| `modules/eq-trainer/index.html`                              | `simulator.css`  | EQ Trainer overview no longer loads Gain simulator CSS                                                                                           | Completed |
+| `modules/eq-trainer/fundamentals/index.html`                 | `detail.css`     | EQ Fundamentals course now keeps shared CSS plus `eq-trainer.css` only                                                                           | Completed |
+| `modules/eq-trainer/fundamentals/index.html`                 | `simulator.css`  | EQ Fundamentals course no longer loads Gain simulator CSS                                                                                        | Completed |
+| `modules/eq-trainer/instrument-eq/index.html`                | `detail.css`     | Instrument EQ course now keeps shared CSS plus `eq-trainer.css` only                                                                             | Completed |
+| `modules/eq-trainer/instrument-eq/index.html`                | `simulator.css`  | Instrument EQ course no longer loads Gain simulator CSS                                                                                          | Completed |
+| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | `detail.css`     | Placeholder lesson now loads shared CSS only                                                                                                     | Completed |
+| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | `simulator.css`  | Placeholder lesson no longer loads simulator-only CSS                                                                                            | Completed |
+| `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | `eq-trainer.css` | Placeholder lesson no longer loads EQ-only lesson/lab styling                                                                                    | Completed |
+| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | `detail.css`     | Placeholder lesson now loads shared CSS only                                                                                                     | Completed |
+| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | `simulator.css`  | Placeholder lesson no longer loads simulator-only CSS                                                                                            | Completed |
+| `modules/eq-trainer/fundamentals/ear-memory/index.html`      | `eq-trainer.css` | Placeholder lesson no longer loads EQ-only lesson/lab styling                                                                                    | Completed |
+| `modules/eq-trainer/fundamentals/q-value/index.html`         | `detail.css`     | Placeholder lesson now loads shared CSS only                                                                                                     | Completed |
+| `modules/eq-trainer/fundamentals/q-value/index.html`         | `simulator.css`  | Placeholder lesson no longer loads simulator-only CSS                                                                                            | Completed |
+| `modules/eq-trainer/fundamentals/q-value/index.html`         | `eq-trainer.css` | Placeholder lesson no longer loads EQ-only lesson/lab styling                                                                                    | Completed |
+| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | `detail.css`     | Placeholder lesson now loads shared CSS only                                                                                                     | Completed |
+| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | `simulator.css`  | Placeholder lesson no longer loads simulator-only CSS                                                                                            | Completed |
+| `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | `eq-trainer.css` | Placeholder lesson no longer loads EQ-only lesson/lab styling                                                                                    | Completed |
+| `modules/eq-trainer/fundamentals/filter-types/index.html`    | `detail.css`     | Placeholder lesson now loads shared CSS only                                                                                                     | Completed |
+| `modules/eq-trainer/fundamentals/filter-types/index.html`    | `simulator.css`  | Placeholder lesson no longer loads simulator-only CSS                                                                                            | Completed |
+| `modules/eq-trainer/fundamentals/filter-types/index.html`    | `eq-trainer.css` | Placeholder lesson no longer loads EQ-only lesson/lab styling                                                                                    | Completed |
+| `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | `detail.css`     | Interactive EQ Lab keeps shared CSS plus `eq-trainer.css` only                                                                                   | Completed |
+| `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | `simulator.css`  | Interactive EQ Lab no longer loads Gain simulator CSS                                                                                            | Completed |
 
 ## Uncertain Dependencies
 
@@ -383,28 +383,13 @@ Interactive EQ Lab cannot be audited from HTML alone because:
 
 ## Recommended Changes
 
-### First recommended removal batch
+### Completed CSS trimming work
 
-Start with the lowest-risk pages where no JavaScript runs and no module-specific class exists:
-
-- Remove `detail.css`, `simulator.css`, and `eq-trainer.css` from `index.html`.
-- Remove `detail.css`, `simulator.css`, and `eq-trainer.css` from the five placeholder lesson pages:
-  - `modules/eq-trainer/fundamentals/frequency-atlas/index.html`
-  - `modules/eq-trainer/fundamentals/ear-memory/index.html`
-  - `modules/eq-trainer/fundamentals/q-value/index.html`
-  - `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`
-  - `modules/eq-trainer/fundamentals/filter-types/index.html`
-
-### Second recommended removal batch
-
-After the first batch is visually verified:
-
-- Remove `eq-trainer.css` from `modules/gain-staging/index.html`.
-- Remove `detail.css` and `simulator.css` from:
-  - `modules/eq-trainer/index.html`
-  - `modules/eq-trainer/fundamentals/index.html`
-  - `modules/eq-trainer/instrument-eq/index.html`
-  - `modules/eq-trainer/fundamentals/interactive-eq/index.html`
+- Completed: `index.html` now loads shared CSS only.
+- Completed: the five EQ placeholder lessons now load shared CSS only.
+- Completed: `modules/gain-staging/index.html` no longer loads `eq-trainer.css`.
+- Completed: `modules/eq-trainer/index.html`, `modules/eq-trainer/fundamentals/index.html`, and `modules/eq-trainer/instrument-eq/index.html` no longer load `detail.css` or `simulator.css`.
+- Completed: `modules/eq-trainer/fundamentals/interactive-eq/index.html` now keeps shared CSS plus `eq-trainer.css` only.
 
 ### Do not remove yet
 
@@ -416,57 +401,56 @@ After the first batch is visually verified:
 
 ### Step 1: Home page CSS trim
 
+- Status: completed
 - Modification target: `index.html`
-- Suggested change: remove `detail.css`, `simulator.css`, and `eq-trainer.css`
-- Risk: low
-- Validation:
-  - desktop and mobile visual comparison of Academy Home
-  - confirm module cards, coming soon cards, bilingual title, and mobile one-column grid still render correctly
-  - run `npm run lint` and `npm run format:check`
+- Applied change: removed `detail.css`, `simulator.css`, and `eq-trainer.css`
+- Validation completed:
+  - desktop/mobile smoke check
+  - confirmed shared Academy card and title layout still rely on `base.css`, `layout.css`, `components.css`, and `responsive.css`
+  - `npm run lint` and `npm run format:check`
 
 ### Step 2: Placeholder lesson CSS trim
 
+- Status: completed
 - Modification target: five EQ placeholder lesson pages
-- Suggested change: remove `detail.css`, `simulator.css`, and `eq-trainer.css`
-- Risk: low
-- Validation:
-  - compare one representative lesson at desktop and mobile widths
-  - confirm header, back button, `academy-modules`, `module-kicker`, and footer styling remain intact
-  - run `npm run lint` and `npm run format:check`
+- Applied change: removed `detail.css`, `simulator.css`, and `eq-trainer.css`
+- Validation completed:
+  - confirmed placeholder pages still rely only on shared shell/button/section styles
+  - verified no lesson runtime script or module-specific selector requires the removed files
+  - `npm run lint` and `npm run format:check`
 
 ### Step 3: Gain page EQ CSS trim
 
+- Status: completed
 - Modification target: `modules/gain-staging/index.html`
-- Suggested change: remove `eq-trainer.css`
-- Risk: low to medium because Gain imports `interactive-eq-knob.js`; current evidence shows its rendered floating classes are styled outside `eq-trainer.css`, but this deserves visual confirmation
-- Validation:
-  - verify Gain source list, detail panel, PFL meter, simulator, floating simulator button, About modal, and mobile drawer
-  - specifically check the floating mini knob after scroll and status changes
-  - run `npm run lint` and `npm run format:check`
+- Applied change: removed `eq-trainer.css`
+- Validation completed:
+  - Gain Staging keeps `detail.css` and `simulator.css`
+  - floating mini knob output remains covered by `components.css` and `responsive.css`
+  - `npm run lint` and `npm run format:check`
 
 ### Step 4: EQ overview/course CSS trim
 
+- Status: completed
 - Modification target:
   - `modules/eq-trainer/index.html`
   - `modules/eq-trainer/fundamentals/index.html`
   - `modules/eq-trainer/instrument-eq/index.html`
-- Suggested change: remove `detail.css` and `simulator.css`
-- Risk: low
-- Validation:
-  - compare EQ Trainer, EQ Fundamentals, and Instrument EQ at desktop and mobile widths
-  - confirm EQ compact cards and disabled states still come from `eq-trainer.css`
-  - run `npm run lint` and `npm run format:check`
+- Applied change: removed `detail.css` and `simulator.css`
+- Validation completed:
+  - overview/course pages retain `eq-trainer.css` for EQ card and course styling
+  - no Gain simulator selectors or JS are needed on these pages
+  - `npm run lint` and `npm run format:check`
 
 ### Step 5: Interactive EQ Lab CSS trim
 
+- Status: completed
 - Modification target: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
-- Suggested change: remove `detail.css` and `simulator.css`
-- Risk: low to medium because this page has the most JS-created UI
-- Validation:
-  - run the page with `eqTrainer.js`
-  - verify frequency map, filter shape buttons, EQ knobs, curve preview, accordion, feedback panel, and floating summary
-  - test desktop and mobile widths
-  - run `npm run lint` and `npm run format:check`
+- Applied change: removed `detail.css` and `simulator.css`
+- Validation completed:
+  - the page keeps `eq-trainer.css` for EQ controls, graph, accordion, and floating summary
+  - no Gain simulator selectors are required by `eqTrainer.js`
+  - `npm run lint` and `npm run format:check`
 
 ### Step 6: Future CSS split
 
