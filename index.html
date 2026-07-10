@@ -3,91 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Sound Interactive Academy</title>
+  <title>Live Sound Interactive</title>
   <meta
     name="description"
-    content="Live Sound Interactive Academy 是為現場音控工程師打造的互動學習平台，透過 Gain Staging、Interactive EQ Lab 與後續模組建立實戰判斷。"
+    content="Live Sound Interactive 是為現場音控工程師打造的互動學習平台，透過 Gain Staging、EQ Curves 與後續音控概念建立實戰判斷。"
   />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Live Sound Interactive Academy" />
+  <meta property="og:title" content="Live Sound Interactive" />
   <meta
     property="og:description"
-    content="Interactive Learning Platform for Live Sound Engineers, featuring Gain Staging, Interactive EQ Lab, and future live sound learning modules."
+    content="Interactive Learning Platform for Live Sound Engineers, featuring Gain Staging, EQ Curves, and future live sound concepts."
   />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Live Sound Interactive Academy" />
+  <meta name="twitter:title" content="Live Sound Interactive" />
   <meta
     name="twitter:description"
-    content="Interactive Learning Platform for Live Sound Engineers, featuring Gain Staging, Interactive EQ Lab, and future live sound learning modules."
+    content="Interactive Learning Platform for Live Sound Engineers, featuring Gain Staging, EQ Curves, and future live sound concepts."
   />
   <link rel="stylesheet" href="base.css" />
   <link rel="stylesheet" href="layout.css" />
   <link rel="stylesheet" href="components.css" />
   <link rel="stylesheet" href="responsive.css" />
 </head>
-<body>
+<body class="home-page">
   <header>
     <h1 class="bilingual-title">
-      <span class="title-en">Live Sound Interactive Academy</span>
-      <span class="title-zh">現場音控互動學院</span>
+      <span class="title-en">Live Sound Interactive</span>
+      <span class="title-zh">現場音控互動</span>
     </h1>
-    <p>Interactive Learning Platform for Live Sound Engineers</p>
+    <p>Interactive Learning for Live Sound Engineers</p>
   </header>
 
   <main>
-    <section class="academy-modules" aria-labelledby="academyModulesTitle">
-      <div class="academy-modules__header">
-        <span class="module-kicker">Modules</span>
-        <h2 id="academyModulesTitle">Live Sound Modules</h2>
-        <p>選擇一個學習主題，進入獨立 Module。</p>
-      </div>
+    <section class="concept-hub" aria-labelledby="conceptHubTitle">
+      <h2 id="conceptHubTitle" class="concept-hub__title">探索現場音控核心概念</h2>
 
-      <div class="academy-module-grid">
-        <article class="academy-module-card academy-module-card--available">
-          <div class="academy-module-card__topline">
-            <span class="academy-module-card__index">Module 1</span>
-            <span class="academy-module-card__status">Available / 已開放</span>
-          </div>
-          <h3>Gain Staging</h3>
-          <p class="academy-module-card__zh">學習增益級距</p>
-          <p>建立健康輸入訊號，理解 Gain / Preamp、PFL、Meter 與輸出平衡的角色，再進入 Gain Staging Simulator 練習。</p>
-          <a class="academy-module-card__button" href="modules/gain-staging/">Enter Module / 進入模組</a>
+      <div class="concept-grid">
+        <a class="concept-entry concept-entry--available concept-entry--gain" href="modules/gain-staging/">
+          <span class="concept-entry__visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" role="img">
+              <circle class="concept-visual-ring" cx="60" cy="60" r="49"></circle>
+              <g class="meter-segments">
+                <rect class="meter-low" x="38" y="77" width="9" height="8" rx="2"></rect>
+                <rect class="meter-low" x="38" y="64" width="9" height="8" rx="2"></rect>
+                <rect class="meter-low" x="38" y="51" width="9" height="8" rx="2"></rect>
+                <rect class="meter-low" x="53" y="77" width="9" height="8" rx="2"></rect>
+                <rect class="meter-low" x="53" y="64" width="9" height="8" rx="2"></rect>
+                <rect class="meter-mid" x="53" y="51" width="9" height="8" rx="2"></rect>
+                <rect class="meter-mid" x="68" y="77" width="9" height="8" rx="2"></rect>
+                <rect class="meter-mid" x="68" y="64" width="9" height="8" rx="2"></rect>
+                <rect class="meter-hot" x="68" y="51" width="9" height="8" rx="2"></rect>
+                <rect class="meter-clip" x="68" y="38" width="9" height="8" rx="2"></rect>
+              </g>
+            </svg>
+          </span>
+          <span class="concept-entry__body">
+            <strong>Gain Staging</strong>
+            <span class="concept-entry__zh">增益級距</span>
+            <span class="concept-entry__description">建立健康輸入訊號，理解 Gain、PFL、Meter 與輸出平衡。</span>
+            <span class="concept-entry__cue" aria-hidden="true">→</span>
+          </span>
+        </a>
+
+        <a class="concept-entry concept-entry--available concept-entry--eq" href="modules/eq-trainer/fundamentals/interactive-eq/">
+          <span class="concept-entry__visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" role="img">
+              <circle class="concept-visual-ring" cx="60" cy="60" r="49"></circle>
+              <g class="graph-grid">
+                <path d="M30 40h60M30 60h60M30 80h60"></path>
+                <path d="M40 30v60M60 30v60M80 30v60"></path>
+              </g>
+              <path class="eq-curve-line" d="M29 73 C40 73 44 70 50 65 S59 43 67 48 S75 68 83 61 S88 48 92 47"></path>
+              <g class="eq-nodes">
+                <circle cx="50" cy="65" r="4"></circle>
+                <circle cx="67" cy="48" r="4"></circle>
+                <circle cx="83" cy="61" r="4"></circle>
+              </g>
+            </svg>
+          </span>
+          <span class="concept-entry__body">
+            <strong>EQ Curves</strong>
+            <span class="concept-entry__zh">EQ 曲線</span>
+            <span class="concept-entry__description">調整 Frequency、Gain、Q 與 Filter Type，觀察 EQ 曲線即時變化。</span>
+            <span class="concept-entry__cue" aria-hidden="true">→</span>
+          </span>
+        </a>
+
+        <article class="concept-entry concept-entry--coming concept-entry--compression">
+          <span class="concept-entry__visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" role="img">
+              <circle class="concept-visual-ring" cx="60" cy="60" r="49"></circle>
+              <g class="graph-grid">
+                <path d="M33 37h54M33 60h54M33 83h54"></path>
+                <path d="M37 33v54M60 33v54M83 33v54"></path>
+              </g>
+              <path class="compression-reference" d="M35 84 85 34"></path>
+              <path class="compression-curve" d="M35 84 C45 72 51 64 58 58 S69 50 85 42"></path>
+              <path class="threshold-line" d="M62 36v48"></path>
+              <circle class="curve-knee" cx="60" cy="56" r="4"></circle>
+            </svg>
+          </span>
+          <span class="concept-entry__body">
+            <span class="concept-entry__status">COMING SOON</span>
+            <strong>Dynamic Compression</strong>
+            <span class="concept-entry__zh">動態壓縮</span>
+            <span class="concept-entry__description">調整 Threshold、Ratio 與 Makeup Gain，觀察訊號動態變化。</span>
+          </span>
         </article>
 
-        <article class="academy-module-card academy-module-card--available">
-          <div class="academy-module-card__topline">
-            <span class="academy-module-card__index">Module 2</span>
-            <span class="academy-module-card__status">Available / 已開放</span>
-          </div>
-          <h3>Interactive EQ Lab</h3>
-          <p class="academy-module-card__zh">互動 EQ 實驗室</p>
-          <p>調整 Frequency、Gain、Q 與 Filter Type，觀察 EQ 曲線即時變化。</p>
-          <a class="academy-module-card__button" href="modules/eq-trainer/fundamentals/interactive-eq/">Enter Lab / 進入實驗室</a>
-        </article>
-      </div>
-    </section>
-
-    <section class="academy-modules" aria-labelledby="comingSoonTitle">
-      <div class="academy-modules__header">
-        <span class="module-kicker">Coming Soon</span>
-        <h2 id="comingSoonTitle">Future Modules</h2>
-      </div>
-
-      <div class="academy-module-grid">
-        <article class="academy-module-card academy-module-card--coming">
-          <h3>Compression Trainer</h3>
-          <p class="academy-module-card__zh">壓縮器訓練</p>
-        </article>
-        <article class="academy-module-card academy-module-card--coming">
-          <h3>Gate Trainer</h3>
-          <p class="academy-module-card__zh">Gate 訓練</p>
+        <article class="concept-entry concept-entry--coming concept-entry--gate">
+          <span class="concept-entry__visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" role="img">
+              <circle class="concept-visual-ring" cx="60" cy="60" r="49"></circle>
+              <path class="gate-threshold" d="M30 60h60"></path>
+              <path class="gate-window" d="M47 35h26v50H47z"></path>
+              <path class="gate-wave gate-wave-muted" d="M29 66 C34 66 34 55 39 55 S44 66 49 66"></path>
+              <path class="gate-wave" d="M49 66 C54 66 54 43 59 43 S64 77 69 77 74 50 79 50 84 66 91 66"></path>
+            </svg>
+          </span>
+          <span class="concept-entry__body">
+            <span class="concept-entry__status">COMING SOON</span>
+            <strong>Noise Gate</strong>
+            <span class="concept-entry__zh">噪音閘門</span>
+            <span class="concept-entry__description">調整 Threshold、Attack、Hold、Release，控制不需要的雜訊。</span>
+          </span>
         </article>
       </div>
     </section>
   </main>
 
   <footer>
-    <p>Live Sound Interactive Academy</p>
+    <p>© 2026 Verse Music Studio. All rights reserved.</p>
   </footer>
 </body>
 </html>

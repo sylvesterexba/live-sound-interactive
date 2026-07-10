@@ -1,5 +1,11 @@
 ﻿/* responsive.css：所有斷點集中最後載入，確保手機 Drawer、平板與手機版覆寫順序一致。 */
 @media (max-width: 1100px) {
+  .concept-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .concept-entry {
+    min-height: 330px;
+  }
   .simulator-header {
     display: grid;
   }
@@ -72,8 +78,92 @@
 }
 
 @media (max-width: 768px) {
+  body.home-page {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-height: 100svh;
+  }
+  .home-page header {
+    padding: 18px 14px 8px;
+  }
+  .home-page header h1 {
+    font-size: 1.68rem;
+  }
+  .home-page header p {
+    margin-top: 6px;
+    font-size: 0.92rem;
+  }
+  .home-page main {
+    display: grid;
+    align-items: center;
+    padding: 14px 14px 18px;
+  }
+  .home-page footer {
+    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 14px;
+  }
   main {
     padding: 16px;
+  }
+  .concept-hub {
+    gap: clamp(18px, 3.2svh, 28px);
+    padding-top: 2px;
+  }
+  .concept-hub__title {
+    font-size: 0.92rem;
+  }
+  .concept-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 3.4svh, 28px) 12px;
+    align-items: stretch;
+  }
+  .concept-entry {
+    min-height: 178px;
+    padding: 10px 6px 12px;
+    border-left: 0;
+    align-content: start;
+  }
+  .concept-entry__body {
+    grid-template-rows: 18px minmax(34px, auto) 18px 0 25px;
+    gap: 4px;
+  }
+  .concept-entry--available .concept-entry__body::before {
+    min-height: 18px;
+  }
+  .concept-entry__visual {
+    width: 74px;
+    height: 74px;
+    margin-bottom: 9px;
+    border-width: 1.5px;
+  }
+  .concept-entry__visual svg {
+    width: 64px;
+    height: 64px;
+  }
+  .concept-entry strong {
+    align-self: center;
+    font-size: 0.98rem;
+  }
+  .concept-entry__zh {
+    align-self: center;
+    font-size: 0.88rem;
+  }
+  .concept-entry__description {
+    display: none;
+  }
+  .concept-entry__status {
+    align-self: center;
+    min-height: 18px;
+    padding: 1px 7px;
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+  }
+  .concept-entry__cue {
+    width: 24px;
+    height: 24px;
+    margin-top: 5px;
+    font-size: 1rem;
   }
   .eq-lab-standalone .eq-lab-page-header {
     padding: 14px 16px 10px;
@@ -382,6 +472,93 @@
   }
   .about-modal h2 {
     margin-right: 42px;
+  }
+}
+
+@media (max-width: 599px) {
+  .home-page header {
+    padding-top: clamp(30px, 5svh, 46px);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1024px) {
+  body.home-page {
+    display: block;
+    min-height: auto;
+  }
+  .home-page header {
+    padding: 30px 24px 14px;
+  }
+  .home-page header h1 {
+    font-size: clamp(2.25rem, 5vw, 3rem);
+  }
+  .home-page header p {
+    margin-top: 10px;
+    font-size: 1rem;
+  }
+  .home-page main {
+    display: block;
+    padding: 28px 28px 22px;
+  }
+  .home-page footer {
+    margin-top: 18px;
+    padding-top: 14px;
+    padding-bottom: 16px;
+  }
+  .concept-hub {
+    gap: 24px;
+    padding-top: 4px;
+  }
+  .concept-hub__title {
+    font-size: 1.16rem;
+  }
+  .concept-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 24px;
+  }
+  .concept-entry {
+    min-height: 300px;
+    padding: 22px 18px 20px;
+  }
+  .concept-entry__visual {
+    width: 118px;
+    height: 118px;
+    margin-bottom: 20px;
+    border-width: 2px;
+  }
+  .concept-entry__visual svg {
+    width: 100px;
+    height: 100px;
+  }
+  .concept-entry__body {
+    grid-template-rows: 24px auto auto minmax(64px, auto) 42px;
+    gap: 7px;
+  }
+  .concept-entry--available .concept-entry__body::before {
+    min-height: 24px;
+  }
+  .concept-entry strong {
+    font-size: 1.45rem;
+  }
+  .concept-entry__zh {
+    font-size: 1.05rem;
+  }
+  .concept-entry__description {
+    display: block;
+    max-width: 24ch;
+    margin-top: 8px;
+  }
+  .concept-entry__status {
+    min-height: 24px;
+    padding: 3px 12px;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+  .concept-entry__cue {
+    width: 32px;
+    height: 32px;
+    margin-top: 12px;
+    font-size: 1.22rem;
   }
 }
 @media (max-width: 1100px) {
