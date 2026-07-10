@@ -12,6 +12,7 @@
 - `simulator.css`
 - `responsive.css`
 - `eq-trainer.css`
+- `components/`
 - `script.js`
 - `simulator.js`
 - `pflMeter.js`
@@ -79,6 +80,12 @@
   - Shared Academy card styles and shared button shell
   - Evidence: `components.css:36-139`
 
+#### JavaScript
+
+- `components/knob.js`
+  - Shared knob value normalization, angle calculation, arc calculation, and mini knob rendering
+  - Current users: `simulator.js` and `interactive-eq-knob.js`
+
 ### Gain Staging
 
 #### CSS
@@ -112,6 +119,7 @@
   - Evidence: `script.js:2-5`, `script.js:7-170`
 - `simulator.js`
   - Gain Staging simulator state, meters, fader/gain interactions
+  - Uses shared knob helper from `components/knob.js`; no longer depends on the EQ-specific knob wrapper
   - Evidence: `simulator.js:2-15`, `simulator.js:17-889`
 - `pflMeter.js`
   - Gain Staging PFL detail meter animation
@@ -148,8 +156,9 @@
   - EQ curve math/render helpers
   - Evidence: `interactive-eq-graph.js:1-105`
 - `interactive-eq-knob.js`
-  - EQ knob rendering and interaction helper
-  - Evidence: `interactive-eq-knob.js:16-201`
+  - Interactive EQ Lab-specific knob rendering and interaction wrapper
+  - Uses shared knob helper from `components/knob.js`
+  - Evidence: `interactive-eq-knob.js:1-173`
 - `interactive-eq-icons.js`
   - EQ filter type icon renderer
   - Evidence: `interactive-eq-icons.js:17`
@@ -261,8 +270,20 @@ Observed waste:
 - `eqTrainer.js` is Interactive EQ Lab only
 - `eqData.js` is EQ-only data
 - `interactive-eq-graph.js` is EQ-only rendering math
-- `interactive-eq-knob.js` is nominally EQ-only by file name, but currently reused by Gain Staging
+- `interactive-eq-knob.js` is EQ-only wrapper code for the Interactive EQ Lab knob DOM, binding, and reset behavior
 - `interactive-eq-icons.js` is EQ-only icon rendering
+
+### Shared JavaScript ownership
+
+- `components/knob.js` is the shared knob utility boundary
+- Current shared exports:
+  - `normalizeKnobValue`
+  - `getKnobAngle`
+  - `getKnobArcAngle`
+  - `renderMiniKnob`
+- Current users:
+  - `simulator.js` imports shared helpers directly from `components/knob.js`
+  - `interactive-eq-knob.js` imports and re-exports shared helpers while keeping EQ-specific wrapper behavior local
 
 ### Cross-module dependencies
 
@@ -270,12 +291,10 @@ Observed waste:
   - `data.js`, `icons.js`, `simulator.js`, `pflMeter.js`
 - `eqTrainer.js` imports only EQ files:
   - `eqData.js`, `interactive-eq-icons.js`, `interactive-eq-graph.js`, `interactive-eq-knob.js`
-- `simulator.js` imports `interactive-eq-knob.js` at `simulator.js:15`
-
-That last import is the clearest current JS boundary violation:
-
-- Gain Staging now depends on an EQ-named helper for `getKnobAngle`, `getKnobArcAngle`, and `renderMiniKnob`
-- If `interactive-eq-knob.js` is refactored for EQ needs, Gain Staging can regress even when no Gain file changes
+- Completed first-stage improvement:
+  - `simulator.js` now imports `getKnobAngle`, `getKnobArcAngle`, and `renderMiniKnob` from `components/knob.js`
+  - `interactive-eq-knob.js` now imports shared helpers from `components/knob.js` and retains EQ-specific wrapper exports such as `renderEqKnobControl` and `bindEqKnobControl`
+  - Gain Staging no longer depends directly on the EQ-specific knob wrapper
 
 ### Global variable and naming collision review
 
@@ -366,11 +385,15 @@ Assessment:
 
 ### High
 
-- Gain Staging depends on EQ Lab helper code.
-  - Location: `simulator.js:15`
-  - Current state: `simulator.js` imports `interactive-eq-knob.js`
-  - Impact: a refactor intended only for EQ control behavior can break Gain floating knob rendering and gain angle calculations
-  - Future risk: shared helper changes become harder to validate because ownership is unclear
+- Gain Staging dependency on EQ Lab helper code has completed first-stage cleanup.
+  - Previous location: `simulator.js:15`
+  - Previous state: `simulator.js` imported `interactive-eq-knob.js`
+  - Current state: `simulator.js` imports shared knob helpers from `components/knob.js`
+  - Current ownership:
+    - `components/knob.js`: shared knob utility
+    - `interactive-eq-knob.js`: Interactive EQ Lab-specific knob wrapper
+    - `simulator.js`: Gain Staging simulator using shared knob utility
+  - Impact: Gain Staging no longer depends directly on the EQ-specific wrapper for floating knob rendering and gain angle calculations
 
 - Every major page loads all module CSS regardless of actual need.
   - Location: `index.html:23-29`, `modules/gain-staging/index.html:23-29`, all EQ pages at `23-29`
@@ -470,7 +493,11 @@ Only promote something to shared when:
 - the name is domain-neutral
 - the API is intentionally stable across modules
 
-By current evidence, `interactive-eq-knob.js` should not be the shared boundary name even if part of it becomes reusable. The reusable concept is a generic knob helper, not an EQ helper.
+Current knob boundary after first-stage cleanup:
+
+- `components/knob.js` is the neutral shared knob helper.
+- `interactive-eq-knob.js` is not the shared boundary name anymore; it now represents the Interactive EQ Lab-specific knob wrapper.
+- `simulator.js` consumes shared knob helpers directly from `components/knob.js`.
 
 ## Suggested Future Structure
 
@@ -573,11 +600,19 @@ This is a suggested direction only. No file moves are proposed in this review.
 
 ### Step 5
 
+- Status: completed first-stage cleanup
 - Modification goal: break the Gain -> EQ helper dependency
 - Suggested scope:
-  - either duplicate the tiny shared math intentionally for Gain
-  - or create a neutral shared knob helper with domain-neutral naming
-- Risk: medium because Gain floating knob and EQ knob both depend on angle/render behavior
+  - create a neutral shared knob helper with domain-neutral naming
+  - update Gain Staging to consume shared knob helpers directly
+  - keep EQ-specific knob wrapper behavior in `interactive-eq-knob.js`
+- Completed scope:
+  - added `components/knob.js`
+  - updated `simulator.js` to import shared helpers from `components/knob.js`
+  - updated `interactive-eq-knob.js` to import and re-export shared helpers from `components/knob.js`
+- Remaining scope:
+  - none for this first-stage boundary cleanup
+- Risk after completion: low, because shared helper ownership is now explicit and the EQ wrapper remains module-specific
 - Validation:
   - verify Gain floating button knob state
   - verify Gain knob status colors
@@ -621,5 +656,5 @@ This is a suggested direction only. No file moves are proposed in this review.
 
 - Current runtime isolation is better than the file tree suggests because HTML only loads `script.js` on Gain Staging and `eqTrainer.js` on Interactive EQ Lab
 - Current CSS isolation is much weaker than the JS isolation because every page loads every module stylesheet
-- The most concrete current code-boundary problem is `simulator.js` importing `interactive-eq-knob.js`
+- The previous most concrete JS code-boundary problem, `simulator.js` importing `interactive-eq-knob.js`, has completed first-stage cleanup through `components/knob.js`
 - The biggest maintenance risk is not an active bug today. It is that module-specific CSS, JS, and data already live in shared root locations, so future modules will likely deepen the coupling unless boundaries are tightened before expansion
