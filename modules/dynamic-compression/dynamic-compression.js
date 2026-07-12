@@ -55,6 +55,15 @@ export const TRANSFER_CURVE_BOUNDS = Object.freeze({
   bottom: 280
 });
 
+const TRANSFER_LABEL_BOUNDS = Object.freeze({
+  left: 52,
+  right: 452,
+  top: 34,
+  bottom: 290
+});
+const TRANSFER_LABEL_HEIGHT = 24;
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
 export function clampDb(value) {
   const safeValue = finiteNumber(value);
   return Math.min(TRANSFER_CURVE_BOUNDS.maxDb, Math.max(TRANSFER_CURVE_BOUNDS.minDb, safeValue));
@@ -145,6 +154,83 @@ export function formatSignedDb(value) {
 
 export function formatRatio(value) {
   return `${formatNumber(Math.max(1, finiteNumber(value, 1))).replace(/\.0$/, "")}:1`;
+}
+
+function clampValue(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function estimateTransferLabelWidth(text) {
+  return clampValue(text.length * 7.4 + 16, 50, 170);
+}
+
+function getTransferLabelLayout(text, preferredX, preferredY) {
+  const width = estimateTransferLabelWidth(text);
+  return {
+    x: clampValue(preferredX, TRANSFER_LABEL_BOUNDS.left, TRANSFER_LABEL_BOUNDS.right - width),
+    y: clampValue(
+      preferredY,
+      TRANSFER_LABEL_BOUNDS.top,
+      TRANSFER_LABEL_BOUNDS.bottom - TRANSFER_LABEL_HEIGHT
+    ),
+    width,
+    height: TRANSFER_LABEL_HEIGHT
+  };
+}
+
+function transferLabelLayoutsOverlap(first, second) {
+  return (
+    first.x < second.x + second.width &&
+    first.x + first.width > second.x &&
+    first.y < second.y + second.height &&
+    first.y + first.height > second.y
+  );
+}
+
+function createTransferLabelDecorations(curve, insertionPoint) {
+  let group = curve.querySelector("[data-transfer-label-decorations]");
+  if (group) return group;
+
+  const svgDocument = curve.ownerDocument;
+  group = svgDocument.createElementNS(SVG_NAMESPACE, "g");
+  group.dataset.transferLabelDecorations = "";
+  group.setAttribute("aria-hidden", "true");
+
+  ["threshold", "input", "compressed"].forEach((name) => {
+    const leader = svgDocument.createElementNS(SVG_NAMESPACE, "line");
+    leader.setAttribute("class", `compression-label-leader compression-label-leader--${name}`);
+    leader.dataset.transferLabelLeader = name;
+
+    const background = svgDocument.createElementNS(SVG_NAMESPACE, "rect");
+    background.setAttribute(
+      "class",
+      `compression-label-background compression-label-background--${name}`
+    );
+    background.dataset.transferLabelBackground = name;
+    background.setAttribute("rx", "6");
+
+    group.append(leader, background);
+  });
+
+  curve.insertBefore(group, insertionPoint);
+  return group;
+}
+
+function positionTransferLabel(group, name, label, layout, targetX, targetY) {
+  const background = group.querySelector(`[data-transfer-label-background="${name}"]`);
+  const leader = group.querySelector(`[data-transfer-label-leader="${name}"]`);
+  if (!background || !leader || !label) return;
+
+  background.setAttribute("x", String(layout.x));
+  background.setAttribute("y", String(layout.y));
+  background.setAttribute("width", String(layout.width));
+  background.setAttribute("height", String(layout.height));
+  leader.setAttribute("x1", String(targetX));
+  leader.setAttribute("y1", String(targetY));
+  leader.setAttribute("x2", String(clampValue(targetX, layout.x, layout.x + layout.width)));
+  leader.setAttribute("y2", String(clampValue(targetY, layout.y, layout.y + layout.height)));
+  label.setAttribute("x", String(layout.x + 8));
+  label.setAttribute("y", String(layout.y + 16));
 }
 
 function formatSignedNumber(value) {
@@ -460,6 +546,7 @@ function renderTransferCurve(state, result, pageDocument) {
   const thresholdLabel = pageDocument.querySelector("[data-transfer-threshold-label]");
   const inputLabel = pageDocument.querySelector("[data-transfer-input-label]");
   const compressedLabel = pageDocument.querySelector("[data-transfer-compressed-label]");
+  const curve = pageDocument.querySelector("[data-compression-curve]");
   const curveFrame = pageDocument.querySelector("[data-transfer-curve-frame]");
   if (
     !curvePath ||
@@ -476,6 +563,7 @@ function renderTransferCurve(state, result, pageDocument) {
   const thresholdY = dbToY(state.threshold);
   const workX = dbToX(result.inputLevel);
   const workY = dbToY(result.compressedOutput);
+  const labelDecorations = curve ? createTransferLabelDecorations(curve, thresholdPoint) : null;
   curvePath.setAttribute("d", buildTransferCurvePath(state));
   referenceLine.setAttribute(
     "d",
@@ -483,7 +571,7 @@ function renderTransferCurve(state, result, pageDocument) {
   );
   thresholdLine.setAttribute(
     "d",
-    `M ${thresholdX} ${TRANSFER_CURVE_BOUNDS.bottom + 26} V ${TRANSFER_CURVE_BOUNDS.top - 30}`
+    `M ${thresholdX} ${TRANSFER_CURVE_BOUNDS.bottom + 26} V ${TRANSFER_LABEL_BOUNDS.top + TRANSFER_LABEL_HEIGHT + 8}`
   );
   thresholdHorizontal.setAttribute(
     "d",
@@ -496,20 +584,56 @@ function renderTransferCurve(state, result, pageDocument) {
 
   if (thresholdLabel) {
     thresholdLabel.textContent = `Threshold ${formatDb(result.threshold)}`;
-    thresholdLabel.setAttribute("x", String(Math.min(thresholdX + 8, 330)));
   }
 
-  const pointLabelX = Math.min(Math.max(workX + 8, 78), 330);
-  const pointLabelY = Math.min(Math.max(workY - 18, 92), 152);
   if (inputLabel) {
     inputLabel.textContent = `Input ${formatDb(result.inputLevel)}`;
-    inputLabel.setAttribute("x", String(pointLabelX));
-    inputLabel.setAttribute("y", String(pointLabelY));
   }
   if (compressedLabel) {
     compressedLabel.textContent = `Compressed ${formatDb(result.compressedOutput)}`;
-    compressedLabel.setAttribute("x", String(pointLabelX));
-    compressedLabel.setAttribute("y", String(pointLabelY + 20));
+  }
+
+  if (labelDecorations && thresholdLabel && inputLabel && compressedLabel) {
+    const thresholdLayout = getTransferLabelLayout(
+      thresholdLabel.textContent,
+      thresholdX - estimateTransferLabelWidth(thresholdLabel.textContent) / 2,
+      TRANSFER_LABEL_BOUNDS.top
+    );
+    thresholdLayout.x = Math.min(thresholdLayout.x, 420 - thresholdLayout.width);
+    let inputLayout = getTransferLabelLayout(
+      inputLabel.textContent,
+      workX - estimateTransferLabelWidth(inputLabel.textContent) - 42,
+      workY - TRANSFER_LABEL_HEIGHT - 14
+    );
+    const compressedLayout = getTransferLabelLayout(
+      compressedLabel.textContent,
+      workX + 14,
+      workY + 70
+    );
+    if (transferLabelLayoutsOverlap(inputLayout, thresholdLayout)) {
+      inputLayout = getTransferLabelLayout(
+        inputLabel.textContent,
+        inputLayout.x,
+        thresholdLayout.y + thresholdLayout.height + 8
+      );
+    }
+    positionTransferLabel(
+      labelDecorations,
+      "threshold",
+      thresholdLabel,
+      thresholdLayout,
+      thresholdX,
+      TRANSFER_LABEL_BOUNDS.top + TRANSFER_LABEL_HEIGHT + 8
+    );
+    positionTransferLabel(labelDecorations, "input", inputLabel, inputLayout, workX, workY);
+    positionTransferLabel(
+      labelDecorations,
+      "compressed",
+      compressedLabel,
+      compressedLayout,
+      workX,
+      workY
+    );
   }
   curveFrame?.classList.toggle("is-compressing", result.isCompressing);
 }

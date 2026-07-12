@@ -5,6 +5,10 @@
   --compression-border-soft: rgba(148, 163, 184, 0.1);
   --compression-surface: rgba(15, 23, 42, 0.74);
   --compression-surface-dark: rgba(2, 6, 23, 0.5);
+  --compression-label-threshold: #fbbf24;
+  --compression-label-input: #67e8f9;
+  --compression-label-compressed: #6ee7b7;
+  --compression-label-surface: rgba(2, 6, 23, 0.9);
 }
 
 .compression-page {
@@ -331,11 +335,57 @@
 
 .compression-svg-label--threshold,
 .compression-svg-label--point {
-  fill: #fdba74;
+  paint-order: stroke;
+  stroke: rgba(2, 6, 23, 0.45);
+  stroke-width: 1px;
 }
 
-.compression-svg-label--reference {
-  fill: #94a3b8;
+.compression-svg-label--threshold {
+  fill: var(--compression-label-threshold);
+}
+
+[data-transfer-input-label] {
+  fill: var(--compression-label-input);
+}
+
+[data-transfer-compressed-label] {
+  fill: var(--compression-label-compressed);
+}
+
+.compression-label-background {
+  fill: var(--compression-label-surface);
+  stroke-width: 1;
+}
+
+.compression-label-background--threshold {
+  stroke: color-mix(in srgb, var(--compression-label-threshold) 72%, transparent);
+}
+
+.compression-label-background--input {
+  stroke: color-mix(in srgb, var(--compression-label-input) 72%, transparent);
+}
+
+.compression-label-background--compressed {
+  stroke: color-mix(in srgb, var(--compression-label-compressed) 72%, transparent);
+}
+
+.compression-label-leader {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 3 3;
+  opacity: 0.88;
+}
+
+.compression-label-leader--threshold {
+  stroke: var(--compression-label-threshold);
+}
+
+.compression-label-leader--input {
+  stroke: var(--compression-label-input);
+}
+
+.compression-label-leader--compressed {
+  stroke: var(--compression-label-compressed);
 }
 
 .compression-axis-label {
