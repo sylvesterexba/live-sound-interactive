@@ -388,10 +388,11 @@ function renderCompression(result, pageDocument) {
     formatValueNode(node, result);
   });
 
+  const rawOverThreshold = result.inputLevel - result.threshold;
   const formulas = {
-    grExpression: `GR = (Input − Threshold) × (1 − 1 / Ratio)`,
-    grSubstitution: `(${formatNumber(result.inputLevel)} − (${formatNumber(result.threshold)})) × (1 − 1 / ${formatNumber(result.ratio)})`,
-    grResult: `${formatNumber(result.overThreshold)} × ${formatRatioEffect(result.ratioEffect)} = <strong>${formatDb(result.gainReduction)}</strong>`,
+    grExpression: `Over Threshold = max(0, Input − Threshold)`,
+    grSubstitution: `max(0, ${formatNumber(result.inputLevel)} − (${formatNumber(result.threshold)})) = max(0, ${formatNumber(rawOverThreshold)}) = <strong>${formatDb(result.overThreshold)}</strong>`,
+    grResult: `Gain Reduction = ${formatNumber(result.overThreshold)} × (1 − 1 / ${formatNumber(result.ratio)}) = ${formatNumber(result.overThreshold)} × ${formatRatioEffect(result.ratioEffect)} = <strong>${formatDb(result.gainReduction)}</strong>`,
     outputSubstitution: `${formatNumber(result.inputLevel)} − ${formatNumber(result.gainReduction)} ${formatMakeupOperator(result.makeupGain)} ${formatMakeupMagnitude(result.makeupGain)} = <strong>${formatDb(result.outputLevel)}</strong>`
   };
 
