@@ -765,7 +765,7 @@ body.compression-formula-open {
     gap: 12px;
     width: min(100% - 24px, 620px);
     padding-top: 16px;
-    padding-bottom: 164px;
+    padding-bottom: calc(164px + env(safe-area-inset-bottom));
   }
 
   .compression-meter-channel {
