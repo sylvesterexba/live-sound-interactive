@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sylvesterexba.github.io/live-sound-interactive/sitemap.xml
