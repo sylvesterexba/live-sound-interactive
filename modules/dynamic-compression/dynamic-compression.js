@@ -18,20 +18,73 @@ const DOUBLE_TAP_DELAY = 320;
 const TAP_MOVEMENT_THRESHOLD = 8;
 const MIN_KNOB_ANGLE = -135;
 const MAX_KNOB_ANGLE = 135;
-const CREST_FACTOR_DB = 2.2;
 const LEVEL_METER_THRESHOLDS = Object.freeze([
-  -60, -54, -48, -42, -36, -30, -24, -18, -15, -12, -10, -8, -6, -4, -3, -2, -1, 0
+  0, -1, -2, -3, -4, -6, -8, -10, -12, -15, -18, -24, -30, -36, -42, -48, -54, -60
 ]);
 const GR_METER_THRESHOLDS = Object.freeze([
-  0, 1, 2, 3, 4.5, 6, 9, 12, 15, 18, 21, 24, 27, 30, 36, 42, 48, 60
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
 ]);
+const MAX_FRAME_DELTA_MS = 50;
+const INPUT_ATTACK_MS = 85;
+const INPUT_DECAY_MS = 380;
+const GR_ATTACK_MS = 95;
+const GR_RELEASE_MS = 500;
+const DEFAULT_CREST_FACTOR_DB = 13;
+const BODY_SLOW_AMPLITUDE_DB = 2;
+const BODY_MEDIUM_AMPLITUDE_DB = 1.25;
+const BODY_NOISE_AMPLITUDE_DB = 1;
+const METER_RMS_TIME_MS = 400;
+const METER_PEAK_DECAY_MS = 850;
+const MIN_METER_POWER = 1e-12;
+const METER_THRESHOLD_EPSILON = 1e-6;
+
+const simulationState = {
+  isEnabled: true,
+  instantaneousInput: compressionState.inputLevel,
+  displayedInput: compressionState.inputLevel,
+  displayedGainReduction: 0,
+  displayedCompressedOutput: compressionState.inputLevel,
+  displayedFinalOutput: compressionState.inputLevel,
+  displayedInputPeak: compressionState.inputLevel,
+  inputRmsPower: 0,
+  displayedInputRms: compressionState.inputLevel,
+  displayedOutputPeak: compressionState.inputLevel,
+  outputRmsPower: 0,
+  displayedOutputRms: compressionState.inputLevel,
+  noiseValue: 0,
+  noiseTarget: 0,
+  nextNoiseUpdate: 0,
+  transientPhase: "idle",
+  transientAmount: 0,
+  transientTargetAmount: 0,
+  transientCeiling: compressionState.inputLevel,
+  transientPhaseStartTime: 0,
+  transientAttackDuration: 0,
+  transientHoldDuration: 0,
+  transientReleaseDuration: 0,
+  nextTransientTime: 0,
+  phaseOffset: Math.random() * Math.PI * 2,
+  lastTimestamp: 0,
+  animationFrameId: null,
+  reducedMotionQuery: null,
+  dom: null
+};
 
 export function getLevelMeterState(value) {
   const safeValue = finiteNumber(value);
   return {
-    active: LEVEL_METER_THRESHOLDS.map((threshold) => safeValue >= threshold),
+    active: LEVEL_METER_THRESHOLDS.map(
+      (threshold) => safeValue + METER_THRESHOLD_EPSILON >= threshold
+    ),
     isClipping: safeValue >= 0
   };
+}
+
+export function getLevelMeterMarkerIndex(value) {
+  const safeValue = finiteNumber(value);
+  return LEVEL_METER_THRESHOLDS.findIndex(
+    (threshold) => safeValue + METER_THRESHOLD_EPSILON >= threshold
+  );
 }
 
 export function getGainReductionMeterState(value) {
@@ -44,6 +97,14 @@ export function getGainReductionMeterState(value) {
 function finiteNumber(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
+}
+
+export function dbToPower(value) {
+  return 10 ** (finiteNumber(value) / 10);
+}
+
+export function powerToDb(value) {
+  return 10 * Math.log10(Math.max(MIN_METER_POWER, finiteNumber(value, MIN_METER_POWER)));
 }
 
 export const TRANSFER_CURVE_BOUNDS = Object.freeze({
@@ -112,8 +173,8 @@ export function buildTransferCurvePath(state) {
   ].join(" ");
 }
 
-export function calculateCompression(state) {
-  const inputLevel = finiteNumber(state?.inputLevel);
+export function calculateCompression(state, inputValue = state?.inputLevel) {
+  const inputLevel = finiteNumber(inputValue);
   const threshold = finiteNumber(state?.threshold);
   const ratio = Math.max(1, finiteNumber(state?.ratio, 1));
   const makeupGain = finiteNumber(state?.makeupGain);
@@ -136,6 +197,18 @@ export function calculateCompression(state) {
     compressedOutput,
     outputLevel,
     isCompressing: inputLevel > threshold && gainReduction > 0
+  };
+}
+
+export function deriveDisplayedLevels(inputLevel, gainReduction, makeupGain) {
+  const displayedInput = finiteNumber(inputLevel);
+  const displayedGainReduction = Math.max(0, finiteNumber(gainReduction));
+  const displayedCompressedOutput = displayedInput - displayedGainReduction;
+  return {
+    displayedInput,
+    displayedGainReduction,
+    displayedCompressedOutput,
+    displayedFinalOutput: displayedCompressedOutput + finiteNumber(makeupGain)
   };
 }
 
@@ -216,9 +289,8 @@ function createTransferLabelDecorations(curve, insertionPoint) {
   return group;
 }
 
-function positionTransferLabel(group, name, label, layout, targetX, targetY) {
-  const background = group.querySelector(`[data-transfer-label-background="${name}"]`);
-  const leader = group.querySelector(`[data-transfer-label-leader="${name}"]`);
+function positionTransferLabel(decorations, name, label, layout, targetX, targetY) {
+  const { background, leader } = decorations[name] ?? {};
   if (!background || !leader || !label) return;
 
   background.setAttribute("x", String(layout.x));
@@ -297,12 +369,87 @@ function renderControls(state, pageDocument) {
   });
 }
 
+function cacheSimulationDom(pageDocument) {
+  const curve = pageDocument.querySelector("[data-compression-curve]");
+  const thresholdPoint = pageDocument.querySelector("[data-transfer-threshold-point]");
+  const labelDecorationGroup =
+    curve && thresholdPoint ? createTransferLabelDecorations(curve, thresholdPoint) : null;
+  const labelDecorations = Object.fromEntries(
+    ["threshold", "input", "compressed"].map((name) => [
+      name,
+      {
+        background: labelDecorationGroup?.querySelector(
+          `[data-transfer-label-background="${name}"]`
+        ),
+        leader: labelDecorationGroup?.querySelector(`[data-transfer-label-leader="${name}"]`)
+      }
+    ])
+  );
+
+  return {
+    toggle: pageDocument.querySelector("[data-simulation-toggle]"),
+    toggleState: pageDocument.querySelector("[data-simulation-state]"),
+    meters: {
+      input: {
+        shell: pageDocument.querySelector('[data-compression-meter-shell="input"]'),
+        segments: [...pageDocument.querySelectorAll('[data-meter-segment="input"]')],
+        peak: pageDocument.querySelector('[data-meter-value="inputPeak"]'),
+        rms: pageDocument.querySelector('[data-meter-value="inputRms"]')
+      },
+      gr: {
+        shell: pageDocument.querySelector('[data-compression-meter-shell="gr"]'),
+        segments: [...pageDocument.querySelectorAll('[data-meter-segment="gr"]')],
+        readout: pageDocument.querySelector('[data-meter-value="gainReduction"]')
+      },
+      output: {
+        shell: pageDocument.querySelector('[data-compression-meter-shell="output"]'),
+        segments: [...pageDocument.querySelectorAll('[data-meter-segment="output"]')],
+        peak: pageDocument.querySelector('[data-meter-value="outputPeak"]'),
+        rms: pageDocument.querySelector('[data-meter-value="outputRms"]')
+      }
+    },
+    transfer: {
+      curvePath: pageDocument.querySelector("[data-transfer-curve-path]"),
+      referenceLine: pageDocument.querySelector("[data-transfer-reference]"),
+      thresholdLine: pageDocument.querySelector("[data-transfer-threshold-line]"),
+      thresholdHorizontal: pageDocument.querySelector("[data-transfer-threshold-horizontal]"),
+      thresholdPoint,
+      workPoint: pageDocument.querySelector("[data-transfer-work-point]"),
+      thresholdLabel: pageDocument.querySelector("[data-transfer-threshold-label]"),
+      inputLabel: pageDocument.querySelector("[data-transfer-input-label]"),
+      compressedLabel: pageDocument.querySelector("[data-transfer-compressed-label]"),
+      curveFrame: pageDocument.querySelector("[data-transfer-curve-frame]"),
+      labelDecorations
+    }
+  };
+}
+
 function renderFromState(pageDocument) {
   const result = calculateCompression(compressionState);
   renderControls(compressionState, pageDocument);
   renderCompression(result, pageDocument);
-  renderMeters(result, pageDocument);
-  renderTransferCurve(compressionState, result, pageDocument);
+  renderTransferCurveStatic(compressionState, result, simulationState.dom);
+  if (
+    simulationState.isEnabled &&
+    document.visibilityState === "visible" &&
+    !simulationState.reducedMotionQuery?.matches
+  ) {
+    if (!simulationState.nextTransientTime && !simulationState.lastTimestamp) {
+      renderBodySimulation();
+      return;
+    }
+    const liveResult = calculateCompression(compressionState, simulationState.instantaneousInput);
+    const displayedLevels = deriveDisplayedLevels(
+      simulationState.displayedInput,
+      simulationState.displayedGainReduction,
+      compressionState.makeupGain
+    );
+    simulationState.displayedCompressedOutput = displayedLevels.displayedCompressedOutput;
+    simulationState.displayedFinalOutput = displayedLevels.displayedFinalOutput;
+    renderSimulationFrame(liveResult);
+    return;
+  }
+  renderBaselineSimulation();
 }
 
 function getNextControlValue(name, currentValue, delta) {
@@ -491,79 +638,69 @@ function renderCompression(result, pageDocument) {
   if (makeupOperator) makeupOperator.textContent = formatMakeupOperator(result.makeupGain);
 }
 
-function renderLevelMeter(meterName, value, pageDocument) {
-  const meter = pageDocument.querySelector(`[data-compression-meter="${meterName}"]`);
-  const shell = pageDocument.querySelector(`[data-compression-meter-shell="${meterName}"]`);
-  if (!meter || !shell) return;
-
+function renderLevelMeter(meterName, value, dom) {
+  const meter = dom?.meters[meterName];
+  if (!meter?.shell) return;
   const safeValue = finiteNumber(value);
   const meterState = getLevelMeterState(safeValue);
-  meter.querySelectorAll(`[data-meter-segment="${meterName}"]`).forEach((segment, index) => {
+  meter.segments.forEach((segment, index) => {
     segment.classList.toggle("is-on", meterState.active[index]);
   });
 
-  shell.classList.toggle("is-clipping", meterState.isClipping);
-  shell.setAttribute(
+  const peakValue =
+    meterName === "input"
+      ? simulationState.displayedInputPeak
+      : simulationState.displayedOutputPeak;
+  const rmsValue =
+    meterName === "input" ? simulationState.displayedInputRms : simulationState.displayedOutputRms;
+  const peakMarkerIndex = getLevelMeterMarkerIndex(peakValue);
+  meter.segments.forEach((segment, index) => {
+    segment.classList.toggle("is-peak", index === peakMarkerIndex);
+  });
+  meter.shell.classList.toggle("is-clipping", meterState.isClipping);
+  meter.shell.setAttribute(
     "aria-label",
-    `${meterName === "input" ? "Input" : "Output"} Level meter Peak ${formatDb(safeValue)} RMS ${formatDb(safeValue - CREST_FACTOR_DB)}`
+    `${meterName === "input" ? "Input" : "Output"} Level meter Peak ${formatDb(peakValue)} RMS ${formatDb(rmsValue)}`
   );
-
-  const peakNode = pageDocument.querySelector(`[data-meter-value="${meterName}Peak"]`);
-  const rmsNode = pageDocument.querySelector(`[data-meter-value="${meterName}Rms"]`);
-  if (peakNode) peakNode.textContent = formatDb(safeValue);
-  if (rmsNode) rmsNode.textContent = formatDb(safeValue - CREST_FACTOR_DB);
+  if (meter.peak) meter.peak.textContent = formatDb(peakValue);
+  if (meter.rms) meter.rms.textContent = formatDb(rmsValue);
 }
 
-function renderGainReductionMeter(gainReduction, pageDocument) {
-  const meter = pageDocument.querySelector('[data-compression-meter="gr"]');
-  const shell = pageDocument.querySelector('[data-compression-meter-shell="gr"]');
-  if (!meter || !shell) return;
-
+function renderGainReductionMeter(gainReduction, dom) {
+  const meter = dom?.meters.gr;
+  if (!meter?.shell) return;
   const safeGainReduction = Math.max(0, finiteNumber(gainReduction));
   const meterState = getGainReductionMeterState(safeGainReduction);
-  meter.querySelectorAll('[data-meter-segment="gr"]').forEach((segment, index) => {
+  meter.segments.forEach((segment, index) => {
     segment.classList.toggle("is-on", meterState[index]);
   });
 
-  shell.setAttribute("aria-label", `Gain Reduction meter ${formatDb(safeGainReduction)}`);
-  const readout = pageDocument.querySelector('[data-meter-value="gainReduction"]');
-  if (readout) readout.textContent = formatDb(safeGainReduction);
+  meter.shell.setAttribute("aria-label", `Gain Reduction meter ${formatDb(safeGainReduction)}`);
+  if (meter.readout) meter.readout.textContent = formatDb(safeGainReduction);
 }
 
-function renderMeters(result, pageDocument) {
-  renderLevelMeter("input", result.inputLevel, pageDocument);
-  renderGainReductionMeter(result.gainReduction, pageDocument);
-  renderLevelMeter("output", result.outputLevel, pageDocument);
+function renderMeters(result, dom) {
+  renderLevelMeter("input", result.inputLevel, dom);
+  renderGainReductionMeter(result.gainReduction, dom);
+  renderLevelMeter("output", result.outputLevel, dom);
 }
 
-function renderTransferCurve(state, result, pageDocument) {
-  const curvePath = pageDocument.querySelector("[data-transfer-curve-path]");
-  const referenceLine = pageDocument.querySelector("[data-transfer-reference]");
-  const thresholdLine = pageDocument.querySelector("[data-transfer-threshold-line]");
-  const thresholdHorizontal = pageDocument.querySelector("[data-transfer-threshold-horizontal]");
-  const thresholdPoint = pageDocument.querySelector("[data-transfer-threshold-point]");
-  const workPoint = pageDocument.querySelector("[data-transfer-work-point]");
-  const thresholdLabel = pageDocument.querySelector("[data-transfer-threshold-label]");
-  const inputLabel = pageDocument.querySelector("[data-transfer-input-label]");
-  const compressedLabel = pageDocument.querySelector("[data-transfer-compressed-label]");
-  const curve = pageDocument.querySelector("[data-compression-curve]");
-  const curveFrame = pageDocument.querySelector("[data-transfer-curve-frame]");
-  if (
-    !curvePath ||
-    !referenceLine ||
-    !thresholdLine ||
-    !thresholdHorizontal ||
-    !thresholdPoint ||
-    !workPoint
-  ) {
+function renderTransferCurveStatic(state, result, dom) {
+  const {
+    curvePath,
+    referenceLine,
+    thresholdLine,
+    thresholdHorizontal,
+    thresholdPoint,
+    thresholdLabel,
+    labelDecorations
+  } = dom?.transfer ?? {};
+  if (!curvePath || !referenceLine || !thresholdLine || !thresholdHorizontal || !thresholdPoint) {
     return;
   }
 
   const thresholdX = dbToX(state.threshold);
   const thresholdY = dbToY(state.threshold);
-  const workX = dbToX(result.inputLevel);
-  const workY = dbToY(result.compressedOutput);
-  const labelDecorations = curve ? createTransferLabelDecorations(curve, thresholdPoint) : null;
   curvePath.setAttribute("d", buildTransferCurvePath(state));
   referenceLine.setAttribute(
     "d",
@@ -579,12 +716,38 @@ function renderTransferCurve(state, result, pageDocument) {
   );
   thresholdPoint.setAttribute("cx", String(thresholdX));
   thresholdPoint.setAttribute("cy", String(thresholdY));
-  workPoint.setAttribute("cx", String(workX));
-  workPoint.setAttribute("cy", String(workY));
 
   if (thresholdLabel) {
     thresholdLabel.textContent = `Threshold ${formatDb(result.threshold)}`;
   }
+
+  if (labelDecorations && thresholdLabel) {
+    const thresholdLayout = getTransferLabelLayout(
+      thresholdLabel.textContent,
+      thresholdX - estimateTransferLabelWidth(thresholdLabel.textContent) / 2,
+      TRANSFER_LABEL_BOUNDS.top
+    );
+    thresholdLayout.x = Math.min(thresholdLayout.x, 420 - thresholdLayout.width);
+    positionTransferLabel(
+      labelDecorations,
+      "threshold",
+      thresholdLabel,
+      thresholdLayout,
+      thresholdX,
+      TRANSFER_LABEL_BOUNDS.top + TRANSFER_LABEL_HEIGHT + 8
+    );
+  }
+}
+
+function renderTransferCurveDynamic(result, dom) {
+  const { workPoint, thresholdLabel, inputLabel, compressedLabel, curveFrame, labelDecorations } =
+    dom?.transfer ?? {};
+  if (!workPoint) return;
+
+  const workX = dbToX(result.inputLevel);
+  const workY = dbToY(result.compressedOutput);
+  workPoint.setAttribute("cx", String(workX));
+  workPoint.setAttribute("cy", String(workY));
 
   if (inputLabel) {
     inputLabel.textContent = `Input ${formatDb(result.inputLevel)}`;
@@ -594,6 +757,7 @@ function renderTransferCurve(state, result, pageDocument) {
   }
 
   if (labelDecorations && thresholdLabel && inputLabel && compressedLabel) {
+    const thresholdX = dbToX(result.threshold);
     const thresholdLayout = getTransferLabelLayout(
       thresholdLabel.textContent,
       thresholdX - estimateTransferLabelWidth(thresholdLabel.textContent) / 2,
@@ -617,14 +781,6 @@ function renderTransferCurve(state, result, pageDocument) {
         thresholdLayout.y + thresholdLayout.height + 8
       );
     }
-    positionTransferLabel(
-      labelDecorations,
-      "threshold",
-      thresholdLabel,
-      thresholdLayout,
-      thresholdX,
-      TRANSFER_LABEL_BOUNDS.top + TRANSFER_LABEL_HEIGHT + 8
-    );
     positionTransferLabel(labelDecorations, "input", inputLabel, inputLayout, workX, workY);
     positionTransferLabel(
       labelDecorations,
@@ -636,6 +792,371 @@ function renderTransferCurve(state, result, pageDocument) {
     );
   }
   curveFrame?.classList.toggle("is-compressing", result.isCompressing);
+}
+
+function resetSimulationValues(
+  result = calculateCompression(compressionState),
+  rmsReferenceResult = result
+) {
+  simulationState.instantaneousInput = result.inputLevel;
+  simulationState.displayedInput = result.inputLevel;
+  simulationState.displayedGainReduction = result.gainReduction;
+  simulationState.displayedCompressedOutput = result.compressedOutput;
+  simulationState.displayedFinalOutput = result.outputLevel;
+  simulationState.displayedInputPeak = result.inputLevel;
+  simulationState.inputRmsPower = dbToPower(rmsReferenceResult.inputLevel);
+  simulationState.displayedInputRms = rmsReferenceResult.inputLevel;
+  simulationState.displayedOutputPeak = result.outputLevel;
+  simulationState.outputRmsPower = dbToPower(rmsReferenceResult.outputLevel);
+  simulationState.displayedOutputRms = rmsReferenceResult.outputLevel;
+  simulationState.noiseValue = 0;
+  simulationState.noiseTarget = 0;
+  simulationState.nextNoiseUpdate = 0;
+  simulationState.transientPhase = "idle";
+  simulationState.transientAmount = 0;
+  simulationState.transientTargetAmount = 0;
+  simulationState.transientCeiling = compressionState.inputLevel;
+  simulationState.transientPhaseStartTime = 0;
+  simulationState.transientAttackDuration = 0;
+  simulationState.transientHoldDuration = 0;
+  simulationState.transientReleaseDuration = 0;
+  simulationState.nextTransientTime = 0;
+  simulationState.lastTimestamp = 0;
+}
+
+function getSmoothedValue(current, target, deltaMs, attackMs, releaseMs) {
+  const timeConstant = target > current ? attackMs : releaseMs;
+  const amount = 1 - Math.exp(-deltaMs / timeConstant);
+  return current + (target - current) * amount;
+}
+
+function updateMeterReadoutState(result, deltaMs) {
+  simulationState.displayedInputPeak = getSmoothedValue(
+    simulationState.displayedInputPeak,
+    result.inputLevel,
+    deltaMs,
+    1,
+    METER_PEAK_DECAY_MS
+  );
+  simulationState.displayedOutputPeak = getSmoothedValue(
+    simulationState.displayedOutputPeak,
+    result.outputLevel,
+    deltaMs,
+    1,
+    METER_PEAK_DECAY_MS
+  );
+
+  const rmsBlend = 1 - Math.exp(-deltaMs / METER_RMS_TIME_MS);
+  simulationState.inputRmsPower +=
+    (dbToPower(result.inputLevel) - simulationState.inputRmsPower) * rmsBlend;
+  simulationState.outputRmsPower +=
+    (dbToPower(result.outputLevel) - simulationState.outputRmsPower) * rmsBlend;
+  simulationState.displayedInputRms = powerToDb(simulationState.inputRmsPower);
+  simulationState.displayedOutputRms = powerToDb(simulationState.outputRmsPower);
+}
+
+function getSmoothStep(progress) {
+  const clampedProgress = clampValue(progress, 0, 1);
+  return clampedProgress * clampedProgress * (3 - 2 * clampedProgress);
+}
+
+function getSignalDistribution(peakTarget) {
+  const inputConfig = controlConfigs.inputLevel;
+  const availableRange = Math.max(0, peakTarget - inputConfig.min);
+  const crestFactor = Math.min(DEFAULT_CREST_FACTOR_DB, availableRange * 0.75);
+  const rmsCenter = peakTarget - crestFactor;
+  const maximumBodyExcursion =
+    BODY_SLOW_AMPLITUDE_DB + BODY_MEDIUM_AMPLITUDE_DB + BODY_NOISE_AMPLITUDE_DB;
+  return {
+    rmsCenter,
+    bodyScale: clampValue((rmsCenter - inputConfig.min) / maximumBodyExcursion, 0, 1)
+  };
+}
+
+function scheduleNextTransient(timestamp, isInitial = false) {
+  simulationState.nextTransientTime =
+    timestamp + (isInitial ? 200 + Math.random() * 600 : 250 + Math.random() * 850);
+}
+
+function getTransientTargetOffset() {
+  const strength = Math.random();
+  if (strength < 0.26) return Math.random() * 1.5;
+  if (strength < 0.58) return 1.5 + Math.random() * 2.5;
+  return 4 + Math.random() * 3;
+}
+
+function startTransient(timestamp, bodyLevel, peakTarget) {
+  const targetOffset = getTransientTargetOffset();
+  const targetLevel = peakTarget - targetOffset;
+  const allowsOvershoot = targetOffset < 0.35 && Math.random() < 0.2;
+  simulationState.transientPhase = "attack";
+  simulationState.transientAmount = 0;
+  simulationState.transientTargetAmount = Math.max(0, targetLevel - bodyLevel);
+  simulationState.transientCeiling = peakTarget + (allowsOvershoot ? Math.random() * 0.3 : 0);
+  simulationState.transientPhaseStartTime = timestamp;
+  simulationState.transientAttackDuration = 8 + Math.random() * 37;
+  simulationState.transientHoldDuration = 15 + Math.random() * 65;
+  simulationState.transientReleaseDuration = 120 + Math.random() * 330;
+}
+
+function updateTransient(timestamp, bodyLevel, peakTarget) {
+  if (!simulationState.nextTransientTime) {
+    scheduleNextTransient(timestamp, true);
+    return 0;
+  }
+
+  if (simulationState.transientPhase === "idle") {
+    if (timestamp >= simulationState.nextTransientTime) {
+      startTransient(timestamp, bodyLevel, peakTarget);
+    }
+    return simulationState.transientAmount;
+  }
+
+  const elapsed = timestamp - simulationState.transientPhaseStartTime;
+  if (simulationState.transientPhase === "attack") {
+    const progress = elapsed / simulationState.transientAttackDuration;
+    simulationState.transientAmount =
+      simulationState.transientTargetAmount * getSmoothStep(progress);
+    if (progress >= 1) {
+      simulationState.transientPhase = "hold";
+      simulationState.transientAmount = simulationState.transientTargetAmount;
+      simulationState.transientPhaseStartTime = timestamp;
+    }
+  } else if (simulationState.transientPhase === "hold") {
+    simulationState.transientAmount = simulationState.transientTargetAmount;
+    if (elapsed >= simulationState.transientHoldDuration) {
+      simulationState.transientPhase = "release";
+      simulationState.transientPhaseStartTime = timestamp;
+    }
+  } else if (simulationState.transientPhase === "release") {
+    const progress = elapsed / simulationState.transientReleaseDuration;
+    simulationState.transientAmount =
+      simulationState.transientTargetAmount * (1 - getSmoothStep(progress));
+    if (progress >= 1) {
+      simulationState.transientPhase = "idle";
+      simulationState.transientAmount = 0;
+      simulationState.transientTargetAmount = 0;
+      scheduleNextTransient(timestamp);
+    }
+  }
+
+  return simulationState.transientAmount;
+}
+
+function createInstantaneousInput(timestamp, deltaMs) {
+  if (timestamp >= simulationState.nextNoiseUpdate) {
+    simulationState.noiseTarget = (Math.random() * 2 - 1) * BODY_NOISE_AMPLITUDE_DB;
+    simulationState.nextNoiseUpdate = timestamp + 100 + Math.random() * 120;
+  }
+  simulationState.noiseValue = getSmoothedValue(
+    simulationState.noiseValue,
+    simulationState.noiseTarget,
+    deltaMs,
+    125,
+    170
+  );
+
+  const time = timestamp / 1000;
+  const { rmsCenter, bodyScale } = getSignalDistribution(compressionState.inputLevel);
+  const slowWave = Math.sin(time * 1.76 + simulationState.phaseOffset) * BODY_SLOW_AMPLITUDE_DB;
+  const mediumWave =
+    Math.sin(time * 5.09 + simulationState.phaseOffset * 0.61) * BODY_MEDIUM_AMPLITUDE_DB;
+  const bodyMovement = (slowWave + mediumWave + simulationState.noiseValue) * bodyScale;
+  const bodyLevel = rmsCenter + bodyMovement;
+  const transientAmount = updateTransient(timestamp, bodyLevel, compressionState.inputLevel);
+  const transientCeiling =
+    simulationState.transientPhase === "idle"
+      ? compressionState.inputLevel
+      : Math.min(simulationState.transientCeiling, compressionState.inputLevel + 0.3);
+  const inputConfig = controlConfigs.inputLevel;
+  return clampValue(
+    Math.min(bodyLevel + transientAmount, transientCeiling),
+    inputConfig.min,
+    inputConfig.max
+  );
+}
+
+function getDisplayedResult(instantaneousResult) {
+  return {
+    ...instantaneousResult,
+    inputLevel: simulationState.displayedInput,
+    gainReduction: simulationState.displayedGainReduction,
+    compressedOutput: simulationState.displayedCompressedOutput,
+    outputLevel: simulationState.displayedFinalOutput,
+    isCompressing:
+      simulationState.displayedInput > instantaneousResult.threshold &&
+      simulationState.displayedGainReduction > 0
+  };
+}
+
+function renderSimulationFrame(instantaneousResult) {
+  const displayedResult = getDisplayedResult(instantaneousResult);
+  renderMeters(displayedResult, simulationState.dom);
+  const clipSegmentIndex = getLevelMeterMarkerIndex(0);
+  const inputClipSegment = simulationState.dom?.meters.input.segments[clipSegmentIndex];
+  const outputClipSegment = simulationState.dom?.meters.output.segments[clipSegmentIndex];
+  inputClipSegment?.classList.toggle("is-on", instantaneousResult.inputLevel >= 0);
+  outputClipSegment?.classList.toggle("is-on", instantaneousResult.outputLevel >= 0);
+  simulationState.dom?.meters.input.shell?.classList.toggle(
+    "is-clipping",
+    instantaneousResult.inputLevel >= 0
+  );
+  simulationState.dom?.meters.output.shell?.classList.toggle(
+    "is-clipping",
+    instantaneousResult.outputLevel >= 0
+  );
+  renderTransferCurveDynamic(displayedResult, simulationState.dom);
+}
+
+function runSimulationFrame(timestamp) {
+  simulationState.animationFrameId = null;
+  if (
+    !simulationState.isEnabled ||
+    document.visibilityState !== "visible" ||
+    simulationState.reducedMotionQuery?.matches
+  ) {
+    return;
+  }
+
+  if (!simulationState.lastTimestamp) simulationState.lastTimestamp = timestamp;
+  const deltaMs = Math.min(
+    MAX_FRAME_DELTA_MS,
+    Math.max(1, timestamp - simulationState.lastTimestamp)
+  );
+  simulationState.lastTimestamp = timestamp;
+  const instantaneousInput = createInstantaneousInput(timestamp, deltaMs);
+  const result = calculateCompression(compressionState, instantaneousInput);
+  simulationState.instantaneousInput = instantaneousInput;
+  updateMeterReadoutState(result, deltaMs);
+  simulationState.displayedInput = getSmoothedValue(
+    simulationState.displayedInput,
+    result.inputLevel,
+    deltaMs,
+    INPUT_ATTACK_MS,
+    INPUT_DECAY_MS
+  );
+  simulationState.displayedGainReduction = getSmoothedValue(
+    simulationState.displayedGainReduction,
+    result.gainReduction,
+    deltaMs,
+    GR_ATTACK_MS,
+    GR_RELEASE_MS
+  );
+  const displayedLevels = deriveDisplayedLevels(
+    simulationState.displayedInput,
+    simulationState.displayedGainReduction,
+    compressionState.makeupGain
+  );
+  simulationState.displayedCompressedOutput = displayedLevels.displayedCompressedOutput;
+  simulationState.displayedFinalOutput = displayedLevels.displayedFinalOutput;
+  renderSimulationFrame(result);
+  startSimulationLoop();
+}
+
+function stopSimulationLoop() {
+  if (simulationState.animationFrameId !== null) {
+    window.cancelAnimationFrame(simulationState.animationFrameId);
+    simulationState.animationFrameId = null;
+  }
+  simulationState.lastTimestamp = 0;
+}
+
+function startSimulationLoop() {
+  if (
+    simulationState.animationFrameId !== null ||
+    !simulationState.isEnabled ||
+    document.visibilityState !== "visible" ||
+    simulationState.reducedMotionQuery?.matches
+  ) {
+    return;
+  }
+  simulationState.animationFrameId = window.requestAnimationFrame(runSimulationFrame);
+}
+
+function renderBaselineSimulation() {
+  const result = calculateCompression(compressionState);
+  const { rmsCenter } = getSignalDistribution(compressionState.inputLevel);
+  const inputConfig = controlConfigs.inputLevel;
+  const rmsReferenceResult = calculateCompression(
+    compressionState,
+    clampValue(rmsCenter, inputConfig.min, inputConfig.max)
+  );
+  resetSimulationValues(result, rmsReferenceResult);
+  renderMeters(result, simulationState.dom);
+  renderTransferCurveDynamic(result, simulationState.dom);
+}
+
+function renderBodySimulation() {
+  const { rmsCenter } = getSignalDistribution(compressionState.inputLevel);
+  const inputConfig = controlConfigs.inputLevel;
+  const result = calculateCompression(
+    compressionState,
+    clampValue(rmsCenter, inputConfig.min, inputConfig.max)
+  );
+  resetSimulationValues(result);
+  renderMeters(result, simulationState.dom);
+  renderTransferCurveDynamic(result, simulationState.dom);
+}
+
+function updateSimulationToggle() {
+  const { toggle, toggleState } = simulationState.dom ?? {};
+  if (!toggle || !toggleState) return;
+  const englishState = simulationState.isEnabled ? "On" : "Off";
+  const chineseState = simulationState.isEnabled ? "開啟" : "關閉";
+  toggle.setAttribute("aria-checked", String(simulationState.isEnabled));
+  toggle.setAttribute("aria-label", `Simulation, ${englishState}`);
+  toggleState.innerHTML = `<b>${englishState}</b><small>${chineseState}</small>`;
+}
+
+function setSimulationEnabled(isEnabled) {
+  simulationState.isEnabled = Boolean(isEnabled);
+  stopSimulationLoop();
+  if (
+    simulationState.isEnabled &&
+    document.visibilityState === "visible" &&
+    !simulationState.reducedMotionQuery?.matches
+  ) {
+    renderBodySimulation();
+  } else {
+    renderBaselineSimulation();
+  }
+  updateSimulationToggle();
+  startSimulationLoop();
+}
+
+function initSimulation(pageDocument) {
+  simulationState.dom = cacheSimulationDom(pageDocument);
+  simulationState.reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  simulationState.dom.toggle?.addEventListener("click", () => {
+    setSimulationEnabled(!simulationState.isEnabled);
+  });
+  pageDocument.addEventListener("visibilitychange", () => {
+    stopSimulationLoop();
+    if (
+      simulationState.isEnabled &&
+      document.visibilityState === "visible" &&
+      !simulationState.reducedMotionQuery?.matches
+    ) {
+      renderBodySimulation();
+    } else {
+      renderBaselineSimulation();
+    }
+    startSimulationLoop();
+  });
+  simulationState.reducedMotionQuery.addEventListener("change", () => {
+    stopSimulationLoop();
+    if (
+      simulationState.isEnabled &&
+      document.visibilityState === "visible" &&
+      !simulationState.reducedMotionQuery.matches
+    ) {
+      renderBodySimulation();
+    } else {
+      renderBaselineSimulation();
+    }
+    startSimulationLoop();
+  });
+  updateSimulationToggle();
 }
 
 function isMobileFormulaLayout() {
@@ -692,7 +1213,9 @@ function initFormulaDetails(pageDocument) {
 }
 
 if (typeof document !== "undefined") {
+  initSimulation(document);
   renderFromState(document);
   bindCompressionControls(document);
   initFormulaDetails(document);
+  startSimulationLoop();
 }

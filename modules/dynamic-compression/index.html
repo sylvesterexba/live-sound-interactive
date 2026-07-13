@@ -41,6 +41,32 @@
   <main class="compression-main">
     <section class="compression-signal-row" aria-label="Compression signal flow">
       <div class="compression-meter-bridge" aria-label="Compression meter bridge">
+        <div class="compression-meter-toolbar">
+          <div class="compression-section-heading">
+            <span>METER BRIDGE</span>
+            <strong>電平表</strong>
+          </div>
+          <button
+            class="compression-simulation-toggle"
+            type="button"
+            role="switch"
+            aria-checked="true"
+            aria-label="Simulation, On"
+            data-simulation-toggle
+          >
+            <span class="compression-simulation-toggle__label">
+              <b>Simulation</b>
+              <small>模擬</small>
+            </span>
+            <span class="compression-simulation-toggle__track" aria-hidden="true">
+              <span class="compression-simulation-toggle__thumb"></span>
+            </span>
+            <span class="compression-simulation-toggle__state" data-simulation-state>
+              <b>On</b>
+              <small>開啟</small>
+            </span>
+          </button>
+        </div>
         <article class="compression-meter-channel">
           <div class="compression-meter-channel__header">
             <span>Input</span>
@@ -49,36 +75,43 @@
           <div class="compression-meter-shell" data-compression-meter-shell="input" aria-label="Input Level meter Peak -6.0 dB RMS -8.2 dB">
             <div class="compression-meter-scale" aria-hidden="true">
               <span>0</span>
+              <span>-1</span>
+              <span>-2</span>
               <span>-3</span>
+              <span>-4</span>
               <span>-6</span>
-              <span>-9</span>
+              <span>-8</span>
+              <span>-10</span>
               <span>-12</span>
+              <span>-15</span>
               <span>-18</span>
               <span>-24</span>
               <span>-30</span>
               <span>-36</span>
+              <span>-42</span>
               <span>-48</span>
+              <span>-54</span>
               <span>-60</span>
             </div>
             <div class="compression-led-meter compression-led-meter--level" data-compression-meter="input" aria-hidden="true">
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
               <span class="compression-led compression-led--red" data-meter-segment="input"></span>
               <span class="compression-led compression-led--red" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
             </div>
           </div>
           <dl class="compression-meter-readout">
@@ -105,8 +138,8 @@
               <span>6</span>
               <span>9</span>
               <span>12</span>
+              <span>15</span>
               <span>18</span>
-              <span>24</span>
             </div>
             <div class="compression-led-meter compression-led-meter--gr" data-compression-meter="gr" aria-hidden="true">
               <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
@@ -145,36 +178,43 @@
           <div class="compression-meter-shell" data-compression-meter-shell="output" aria-label="Output Level meter Peak -7.5 dB RMS -9.7 dB">
             <div class="compression-meter-scale" aria-hidden="true">
               <span>0</span>
+              <span>-1</span>
+              <span>-2</span>
               <span>-3</span>
+              <span>-4</span>
               <span>-6</span>
-              <span>-9</span>
+              <span>-8</span>
+              <span>-10</span>
               <span>-12</span>
+              <span>-15</span>
               <span>-18</span>
               <span>-24</span>
               <span>-30</span>
               <span>-36</span>
+              <span>-42</span>
               <span>-48</span>
+              <span>-54</span>
               <span>-60</span>
             </div>
             <div class="compression-led-meter compression-led-meter--level" data-compression-meter="output" aria-hidden="true">
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
-              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
               <span class="compression-led compression-led--red" data-meter-segment="output"></span>
               <span class="compression-led compression-led--red" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
             </div>
           </div>
           <dl class="compression-meter-readout">
