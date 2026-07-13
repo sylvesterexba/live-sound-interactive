@@ -141,7 +141,7 @@
     width: 64px;
     height: 64px;
   }
-  .concept-entry strong {
+  .concept-entry__title-slot {
     align-self: center;
     font-size: 0.98rem;
   }
@@ -537,7 +537,7 @@
   .concept-entry--available .concept-entry__body::before {
     min-height: 24px;
   }
-  .concept-entry strong {
+  .concept-entry__title-slot {
     font-size: 1.45rem;
   }
   .concept-entry__zh {
@@ -549,9 +549,10 @@
     margin-top: 8px;
   }
   .concept-entry__status {
-    min-height: 24px;
-    padding: 3px 12px;
+    min-height: 18px;
+    padding: 1px 12px;
     font-size: 0.7rem;
+    line-height: 1.15;
     letter-spacing: 0.08em;
   }
   .concept-entry__cue {
@@ -561,6 +562,89 @@
     font-size: 1.22rem;
   }
 }
+
+@media (orientation: landscape) and (max-width: 960px) and (max-height: 600px) {
+  body.home-page {
+    display: block;
+    min-height: auto;
+  }
+  .home-page header {
+    padding: 10px 12px 4px;
+  }
+  .home-page header h1 {
+    font-size: 1.4rem;
+  }
+  .home-page header p {
+    margin-top: 4px;
+    font-size: 0.78rem;
+  }
+  .home-page main {
+    display: block;
+    padding: 6px 10px 8px;
+  }
+  .home-page footer {
+    margin-top: 0;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+  }
+  .concept-hub {
+    gap: 6px;
+    padding-top: 0;
+  }
+  .concept-hub__title {
+    font-size: 0.78rem;
+  }
+  .concept-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .concept-entry {
+    min-height: 0;
+    padding: 6px 3px 8px;
+  }
+  .concept-entry__visual {
+    width: 58px;
+    height: 58px;
+    margin-bottom: 4px;
+    border-width: 1.5px;
+  }
+  .concept-entry__visual svg {
+    width: 50px;
+    height: 50px;
+  }
+  .concept-entry__body {
+    grid-template-rows: 16px minmax(28px, auto) 16px 0 22px;
+    gap: 2px;
+  }
+  .concept-entry--available .concept-entry__body::before {
+    min-height: 16px;
+  }
+  .concept-entry__title-slot {
+    max-width: 15ch;
+    align-self: center;
+    font-size: 0.8rem;
+  }
+  .concept-entry__zh {
+    font-size: 0.7rem;
+  }
+  .concept-entry__description {
+    display: none;
+  }
+  .concept-entry__status {
+    min-height: 16px;
+    padding: 1px 4px;
+    font-size: 0.5rem;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+  }
+  .concept-entry__cue {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    font-size: 0.85rem;
+  }
+}
+
 @media (max-width: 1100px) {
   .layout {
     grid-template-columns: 1fr;

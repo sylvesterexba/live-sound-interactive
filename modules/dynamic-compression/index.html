@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Compression | Live Sound Interactive</title>
+  <meta
+    name="description"
+    content="調整 Threshold、Ratio 與 Makeup Gain，觀察壓縮器如何改變訊號動態。"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Dynamic Compression | Live Sound Interactive" />
+  <meta
+    property="og:description"
+    content="調整 Threshold、Ratio 與 Makeup Gain，觀察壓縮器如何改變訊號動態。"
+  />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Dynamic Compression | Live Sound Interactive" />
+  <meta
+    name="twitter:description"
+    content="調整 Threshold、Ratio 與 Makeup Gain，觀察壓縮器如何改變訊號動態。"
+  />
+  <link rel="stylesheet" href="../../base.css" />
+  <link rel="stylesheet" href="../../layout.css" />
+  <link rel="stylesheet" href="../../components.css" />
+  <link rel="stylesheet" href="../../dynamic-compression.css" />
+  <script type="module" src="./dynamic-compression.js"></script>
+</head>
+<body class="compression-page">
+  <header class="compression-header">
+    <a class="about-button compression-back-link" href="../../index.html">← Back to Home</a>
+    <div class="compression-hero">
+      <h1 class="bilingual-title">
+        <span class="title-en">Dynamic Compression</span>
+        <span class="title-zh">動態壓縮</span>
+      </h1>
+      <p>調整 Threshold、Ratio 與 Makeup Gain，觀察壓縮器如何改變訊號動態。</p>
+    </div>
+  </header>
+
+  <main class="compression-main">
+    <section class="compression-signal-row" aria-label="Compression signal flow">
+      <div class="compression-meter-bridge" aria-label="Compression meter bridge">
+        <div class="compression-meter-toolbar">
+          <div class="compression-section-heading">
+            <span>METER BRIDGE</span>
+            <strong>電平表</strong>
+          </div>
+          <button
+            class="compression-simulation-toggle"
+            type="button"
+            role="switch"
+            aria-checked="true"
+            aria-label="Simulation, On"
+            data-simulation-toggle
+          >
+            <span class="compression-simulation-toggle__label">
+              <b>Simulation</b>
+              <small>模擬</small>
+            </span>
+            <span class="compression-simulation-toggle__track" aria-hidden="true">
+              <span class="compression-simulation-toggle__thumb"></span>
+            </span>
+            <span class="compression-simulation-toggle__state" data-simulation-state>
+              <b>On</b>
+              <small>開啟</small>
+            </span>
+          </button>
+        </div>
+        <article class="compression-meter-channel">
+          <div class="compression-meter-channel__header">
+            <span>Input</span>
+            <strong>輸入電平</strong>
+          </div>
+          <div class="compression-meter-shell" data-compression-meter-shell="input" aria-label="Input Level meter Peak -6.0 dB RMS -8.2 dB">
+            <div class="compression-meter-scale" aria-hidden="true">
+              <span>0</span>
+              <span>-1</span>
+              <span>-2</span>
+              <span>-3</span>
+              <span>-4</span>
+              <span>-6</span>
+              <span>-8</span>
+              <span>-10</span>
+              <span>-12</span>
+              <span>-15</span>
+              <span>-18</span>
+              <span>-24</span>
+              <span>-30</span>
+              <span>-36</span>
+              <span>-42</span>
+              <span>-48</span>
+              <span>-54</span>
+              <span>-60</span>
+            </div>
+            <div class="compression-led-meter compression-led-meter--level" data-compression-meter="input" aria-hidden="true">
+              <span class="compression-led compression-led--red" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--red" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="input"></span>
+            </div>
+          </div>
+          <dl class="compression-meter-readout">
+            <div>
+              <dt>Peak</dt>
+              <dd data-meter-value="inputPeak">-6.0 dB</dd>
+            </div>
+            <div>
+              <dt>RMS</dt>
+              <dd data-meter-value="inputRms">-8.2 dB</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="compression-meter-channel compression-meter-channel--gr">
+          <div class="compression-meter-channel__header">
+            <span>Gain Reduction</span>
+            <strong>增益衰減</strong>
+          </div>
+          <div class="compression-meter-shell" data-compression-meter-shell="gr" aria-label="Gain Reduction meter 4.5 dB">
+            <div class="compression-meter-scale compression-meter-scale--gr" aria-hidden="true">
+              <span>0</span>
+              <span>3</span>
+              <span>6</span>
+              <span>9</span>
+              <span>12</span>
+              <span>15</span>
+              <span>18</span>
+            </div>
+            <div class="compression-led-meter compression-led-meter--gr" data-compression-meter="gr" aria-hidden="true">
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+              <span class="compression-led compression-led--gr" data-meter-segment="gr"></span>
+            </div>
+          </div>
+          <dl class="compression-meter-readout">
+            <div>
+              <dt>Current GR</dt>
+              <dd data-meter-value="gainReduction">4.5 dB</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="compression-meter-channel">
+          <div class="compression-meter-channel__header">
+            <span>Output</span>
+            <strong>輸出電平</strong>
+          </div>
+          <div class="compression-meter-shell" data-compression-meter-shell="output" aria-label="Output Level meter Peak -7.5 dB RMS -9.7 dB">
+            <div class="compression-meter-scale" aria-hidden="true">
+              <span>0</span>
+              <span>-1</span>
+              <span>-2</span>
+              <span>-3</span>
+              <span>-4</span>
+              <span>-6</span>
+              <span>-8</span>
+              <span>-10</span>
+              <span>-12</span>
+              <span>-15</span>
+              <span>-18</span>
+              <span>-24</span>
+              <span>-30</span>
+              <span>-36</span>
+              <span>-42</span>
+              <span>-48</span>
+              <span>-54</span>
+              <span>-60</span>
+            </div>
+            <div class="compression-led-meter compression-led-meter--level" data-compression-meter="output" aria-hidden="true">
+              <span class="compression-led compression-led--red" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--red" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--amber" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--yellow" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+              <span class="compression-led compression-led--green" data-meter-segment="output"></span>
+            </div>
+          </div>
+          <dl class="compression-meter-readout">
+            <div>
+              <dt>Peak</dt>
+              <dd data-meter-value="outputPeak">-7.5 dB</dd>
+            </div>
+            <div>
+              <dt>RMS</dt>
+              <dd data-meter-value="outputRms">-9.7 dB</dd>
+            </div>
+          </dl>
+        </article>
+      </div>
+
+      <article class="compression-curve-panel">
+        <div class="compression-section-heading">
+          <span>TRANSFER CURVE</span>
+          <strong>傳輸曲線</strong>
+        </div>
+        <div class="compression-curve-layout">
+          <div class="compression-curve-frame" data-transfer-curve-frame>
+          <svg class="compression-transfer-curve" data-compression-curve viewBox="0 0 520 440" role="img" aria-labelledby="transferCurveTitle transferCurveDescription">
+            <title id="transferCurveTitle">Dynamic Compression transfer curve</title>
+            <desc id="transferCurveDescription">Dynamic compressor transfer curve showing threshold, ratio, and compressed output before makeup gain.</desc>
+            <defs>
+              <linearGradient id="compressionCurveGradient" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#fbbf24" />
+                <stop offset="1" stop-color="#fb923c" />
+              </linearGradient>
+            </defs>
+            <rect x="44" y="24" width="398" height="388" rx="14" class="compression-curve-bg" />
+            <g class="compression-curve-grid">
+              <path d="M119 50V394" />
+              <path d="M168 50V394" />
+              <path d="M217 50V394" />
+              <path d="M267 50V394" />
+              <path d="M316 50V394" />
+              <path d="M365 50V394" />
+              <path d="M70 99H414" />
+              <path d="M70 148H414" />
+              <path d="M70 197H414" />
+              <path d="M70 247H414" />
+              <path d="M70 296H414" />
+              <path d="M70 345H414" />
+            </g>
+            <path class="compression-reference-line" data-transfer-reference d="M70 394L414 50" />
+            <path class="compression-threshold-line" data-transfer-threshold-line d="M320 420V24" />
+            <path class="compression-threshold-line compression-threshold-line--horizontal" data-transfer-threshold-horizontal d="M44 144H442" />
+            <path class="compression-transfer-path" data-transfer-curve-path d="M70 394L320 144L414 120" />
+            <circle class="compression-threshold-node" data-transfer-threshold-point cx="320" cy="144" r="6" />
+            <circle class="compression-work-point" data-transfer-work-point cx="351" cy="136" r="8" />
+            <text x="322" y="44" class="compression-svg-label compression-svg-label--threshold" data-transfer-threshold-label>Threshold -12.0 dB</text>
+            <text x="356" y="117" class="compression-svg-label compression-svg-label--point" data-transfer-input-label>Input -6.0 dB</text>
+            <text x="356" y="137" class="compression-svg-label compression-svg-label--point" data-transfer-compressed-label>Compressed -10.5 dB</text>
+            <text x="242" y="434" class="compression-axis-label">Input (dB)</text>
+            <text x="18" y="222" class="compression-axis-label compression-axis-label--y">Output (dB)</text>
+          </svg>
+          </div>
+
+          <article class="compression-threshold-control">
+            <span class="compression-control__label">Threshold</span>
+            <span class="compression-control__zh">臨界值</span>
+            <div class="compression-threshold-fader-shell">
+              <div class="compression-threshold-scale" aria-hidden="true">
+                <span>0</span>
+                <span>-12</span>
+                <span>-24</span>
+                <span>-36</span>
+                <span>-48</span>
+                <span>-60</span>
+              </div>
+              <div
+                class="compression-threshold-fader"
+                role="slider"
+                tabindex="0"
+                aria-label="Threshold"
+                aria-valuemin="-60"
+                aria-valuemax="0"
+                aria-valuenow="-12"
+                aria-valuetext="-12.0 dB"
+                aria-orientation="vertical"
+                data-compression-control="threshold"
+                data-control-name="threshold"
+                data-control-min="-60"
+                data-control-max="0"
+                data-control-step="0.5"
+                data-control-default="-12"
+                style="--compression-fader-position: 80%"
+              >
+                <span class="compression-threshold-fader__slot"></span>
+                <span class="compression-threshold-fader__fill"></span>
+                <span class="compression-threshold-fader__cap">
+                  <span aria-hidden="true"></span>
+                </span>
+              </div>
+            </div>
+            <strong data-compression-control-value="threshold">-12.0 dB</strong>
+          </article>
+        </div>
+      </article>
+    </section>
+
+    <section class="compression-parameter-row" aria-label="Compression controls and current status">
+      <div class="compression-control-surface" aria-label="Static compression controls">
+        <article class="compression-control">
+          <span class="compression-control__label">INPUT LEVEL</span>
+          <span class="compression-control__zh">輸入電平</span>
+          <div
+            class="compression-knob"
+            role="slider"
+            tabindex="0"
+            aria-label="Input Level"
+            aria-valuemin="-60"
+            aria-valuemax="0"
+            aria-valuenow="-6"
+            aria-valuetext="-6.0 dB"
+            aria-orientation="vertical"
+            data-compression-control="inputLevel"
+            data-control-name="inputLevel"
+            data-control-min="-60"
+            data-control-max="0"
+            data-control-step="0.5"
+            data-control-default="-6"
+            style="--compression-knob-angle: 108deg"
+          >
+            <span class="compression-knob__ring"></span>
+            <span class="compression-knob__cap">
+              <span class="compression-knob__indicator"></span>
+            </span>
+          </div>
+          <strong data-compression-control-value="inputLevel">-6.0 dB</strong>
+          <div class="compression-control__range" aria-hidden="true">
+            <span>-60 dB</span>
+            <span>0 dB</span>
+          </div>
+        </article>
+
+        <article class="compression-control">
+          <span class="compression-control__label">Ratio</span>
+          <span class="compression-control__zh">壓縮比</span>
+          <div
+            class="compression-knob"
+            role="slider"
+            tabindex="0"
+            aria-label="Ratio"
+            aria-valuemin="1"
+            aria-valuemax="100"
+            aria-valuenow="4"
+            aria-valuetext="4:1"
+            aria-orientation="vertical"
+            data-compression-control="ratio"
+            data-control-name="ratio"
+            data-control-min="1"
+            data-control-max="100"
+            data-control-default="4"
+            style="--compression-knob-angle: 38deg"
+          >
+            <span class="compression-knob__ring"></span>
+            <span class="compression-knob__cap">
+              <span class="compression-knob__indicator"></span>
+            </span>
+          </div>
+          <strong data-compression-control-value="ratio">4:1</strong>
+          <div class="compression-control__range" aria-hidden="true">
+            <span>1:1</span>
+            <span>100:1</span>
+          </div>
+        </article>
+
+        <article class="compression-control">
+          <span class="compression-control__label">Makeup Gain</span>
+          <span class="compression-control__zh">補償增益</span>
+          <div
+            class="compression-knob"
+            role="slider"
+            tabindex="0"
+            aria-label="Makeup Gain"
+            aria-valuemin="0"
+            aria-valuemax="24"
+            aria-valuenow="3"
+            aria-valuetext="+3.0 dB"
+            aria-orientation="vertical"
+            data-compression-control="makeupGain"
+            data-control-name="makeupGain"
+            data-control-min="0"
+            data-control-max="24"
+            data-control-step="0.5"
+            data-control-default="3"
+            style="--compression-knob-angle: 24deg"
+          >
+            <span class="compression-knob__ring"></span>
+            <span class="compression-knob__cap">
+              <span class="compression-knob__indicator"></span>
+            </span>
+          </div>
+          <strong data-compression-control-value="makeupGain">+3.0 dB</strong>
+          <div class="compression-control__range" aria-hidden="true">
+            <span>0 dB</span>
+            <span>+24 dB</span>
+          </div>
+        </article>
+      </div>
+
+      <aside class="compression-current-status" aria-label="Current compression status">
+        <div class="compression-section-heading">
+          <span>Current Status</span>
+          <strong>當前狀態</strong>
+        </div>
+        <dl class="compression-status-list">
+          <div>
+            <dt>Input</dt>
+            <dd data-compression-value="inputLevel">-6.0 dB</dd>
+          </div>
+          <div>
+            <dt>Threshold</dt>
+            <dd data-compression-value="threshold">-12.0 dB</dd>
+          </div>
+          <div>
+            <dt>Ratio</dt>
+            <dd data-compression-value="ratio">4:1</dd>
+          </div>
+          <div>
+            <dt>Gain Reduction</dt>
+            <dd data-compression-value="gainReduction">4.5 dB</dd>
+          </div>
+          <div>
+            <dt>Makeup Gain</dt>
+            <dd data-compression-value="makeupGain">+3.0 dB</dd>
+          </div>
+          <div>
+            <dt>Output</dt>
+            <dd data-compression-value="outputLevel">-7.5 dB</dd>
+          </div>
+        </dl>
+      </aside>
+    </section>
+  </main>
+
+  <button
+    class="compression-formula-summary"
+    id="compressionFormulaTrigger"
+    type="button"
+    aria-controls="compressionFormulaDetails"
+    aria-expanded="false"
+    aria-label="Open compression formula summary"
+  >
+    <span class="compression-formula-summary__icon">ƒx</span>
+    <strong>OUTPUT <b data-compression-value="outputLevel">-7.5 dB</b></strong>
+    <span>=</span>
+    <span>INPUT <b data-compression-value="inputLevel">-6.0 dB</b></span>
+    <span>−</span>
+    <span>GR <b data-compression-value="gainReduction">4.5 dB</b></span>
+    <span data-compression-summary="makeup-operator">+</span>
+    <span>MAKEUP <b data-compression-value="makeupGain">3.0 dB</b></span>
+    <span class="compression-formula-summary__chevron">↑</span>
+  </button>
+
+  <section class="compression-formula-details" id="compressionFormulaDetails" aria-hidden="true">
+    <button class="compression-formula-backdrop" type="button" aria-label="Close compression formula details"></button>
+    <div class="compression-formula-panel" role="dialog" aria-modal="true" aria-labelledby="compressionFormulaTitle" tabindex="-1">
+      <div class="compression-formula-panel__header">
+        <div class="compression-section-heading">
+          <span id="compressionFormulaTitle">COMPRESSION FORMULA</span>
+          <strong>壓縮計算公式</strong>
+        </div>
+        <button class="compression-formula-close" type="button" aria-label="Close compression formula details">×</button>
+      </div>
+
+      <div class="compression-formula-steps">
+        <article class="compression-formula-step">
+          <p class="compression-formula-step__eyebrow">STEP 1</p>
+          <h2>Gain Reduction</h2>
+          <p class="compression-formula-expression" data-compression-formula="grExpression">GR = (Input − Threshold) × (1 − 1 / Ratio)</p>
+          <p class="compression-formula-substitution" data-compression-formula="grSubstitution">(-6.0 − (-12.0)) × (1 − 1 / 4)</p>
+          <p class="compression-formula-result" data-compression-formula="grResult">6.0 × 0.75 = <strong>4.5 dB</strong></p>
+          <dl class="compression-formula-values">
+            <div><dt>Input</dt><dd data-compression-value="inputLevel">-6.0</dd></div>
+            <div><dt>Threshold</dt><dd data-compression-value="threshold">-12.0</dd></div>
+            <div><dt>Over Threshold</dt><dd data-compression-value="overThreshold">6.0</dd></div>
+            <div><dt>Ratio</dt><dd data-compression-value="ratio">4:1</dd></div>
+            <div><dt>Ratio Effect</dt><dd data-compression-value="ratioEffect">0.75</dd></div>
+            <div><dt>Gain Reduction</dt><dd data-compression-value="gainReduction">4.5 dB</dd></div>
+          </dl>
+        </article>
+
+        <article class="compression-formula-step">
+          <p class="compression-formula-step__eyebrow">STEP 2</p>
+          <h2>Output</h2>
+          <p class="compression-formula-expression">Output = Input − GR + Makeup Gain</p>
+          <p class="compression-formula-substitution" data-compression-formula="outputSubstitution">-6.0 − 4.5 + 3.0 = <strong>-7.5 dB</strong></p>
+          <dl class="compression-formula-values">
+            <div><dt>Input</dt><dd data-compression-value="inputLevel">-6.0</dd></div>
+            <div><dt>GR</dt><dd data-compression-value="gainReduction">4.5</dd></div>
+            <div><dt>Makeup Gain</dt><dd data-compression-value="makeupGain">+3.0</dd></div>
+            <div><dt>Output</dt><dd data-compression-value="outputLevel">-7.5 dB</dd></div>
+          </dl>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Verse Music Studio. All rights reserved.</p>
+  </footer>
+</body>
+</html>
