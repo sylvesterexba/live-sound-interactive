@@ -4,6 +4,10 @@
 
 Interactive Learning for Live Sound Engineers
 
+## Live Demo
+
+https://sylvesterexba.github.io/live-sound-interactive/
+
 Live Sound Interactive 是一套以現場音控核心概念為主題的視覺互動工具。專案目標是用清楚、可操作、接近現場控台工作流的方式，幫助使用者理解聲音訊號在現場系統中的變化。
 
 本專案目前不是課程平台，也不使用 Module、Course、Lesson 作為使用者導覽架構。首頁直接呈現核心音控概念，讓使用者進入已完成的互動功能。
