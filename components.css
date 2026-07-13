@@ -249,17 +249,29 @@
   grid-template-rows: 24px auto auto minmax(82px, auto) 50px;
   gap: 8px;
   justify-items: center;
+  width: 100%;
   min-width: 0;
 }
 .concept-entry--available .concept-entry__body::before {
+  grid-row: 1;
+  grid-column: 1;
   content: "";
   min-height: 24px;
 }
-.concept-entry strong {
-  grid-row: 2;
+.concept-entry__title-slot {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  display: flex;
+  width: 100%;
+  min-height: calc(2 * 1.12em);
+  margin: 0;
+  align-items: flex-end;
+  justify-content: center;
   color: #f8fafc;
   font-size: clamp(1.28rem, 1.75vw, 1.72rem);
+  font-weight: 900;
   line-height: 1.12;
+  text-align: center;
 }
 .concept-entry__zh {
   grid-row: 3;
@@ -276,6 +288,7 @@
 }
 .concept-entry__status {
   grid-row: 1;
+  grid-column: 1;
   justify-self: center;
   align-self: center;
   min-height: 24px;
