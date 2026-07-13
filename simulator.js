@@ -15,6 +15,8 @@ import {
 import { getKnobAngle, getKnobArcAngle, renderMiniKnob } from "./components/knob.js";
 
 const simulatorSource = document.getElementById("simulatorSource");
+const simulationToggle = document.getElementById("simulationToggle");
+const simulationToggleState = document.getElementById("simulationToggleState");
 const gainKnob = document.getElementById("gainKnob");
 const gainResetButton = document.getElementById("gainResetButton");
 const knobLedRing = document.getElementById("knobLedRing");
@@ -62,6 +64,10 @@ let stereoOffsetTimer = 0;
 let simulatorTextLast = 0;
 let simulatorTransientEnergy = 0;
 let simulatorTransientCooldown = 0;
+const simulationState = {
+  isEnabled: true,
+  animationFrameId: null
+};
 let simulatorProfile = {
   rmsLow: -24,
   rmsHigh: -18,
@@ -204,38 +210,28 @@ function initFloatingKnobIcon() {
 
 function resetGainToRecommended() {
   currentGain = getRecommendedGain();
-  const recommendedPeakCenter = (simulatorProfile.peakLow + simulatorProfile.peakHigh) / 2;
-  const recommendedRmsCenter = (simulatorProfile.rmsLow + simulatorProfile.rmsHigh) / 2;
-  simulatedInputPeak = recommendedPeakCenter;
-  simulatedInputRMS = recommendedRmsCenter;
-  displayInputPeak = recommendedPeakCenter;
-  displayInputRMS = recommendedRmsCenter;
-  simulatorPeakHolds.inputPeak = { value: recommendedPeakCenter, hold: 0.9 };
-  calculateStereoOutput();
+  simulatorTransientEnergy = 0;
+  simulatorTransientCooldown = 0.2;
+  updateKnob();
+  const staticLevels = getStaticLevels();
+  simulatorPeakHolds.inputPeak = { value: staticLevels.inputPeak, hold: 0.9 };
+  calculateStereoOutput(staticLevels.inputPeak);
   displayOutputL = simulatedOutputL;
   displayOutputR = simulatedOutputR;
   simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
   simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
-  simulatorTransientEnergy = 0;
-  simulatorTransientCooldown = 0.2;
-  updateKnob();
-  updateInputMeter();
-  updateStereoMeter();
-  updateStatusMessage();
-  updateDisplayReadouts(performance.now(), true);
+  renderGainSimulationState();
 }
 
 function resetFaderToUnity() {
   currentFader = 0;
+  updateFader();
   calculateStereoOutput();
   displayOutputL = simulatedOutputL;
   displayOutputR = simulatedOutputR;
   simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
   simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
-  updateFader();
-  updateStereoMeter();
-  updateStatusMessage();
-  updateDisplayReadouts(performance.now(), true);
+  renderFaderSimulationState();
 }
 
 function handlePointerReset(element, callback, options = {}) {
@@ -443,22 +439,51 @@ function updatePeakHoldMarker(container, holdValue) {
   meter.marker.style.opacity = "1";
 }
 
-function calculateStereoOutput() {
-  const outputBase = currentFader <= -89.5 ? -90 : simulatedInputPeak + currentFader;
-  simulatedOutputL = outputBase + stereoDifference / 2;
-  simulatedOutputR = outputBase - stereoDifference / 2;
+function getStaticStereoDifference() {
+  return 0.8;
 }
 
-function updateDisplayReadouts(timestamp, force = false) {
+function getStaticLevels() {
+  const inputRms = clamp(simulatorProfile.sourceRmsAtZero + currentGain, -60, 1.5);
+  const inputPeak = clamp(
+    Math.max(simulatorProfile.sourcePeakAtZero + currentGain, inputRms + 4.8),
+    -60,
+    2.5
+  );
+  const outputBase = currentFader <= -89.5 ? -90 : inputPeak + currentFader;
+  const stereoWidth = getStaticStereoDifference();
+
+  return {
+    inputRms,
+    inputPeak,
+    outputL: outputBase + stereoWidth / 2,
+    outputR: outputBase - stereoWidth / 2
+  };
+}
+
+function calculateStereoOutput(peakValue = simulatedInputPeak, stereoWidth = stereoDifference) {
+  const outputBase = currentFader <= -89.5 ? -90 : peakValue + currentFader;
+  simulatedOutputL = outputBase + stereoWidth / 2;
+  simulatedOutputR = outputBase - stereoWidth / 2;
+}
+
+function updateDisplayReadouts(timestamp, force = false, immediate = false) {
   if (!force && timestamp - simulatorTextLast < 150) return;
   simulatorTextLast = timestamp;
 
-  displayInputRMS += (simulatedInputRMS - displayInputRMS) * 0.045;
-  displayInputPeak = simulatorPeakHolds.inputPeak.value >= displayInputPeak
-    ? simulatorPeakHolds.inputPeak.value
-    : displayInputPeak + (simulatorPeakHolds.inputPeak.value - displayInputPeak) * 0.065;
-  displayOutputL += (simulatedOutputL - displayOutputL) * 0.045;
-  displayOutputR += (simulatedOutputR - displayOutputR) * 0.045;
+  if (immediate) {
+    displayInputRMS = simulatedInputRMS;
+    displayInputPeak = simulatorPeakHolds.inputPeak.value;
+    displayOutputL = simulatedOutputL;
+    displayOutputR = simulatedOutputR;
+  } else {
+    displayInputRMS += (simulatedInputRMS - displayInputRMS) * 0.045;
+    displayInputPeak = simulatorPeakHolds.inputPeak.value >= displayInputPeak
+      ? simulatorPeakHolds.inputPeak.value
+      : displayInputPeak + (simulatorPeakHolds.inputPeak.value - displayInputPeak) * 0.065;
+    displayOutputL += (simulatedOutputL - displayOutputL) * 0.045;
+    displayOutputR += (simulatedOutputR - displayOutputR) * 0.045;
+  }
 
   if (inputReadout) {
     inputReadout.textContent = `RMS ${formatDbfs(displayInputRMS)} / Peak ${formatDbfs(displayInputPeak)}`;
@@ -466,6 +491,60 @@ function updateDisplayReadouts(timestamp, force = false) {
   if (outputReadout) {
     outputReadout.textContent = `L ${formatDbfs(displayOutputL)} / R ${formatDbfs(displayOutputR)}`;
   }
+}
+
+function renderStaticState() {
+  const staticLevels = getStaticLevels();
+  simulatedInputRMS = staticLevels.inputRms;
+  simulatedInputPeak = staticLevels.inputPeak;
+  simulatedOutputL = staticLevels.outputL;
+  simulatedOutputR = staticLevels.outputR;
+  simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0 };
+  simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0 };
+  simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0 };
+  updateInputMeter();
+  updateStereoMeter();
+  updateStatusMessage();
+  updateResetPadState();
+  updateDisplayReadouts(performance.now(), true, true);
+}
+
+function renderStaticSimulationState() {
+  stopSimulationLoop();
+  renderStaticState();
+}
+
+function renderGainSimulationState() {
+  if (simulationState.isEnabled && document.visibilityState === "visible") {
+    const staticLevels = getStaticLevels();
+    simulatedInputRMS = staticLevels.inputRms;
+    simulatedInputPeak = staticLevels.inputPeak;
+    calculateStereoOutput(staticLevels.inputPeak);
+    simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0.9 };
+    simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
+    simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
+    updateInputMeter();
+    updateStereoMeter();
+    updateStatusMessage();
+    updateDisplayReadouts(performance.now(), true, true);
+    return;
+  }
+
+  renderStaticSimulationState();
+}
+
+function renderFaderSimulationState() {
+  if (simulationState.isEnabled && document.visibilityState === "visible") {
+    calculateStereoOutput();
+    simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
+    simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
+    updateStereoMeter();
+    updateStatusMessage();
+    updateDisplayReadouts(performance.now(), true, true);
+    return;
+  }
+
+  renderStaticSimulationState();
 }
 
 export function setSimulatorProfile(item) {
@@ -509,10 +588,7 @@ export function setSimulatorProfile(item) {
   updateSimulatorTargetZones();
   updateKnob();
   updateFader();
-  updateInputMeter();
-  updateStereoMeter();
-  updateStatusMessage();
-  updateDisplayReadouts(performance.now(), true);
+  renderGainSimulationState();
 }
 
 function updateKnob() {
@@ -637,7 +713,27 @@ function updateStatusMessage() {
   updateFloatingKnobIcon();
 }
 
-export function updateSimulator(timestamp) {
+function updateSimulationToggle() {
+  if (!simulationToggle || !simulationToggleState) return;
+  const englishState = simulationState.isEnabled ? "On" : "Off";
+  const chineseState = simulationState.isEnabled ? "開啟" : "關閉";
+  simulationToggle.setAttribute("aria-checked", String(simulationState.isEnabled));
+  simulationToggle.setAttribute(
+    "aria-label",
+    `Simulation, ${englishState} / 模擬，${chineseState}`
+  );
+  simulationToggleState.innerHTML = `<b>${englishState}</b><small>${chineseState}</small>`;
+}
+
+function stopSimulationLoop() {
+  if (simulationState.animationFrameId !== null) {
+    cancelAnimationFrame(simulationState.animationFrameId);
+    simulationState.animationFrameId = null;
+  }
+  simulatorAnimationLast = null;
+}
+
+function renderDynamicState(timestamp) {
   if (!simulatorAnimationLast) simulatorAnimationLast = timestamp;
   const dt = Math.min((timestamp - simulatorAnimationLast) / 1000, 0.08);
   simulatorAnimationLast = timestamp;
@@ -693,12 +789,60 @@ export function updateSimulator(timestamp) {
   updateDisplayReadouts(timestamp);
   updateStatusMessage();
   updateResetPadState();
-  requestAnimationFrame(updateSimulator);
+}
+
+function runSimulationFrame(timestamp) {
+  if (!simulationState.isEnabled || document.visibilityState !== "visible") {
+    stopSimulationLoop();
+    renderStaticState();
+    return;
+  }
+  simulationState.animationFrameId = null;
+  renderDynamicState(timestamp);
+  startSimulationLoop();
+}
+
+function startSimulationLoop() {
+  if (
+    simulationState.animationFrameId !== null ||
+    !simulationState.isEnabled ||
+    document.visibilityState !== "visible"
+  ) {
+    return;
+  }
+  simulationState.animationFrameId = requestAnimationFrame(runSimulationFrame);
+}
+
+function setSimulationEnabled(isEnabled) {
+  simulationState.isEnabled = Boolean(isEnabled);
+  stopSimulationLoop();
+  if (simulationState.isEnabled && document.visibilityState === "visible") {
+    const staticLevels = getStaticLevels();
+    simulatedInputRMS = staticLevels.inputRms;
+    simulatedInputPeak = staticLevels.inputPeak;
+    calculateStereoOutput(staticLevels.inputPeak);
+    simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0.9 };
+    simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
+    simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
+    updateInputMeter();
+    updateStereoMeter();
+    updateStatusMessage();
+    updateDisplayReadouts(performance.now(), true, true);
+    startSimulationLoop();
+  } else {
+    renderStaticSimulationState();
+  }
+  updateSimulationToggle();
+}
+
+export function updateSimulator(timestamp) {
+  renderDynamicState(timestamp);
 }
 
 function adjustGain(delta) {
   currentGain = clamp(currentGain + delta, 0, 60);
   updateKnob();
+  renderGainSimulationState();
 }
 
 function bindGainKnob() {
@@ -720,6 +864,7 @@ function bindGainKnob() {
     const delta = (dragStart.y - event.clientY + event.clientX - dragStart.x) * 0.22;
     currentGain = clamp(dragStart.gain + delta, 0, 60);
     updateKnob();
+    renderGainSimulationState();
   });
 
   ["pointerup", "pointercancel"].forEach((eventName) => {
@@ -754,18 +899,14 @@ function bindOutputFader() {
   outputFader.addEventListener("input", () => {
     currentFader = faderPositionToValue(Number(outputFader.value));
     updateFader();
-    updateStereoMeter();
-    updateStatusMessage();
+    renderFaderSimulationState();
   });
 }
 
 function setFaderFromPosition(position) {
   currentFader = faderPositionToValue(position);
-  calculateStereoOutput();
   updateFader();
-  updateStereoMeter();
-  updateStatusMessage();
-  updateDisplayReadouts(performance.now());
+  renderFaderSimulationState();
 }
 
 function setFaderFromPointer(event) {
@@ -854,10 +995,33 @@ function initSimulator() {
   bindResetButton(faderResetButton, resetFaderToUnity);
   handlePointerReset(gainKnob, resetGainToRecommended, { touchDoubleTap: true });
   handlePointerReset(wingFader, resetFaderToUnity);
+  simulationToggle?.addEventListener("click", () => {
+    setSimulationEnabled(!simulationState.isEnabled);
+  });
+  document.addEventListener("visibilitychange", () => {
+    stopSimulationLoop();
+    if (simulationState.isEnabled && document.visibilityState === "visible") {
+      const staticLevels = getStaticLevels();
+      simulatedInputRMS = staticLevels.inputRms;
+      simulatedInputPeak = staticLevels.inputPeak;
+      calculateStereoOutput(staticLevels.inputPeak);
+      simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0.9 };
+      simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
+      simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
+      updateInputMeter();
+      updateStereoMeter();
+      updateStatusMessage();
+      updateDisplayReadouts(performance.now(), true, true);
+      startSimulationLoop();
+    } else {
+      renderStaticSimulationState();
+    }
+  });
   updateSimulatorTargetZones();
   updateKnob();
   updateFader();
-  requestAnimationFrame(updateSimulator);
+  updateSimulationToggle();
+  setSimulationEnabled(true);
 }
 
 function initFloatingButton() {

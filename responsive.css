@@ -14,6 +14,10 @@
     text-align: left;
     justify-self: start;
   }
+  .simulator-toolbar {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
   .simulator-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -261,6 +265,42 @@
     order: 0;
     margin-bottom: 0;
   }
+  .simulator-toolbar {
+    order: 1;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 0;
+  }
+  .gain-simulation-toggle {
+    width: fit-content;
+    max-width: min(100%, 232px);
+    min-height: 44px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    align-self: flex-end;
+  }
+  .gain-simulation-toggle__label,
+  .gain-simulation-toggle__state {
+    gap: 2px;
+  }
+  .gain-simulation-toggle__state {
+    min-width: 32px;
+  }
+  .gain-simulation-toggle__track {
+    width: 36px;
+    height: 20px;
+  }
+  .gain-simulation-toggle__thumb {
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    transform: translateX(16px);
+  }
+  .gain-simulation-toggle[aria-checked="false"] .gain-simulation-toggle__thumb {
+    transform: translateX(0);
+  }
   /* 窄版把英中標題拆成上下兩行，避免中文被擠在英文後半段產生不自然斷行。 */
   .bilingual-title,
   .title-en,
@@ -276,14 +316,14 @@
   .sim-status-grid {
     display: contents;
   }
-  .sim-panel--gain { order: 1; }
-  #inputStatusBox { order: 2; }
-  .sim-panel--meter { order: 3; }
-  .sim-panel--fader { order: 4; }
-  #outputStatusBox { order: 5; }
-  .sim-panel--output { order: 6; }
+  .sim-panel--gain { order: 2; }
+  #inputStatusBox { order: 3; }
+  .sim-panel--meter { order: 4; }
+  .sim-panel--fader { order: 5; }
+  #outputStatusBox { order: 6; }
+  .sim-panel--output { order: 7; }
   .sim-lesson {
-    order: 7;
+    order: 8;
     margin-top: 0;
   }
   .sim-status {
