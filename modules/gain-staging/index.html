@@ -134,6 +134,29 @@
           <div class="simulator-source" id="simulatorSource">目前聲源：-</div>
         </div>
 
+        <div class="simulator-toolbar">
+          <button
+            class="gain-simulation-toggle"
+            id="simulationToggle"
+            type="button"
+            role="switch"
+            aria-checked="true"
+            aria-label="Simulation, On / 模擬，開啟"
+          >
+            <span class="gain-simulation-toggle__label">
+              <b>Simulation</b>
+              <small>模擬</small>
+            </span>
+            <span class="gain-simulation-toggle__track" aria-hidden="true">
+              <span class="gain-simulation-toggle__thumb"></span>
+            </span>
+            <span class="gain-simulation-toggle__state" id="simulationToggleState">
+              <b>On</b>
+              <small>開啟</small>
+            </span>
+          </button>
+        </div>
+
         <div class="simulator-grid">
           <div class="sim-panel sim-panel--gain">
             <div class="sim-panel-title">
