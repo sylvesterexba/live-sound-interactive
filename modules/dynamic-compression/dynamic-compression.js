@@ -885,15 +885,15 @@ function scheduleNextTransient(timestamp, isInitial = false) {
 
 function getTransientTargetOffset() {
   const strength = Math.random();
-  if (strength < 0.26) return Math.random() * 1.5;
-  if (strength < 0.58) return 1.5 + Math.random() * 2.5;
-  return 4 + Math.random() * 3;
+  if (strength < 0.3) return 4 + Math.random() * 3;
+  if (strength < 0.6) return 1.5 + Math.random() * 2.5;
+  return Math.random() < 0.2 ? Math.random() * 0.25 : 0.25 + Math.random() * 0.55;
 }
 
 function startTransient(timestamp, bodyLevel, peakTarget) {
   const targetOffset = getTransientTargetOffset();
   const targetLevel = peakTarget - targetOffset;
-  const allowsOvershoot = targetOffset < 0.35 && Math.random() < 0.2;
+  const allowsOvershoot = targetOffset < 0.35 && Math.random() < 0.08;
   simulationState.transientPhase = "attack";
   simulationState.transientAmount = 0;
   simulationState.transientTargetAmount = Math.max(0, targetLevel - bodyLevel);
