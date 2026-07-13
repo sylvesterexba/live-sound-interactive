@@ -5,12 +5,14 @@ export const compressionState = {
   makeupGain: 3
 };
 
-const ratioValues = Object.freeze([1, 1.5, 2, 3, 4, 6, 8, 10, 12, 20]);
+const ratioValues = Object.freeze([
+  1, 1.2, 1.3, 1.5, 1.7, 2, 2.5, 3, 3.5, 4, 5, 6, 8, 10, 20, 50, 100
+]);
 const controlConfigs = Object.freeze({
-  inputLevel: { min: -36, max: 6, step: 0.5, defaultValue: -6 },
-  threshold: { min: -36, max: 0, step: 0.5, defaultValue: -12 },
+  inputLevel: { min: -60, max: 0, step: 0.5, defaultValue: -6 },
+  threshold: { min: -60, max: 0, step: 0.5, defaultValue: -12 },
   ratio: { values: ratioValues, defaultValue: 4 },
-  makeupGain: { min: -12, max: 12, step: 0.5, defaultValue: 3 }
+  makeupGain: { min: 0, max: 24, step: 0.5, defaultValue: 3 }
 });
 
 const KNOB_DRAG_PIXELS = 180;
@@ -111,16 +113,16 @@ export const TRANSFER_CURVE_BOUNDS = Object.freeze({
   minDb: -60,
   maxDb: 6,
   left: 70,
-  right: 432,
-  top: 58,
-  bottom: 280
+  right: 414,
+  top: 50,
+  bottom: 394
 });
 
 const TRANSFER_LABEL_BOUNDS = Object.freeze({
   left: 52,
-  right: 452,
-  top: 34,
-  bottom: 290
+  right: 432,
+  top: 28,
+  bottom: 404
 });
 const TRANSFER_LABEL_HEIGHT = 24;
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
@@ -358,13 +360,16 @@ function renderControls(state, pageDocument) {
     const value = normalizeControlValue(name, state[name]);
     const valueText = getControlValueText(name, value);
     control.style.setProperty("--compression-knob-angle", `${getControlAngle(name, value)}deg`);
+    const config = controlConfigs[name];
+    const fraction = config.values
+      ? config.values.indexOf(value) / (config.values.length - 1)
+      : (value - config.min) / (config.max - config.min);
+    control.style.setProperty("--compression-fader-position", `${fraction * 100}%`);
     control.setAttribute("aria-valuenow", String(value));
     control.setAttribute("aria-valuetext", valueText);
     control.dataset.controlValue = String(value);
 
-    const readout = control.parentElement?.querySelector(
-      `[data-compression-control-value="${name}"]`
-    );
+    const readout = pageDocument.querySelector(`[data-compression-control-value="${name}"]`);
     if (readout) readout.textContent = valueText;
   });
 }
@@ -727,7 +732,7 @@ function renderTransferCurveStatic(state, result, dom) {
       thresholdX - estimateTransferLabelWidth(thresholdLabel.textContent) / 2,
       TRANSFER_LABEL_BOUNDS.top
     );
-    thresholdLayout.x = Math.min(thresholdLayout.x, 420 - thresholdLayout.width);
+    thresholdLayout.x = Math.min(thresholdLayout.x, 402 - thresholdLayout.width);
     positionTransferLabel(
       labelDecorations,
       "threshold",
@@ -763,7 +768,7 @@ function renderTransferCurveDynamic(result, dom) {
       thresholdX - estimateTransferLabelWidth(thresholdLabel.textContent) / 2,
       TRANSFER_LABEL_BOUNDS.top
     );
-    thresholdLayout.x = Math.min(thresholdLayout.x, 420 - thresholdLayout.width);
+    thresholdLayout.x = Math.min(thresholdLayout.x, 402 - thresholdLayout.width);
     let inputLayout = getTransferLabelLayout(
       inputLabel.textContent,
       workX - estimateTransferLabelWidth(inputLabel.textContent) - 42,

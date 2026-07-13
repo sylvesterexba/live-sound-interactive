@@ -60,6 +60,7 @@
 .compression-parameter-row {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .compression-signal-row {
@@ -76,6 +77,10 @@
 .compression-curve-panel,
 .compression-control-surface,
 .compression-current-status {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--compression-border);
   border-radius: 18px;
   background:
@@ -422,7 +427,17 @@
   padding: 14px;
 }
 
+.compression-curve-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 118px;
+  gap: 12px;
+  align-items: stretch;
+  min-width: 0;
+}
+
 .compression-curve-frame {
+  display: grid;
+  place-items: center;
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.1);
   border-radius: 15px;
@@ -435,7 +450,7 @@
 .compression-transfer-curve {
   display: block;
   width: 100%;
-  min-height: 276px;
+  height: auto;
 }
 
 .compression-curve-bg {
@@ -559,12 +574,147 @@
 
 .compression-axis-label--y {
   transform: rotate(-90deg);
-  transform-origin: 18px 174px;
+  transform-origin: 18px 222px;
+}
+
+.compression-threshold-control {
+  display: grid;
+  grid-template-rows: 18px 18px minmax(280px, 1fr) 24px;
+  justify-items: center;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid rgba(251, 146, 60, 0.22);
+  border-radius: 15px;
+  padding: 12px 9px;
+  background:
+    linear-gradient(180deg, rgba(30, 41, 59, 0.72), rgba(2, 6, 23, 0.78)), rgba(2, 6, 23, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(248, 250, 252, 0.06),
+    inset 0 0 20px rgba(2, 6, 23, 0.42);
+  text-align: center;
+}
+
+.compression-threshold-control strong {
+  color: #ffedd5;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.compression-threshold-fader-shell {
+  display: grid;
+  grid-template-columns: 28px 38px;
+  gap: 5px;
+  align-items: stretch;
+  width: 71px;
+  height: 100%;
+  min-height: 280px;
+  padding-block: 13px;
+}
+
+.compression-threshold-scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #94a3b8;
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: right;
+}
+
+.compression-threshold-fader {
+  --compression-fader-position: 80%;
+  position: relative;
+  width: 38px;
+  height: 100%;
+  min-height: 254px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05),
+      transparent 24% 76%,
+      rgba(255, 255, 255, 0.04)
+    ),
+    #020617;
+  box-shadow:
+    inset 0 0 14px rgba(0, 0, 0, 0.8),
+    0 8px 16px rgba(0, 0, 0, 0.28);
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.compression-threshold-fader:focus-visible {
+  outline: 2px solid #fdba74;
+  outline-offset: 4px;
+}
+
+.compression-threshold-fader.is-dragging {
+  filter: brightness(1.12);
+}
+
+.compression-threshold-fader__slot,
+.compression-threshold-fader__fill {
+  position: absolute;
+  right: 50%;
+  bottom: 13px;
+  width: 5px;
+  height: calc(100% - 26px);
+  border-radius: 999px;
+  transform: translateX(50%);
+}
+
+.compression-threshold-fader__slot {
+  background: #0f172a;
+  box-shadow:
+    inset 1px 0 2px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.compression-threshold-fader__fill {
+  height: max(0px, calc(var(--compression-fader-position) - 13px));
+  background: linear-gradient(180deg, #fbbf24, #ea580c);
+  box-shadow: 0 0 9px rgba(251, 146, 60, 0.42);
+}
+
+.compression-threshold-fader__cap {
+  position: absolute;
+  right: 4px;
+  bottom: clamp(13px, var(--compression-fader-position), calc(100% - 13px));
+  left: 4px;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border: 1px solid rgba(226, 232, 240, 0.24);
+  border-radius: 5px;
+  background: linear-gradient(
+    180deg,
+    rgba(100, 116, 139, 0.98),
+    rgba(30, 41, 59, 0.98) 48%,
+    #0f172a 52%,
+    #334155
+  );
+  transform: translateY(50%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 5px 9px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.compression-threshold-fader__cap span {
+  width: 22px;
+  height: 2px;
+  border-radius: 999px;
+  background: #fdba74;
+  box-shadow: 0 0 5px rgba(251, 146, 60, 0.48);
 }
 
 .compression-control-surface {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
 }
 
@@ -1048,19 +1198,7 @@ body.compression-formula-open {
   }
 
   .compression-control-surface {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .compression-control:nth-child(odd) {
-    border-left: 0;
-  }
-
-  .compression-control:nth-child(n + 3) {
-    border-top: 1px solid var(--compression-border-soft);
-  }
-
-  .compression-control:nth-child(even) {
-    border-left: 1px solid var(--compression-border-soft);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .compression-curve-panel,
@@ -1070,8 +1208,42 @@ body.compression-formula-open {
     border-radius: 16px;
   }
 
-  .compression-transfer-curve {
-    min-height: 248px;
+  .compression-curve-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(64px, 19vw, 86px);
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .compression-curve-frame {
+    width: 100%;
+    justify-self: center;
+  }
+
+  .compression-threshold-control {
+    grid-template-rows: 14px 14px minmax(128px, 1fr) 20px;
+    min-height: 0;
+    padding: 6px 4px;
+  }
+
+  .compression-threshold-fader-shell {
+    grid-template-columns: 22px 30px;
+    gap: 3px;
+    width: 55px;
+    min-height: 128px;
+    padding-block: 8px;
+  }
+
+  .compression-threshold-fader {
+    width: 30px;
+    min-height: 112px;
+  }
+
+  .compression-threshold-control strong {
+    font-size: 0.7rem;
+  }
+
+  .compression-threshold-scale {
+    font-size: 0.52rem;
   }
 
   .compression-control {
@@ -1168,6 +1340,10 @@ body.compression-formula-open {
 }
 
 @media (max-width: 430px) {
+  .compression-hero .title-en {
+    font-size: clamp(1.45rem, 7vw, 1.8rem);
+  }
+
   .compression-main {
     width: min(100% - 20px, 390px);
   }

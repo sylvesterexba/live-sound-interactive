@@ -235,8 +235,9 @@
           <span>TRANSFER CURVE</span>
           <strong>傳輸曲線</strong>
         </div>
-        <div class="compression-curve-frame" data-transfer-curve-frame>
-          <svg class="compression-transfer-curve" data-compression-curve viewBox="0 0 520 360" role="img" aria-labelledby="transferCurveTitle transferCurveDescription">
+        <div class="compression-curve-layout">
+          <div class="compression-curve-frame" data-transfer-curve-frame>
+          <svg class="compression-transfer-curve" data-compression-curve viewBox="0 0 520 440" role="img" aria-labelledby="transferCurveTitle transferCurveDescription">
             <title id="transferCurveTitle">Dynamic Compression transfer curve</title>
             <desc id="transferCurveDescription">Dynamic compressor transfer curve showing threshold, ratio, and compressed output before makeup gain.</desc>
             <defs>
@@ -245,34 +246,74 @@
                 <stop offset="1" stop-color="#fb923c" />
               </linearGradient>
             </defs>
-            <rect x="44" y="28" width="416" height="278" rx="14" class="compression-curve-bg" />
+            <rect x="44" y="24" width="398" height="388" rx="14" class="compression-curve-bg" />
             <g class="compression-curve-grid">
-              <path d="M96 28V306" />
-              <path d="M148 28V306" />
-              <path d="M200 28V306" />
-              <path d="M252 28V306" />
-              <path d="M304 28V306" />
-              <path d="M356 28V306" />
-              <path d="M408 28V306" />
-              <path d="M44 70H460" />
-              <path d="M44 112H460" />
-              <path d="M44 154H460" />
-              <path d="M44 196H460" />
-              <path d="M44 238H460" />
-              <path d="M44 280H460" />
+              <path d="M119 50V394" />
+              <path d="M168 50V394" />
+              <path d="M217 50V394" />
+              <path d="M267 50V394" />
+              <path d="M316 50V394" />
+              <path d="M365 50V394" />
+              <path d="M70 99H414" />
+              <path d="M70 148H414" />
+              <path d="M70 197H414" />
+              <path d="M70 247H414" />
+              <path d="M70 296H414" />
+              <path d="M70 345H414" />
             </g>
-            <path class="compression-reference-line" data-transfer-reference d="M70 280L432 58" />
-            <path class="compression-threshold-line" data-transfer-threshold-line d="M245 306V28" />
-            <path class="compression-threshold-line compression-threshold-line--horizontal" data-transfer-threshold-horizontal d="M44 172H460" />
-            <path class="compression-transfer-path" data-transfer-curve-path d="M70 280L190 206C218 188 240 174 252 170C278 160 318 142 432 100" />
-            <circle class="compression-threshold-node" data-transfer-threshold-point cx="245" cy="172" r="6" />
-            <circle class="compression-work-point" data-transfer-work-point cx="366" cy="156" r="8" />
-            <text x="248" y="48" class="compression-svg-label compression-svg-label--threshold" data-transfer-threshold-label>Threshold -12.0 dB</text>
-            <text x="371" y="137" class="compression-svg-label compression-svg-label--point" data-transfer-input-label>Input -6.0 dB</text>
-            <text x="371" y="157" class="compression-svg-label compression-svg-label--point" data-transfer-compressed-label>Compressed -10.5 dB</text>
-            <text x="252" y="340" class="compression-axis-label">Input (dB)</text>
-            <text x="18" y="174" class="compression-axis-label compression-axis-label--y">Output (dB)</text>
+            <path class="compression-reference-line" data-transfer-reference d="M70 394L414 50" />
+            <path class="compression-threshold-line" data-transfer-threshold-line d="M320 420V24" />
+            <path class="compression-threshold-line compression-threshold-line--horizontal" data-transfer-threshold-horizontal d="M44 144H442" />
+            <path class="compression-transfer-path" data-transfer-curve-path d="M70 394L320 144L414 120" />
+            <circle class="compression-threshold-node" data-transfer-threshold-point cx="320" cy="144" r="6" />
+            <circle class="compression-work-point" data-transfer-work-point cx="351" cy="136" r="8" />
+            <text x="322" y="44" class="compression-svg-label compression-svg-label--threshold" data-transfer-threshold-label>Threshold -12.0 dB</text>
+            <text x="356" y="117" class="compression-svg-label compression-svg-label--point" data-transfer-input-label>Input -6.0 dB</text>
+            <text x="356" y="137" class="compression-svg-label compression-svg-label--point" data-transfer-compressed-label>Compressed -10.5 dB</text>
+            <text x="242" y="434" class="compression-axis-label">Input (dB)</text>
+            <text x="18" y="222" class="compression-axis-label compression-axis-label--y">Output (dB)</text>
           </svg>
+          </div>
+
+          <article class="compression-threshold-control">
+            <span class="compression-control__label">Threshold</span>
+            <span class="compression-control__zh">臨界值</span>
+            <div class="compression-threshold-fader-shell">
+              <div class="compression-threshold-scale" aria-hidden="true">
+                <span>0</span>
+                <span>-12</span>
+                <span>-24</span>
+                <span>-36</span>
+                <span>-48</span>
+                <span>-60</span>
+              </div>
+              <div
+                class="compression-threshold-fader"
+                role="slider"
+                tabindex="0"
+                aria-label="Threshold"
+                aria-valuemin="-60"
+                aria-valuemax="0"
+                aria-valuenow="-12"
+                aria-valuetext="-12.0 dB"
+                aria-orientation="vertical"
+                data-compression-control="threshold"
+                data-control-name="threshold"
+                data-control-min="-60"
+                data-control-max="0"
+                data-control-step="0.5"
+                data-control-default="-12"
+                style="--compression-fader-position: 80%"
+              >
+                <span class="compression-threshold-fader__slot"></span>
+                <span class="compression-threshold-fader__fill"></span>
+                <span class="compression-threshold-fader__cap">
+                  <span aria-hidden="true"></span>
+                </span>
+              </div>
+            </div>
+            <strong data-compression-control-value="threshold">-12.0 dB</strong>
+          </article>
         </div>
       </article>
     </section>
@@ -287,18 +328,18 @@
             role="slider"
             tabindex="0"
             aria-label="Input Level"
-            aria-valuemin="-36"
-            aria-valuemax="6"
+            aria-valuemin="-60"
+            aria-valuemax="0"
             aria-valuenow="-6"
             aria-valuetext="-6.0 dB"
             aria-orientation="vertical"
             data-compression-control="inputLevel"
             data-control-name="inputLevel"
-            data-control-min="-36"
-            data-control-max="6"
+            data-control-min="-60"
+            data-control-max="0"
             data-control-step="0.5"
             data-control-default="-6"
-            style="--compression-knob-angle: -18deg"
+            style="--compression-knob-angle: 108deg"
           >
             <span class="compression-knob__ring"></span>
             <span class="compression-knob__cap">
@@ -307,40 +348,7 @@
           </div>
           <strong data-compression-control-value="inputLevel">-6.0 dB</strong>
           <div class="compression-control__range" aria-hidden="true">
-            <span>-36 dB</span>
-            <span>+6 dB</span>
-          </div>
-        </article>
-
-        <article class="compression-control">
-          <span class="compression-control__label">Threshold</span>
-          <span class="compression-control__zh">臨界值</span>
-          <div
-            class="compression-knob"
-            role="slider"
-            tabindex="0"
-            aria-label="Threshold"
-            aria-valuemin="-36"
-            aria-valuemax="0"
-            aria-valuenow="-12"
-            aria-valuetext="-12.0 dB"
-            aria-orientation="vertical"
-            data-compression-control="threshold"
-            data-control-name="threshold"
-            data-control-min="-36"
-            data-control-max="0"
-            data-control-step="0.5"
-            data-control-default="-12"
-            style="--compression-knob-angle: -32deg"
-          >
-            <span class="compression-knob__ring"></span>
-            <span class="compression-knob__cap">
-              <span class="compression-knob__indicator"></span>
-            </span>
-          </div>
-          <strong data-compression-control-value="threshold">-12.0 dB</strong>
-          <div class="compression-control__range" aria-hidden="true">
-            <span>-36 dB</span>
+            <span>-60 dB</span>
             <span>0 dB</span>
           </div>
         </article>
@@ -354,14 +362,14 @@
             tabindex="0"
             aria-label="Ratio"
             aria-valuemin="1"
-            aria-valuemax="20"
+            aria-valuemax="100"
             aria-valuenow="4"
             aria-valuetext="4:1"
             aria-orientation="vertical"
             data-compression-control="ratio"
             data-control-name="ratio"
             data-control-min="1"
-            data-control-max="20"
+            data-control-max="100"
             data-control-default="4"
             style="--compression-knob-angle: 38deg"
           >
@@ -373,7 +381,7 @@
           <strong data-compression-control-value="ratio">4:1</strong>
           <div class="compression-control__range" aria-hidden="true">
             <span>1:1</span>
-            <span>20:1</span>
+            <span>100:1</span>
           </div>
         </article>
 
@@ -385,15 +393,15 @@
             role="slider"
             tabindex="0"
             aria-label="Makeup Gain"
-            aria-valuemin="-12"
-            aria-valuemax="12"
+            aria-valuemin="0"
+            aria-valuemax="24"
             aria-valuenow="3"
             aria-valuetext="+3.0 dB"
             aria-orientation="vertical"
             data-compression-control="makeupGain"
             data-control-name="makeupGain"
-            data-control-min="-12"
-            data-control-max="12"
+            data-control-min="0"
+            data-control-max="24"
             data-control-step="0.5"
             data-control-default="3"
             style="--compression-knob-angle: 24deg"
@@ -405,8 +413,8 @@
           </div>
           <strong data-compression-control-value="makeupGain">+3.0 dB</strong>
           <div class="compression-control__range" aria-hidden="true">
-            <span>-12 dB</span>
-            <span>+12 dB</span>
+            <span>0 dB</span>
+            <span>+24 dB</span>
           </div>
         </article>
       </div>
