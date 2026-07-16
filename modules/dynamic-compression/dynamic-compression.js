@@ -1,3 +1,11 @@
+import {
+  calculateCompressedOutput,
+  calculateCompression,
+  deriveDisplayedLevels
+} from "./compression-math.js";
+
+export { calculateCompressedOutput, calculateCompression, deriveDisplayedLevels };
+
 export const compressionState = {
   inputLevel: -6,
   threshold: -12,
@@ -151,15 +159,6 @@ export function dbToY(value) {
   );
 }
 
-export function calculateCompressedOutput(input, threshold, ratio) {
-  const safeInput = finiteNumber(input);
-  const safeThreshold = finiteNumber(threshold);
-  const safeRatio = Math.max(1, finiteNumber(ratio, 1));
-  return safeInput <= safeThreshold
-    ? safeInput
-    : safeThreshold + (safeInput - safeThreshold) / safeRatio;
-}
-
 export function buildTransferCurvePath(state) {
   const threshold = finiteNumber(state?.threshold);
   const ratio = Math.max(1, finiteNumber(state?.ratio, 1));
@@ -173,45 +172,6 @@ export function buildTransferCurvePath(state) {
     `L ${dbToX(thresholdInput)} ${dbToY(thresholdOutput)}`,
     `L ${dbToX(TRANSFER_CURVE_BOUNDS.maxDb)} ${dbToY(endOutput)}`
   ].join(" ");
-}
-
-export function calculateCompression(state, inputValue = state?.inputLevel) {
-  const inputLevel = finiteNumber(inputValue);
-  const threshold = finiteNumber(state?.threshold);
-  const ratio = Math.max(1, finiteNumber(state?.ratio, 1));
-  const makeupGain = finiteNumber(state?.makeupGain);
-  const overThreshold = Math.max(0, inputLevel - threshold);
-  const ratioEffect = 1 - 1 / ratio;
-  const compressedOver = overThreshold / ratio;
-  const gainReduction = Math.max(0, overThreshold - compressedOver);
-  const compressedOutput = inputLevel - gainReduction;
-  const outputLevel = compressedOutput + makeupGain;
-
-  return {
-    inputLevel,
-    threshold,
-    ratio,
-    makeupGain,
-    overThreshold,
-    compressedOver,
-    ratioEffect,
-    gainReduction,
-    compressedOutput,
-    outputLevel,
-    isCompressing: inputLevel > threshold && gainReduction > 0
-  };
-}
-
-export function deriveDisplayedLevels(inputLevel, gainReduction, makeupGain) {
-  const displayedInput = finiteNumber(inputLevel);
-  const displayedGainReduction = Math.max(0, finiteNumber(gainReduction));
-  const displayedCompressedOutput = displayedInput - displayedGainReduction;
-  return {
-    displayedInput,
-    displayedGainReduction,
-    displayedCompressedOutput,
-    displayedFinalOutput: displayedCompressedOutput + finiteNumber(makeupGain)
-  };
 }
 
 export function formatNumber(value, decimals = 1) {
