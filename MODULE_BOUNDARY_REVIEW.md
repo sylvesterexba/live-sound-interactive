@@ -35,6 +35,7 @@ The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and A
 - `simulator.css`
 - `responsive.css`
 - `eq-trainer.css`
+- `dynamic-compression.css`
 - `components/`
 - `script.js`
 - `simulator.js`
@@ -46,6 +47,10 @@ The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and A
 - `interactive-eq-graph.js`
 - `interactive-eq-knob.js`
 - `interactive-eq-icons.js`
+- `modules/dynamic-compression/index.html`
+- `modules/dynamic-compression/dynamic-compression.js`
+- `modules/dynamic-compression/compression-math.js`
+- `modules/dynamic-compression/compression-math.test.js`
 - `assets/`
 - `modules/gain-staging/index.html`
 - `modules/eq-trainer/index.html`
@@ -63,7 +68,7 @@ The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and A
 - Home: `index.html`
 - Gain Staging: `modules/gain-staging/index.html`
 - EQ Curves: `modules/eq-trainer/fundamentals/interactive-eq/index.html`
-- Dynamic Compression: planned, no runtime page yet
+- Dynamic Compression: `modules/dynamic-compression/index.html`
 - Noise Gate: planned, no runtime page yet
 
 ### Retained historical paths
@@ -88,6 +93,7 @@ These paths should not be used to justify current product naming. They are retai
 - `index.html`
 - `modules/gain-staging/index.html`
 - `modules/eq-trainer/fundamentals/interactive-eq/index.html`
+- `modules/dynamic-compression/index.html`
 - Retained historical EQ pages listed above
 
 #### CSS
@@ -169,6 +175,45 @@ These paths should not be used to justify current product naming. They are retai
 - Primary CSS: `eq-trainer.css`
 
 This path is historical technical structure. It does not mean the product should still be named EQ Trainer or Interactive EQ Lab.
+
+## Dynamic Compression Ownership
+
+### HTML
+
+- `modules/dynamic-compression/index.html`
+  - Dynamic Compression runtime page and page-specific markup.
+
+### CSS
+
+- `dynamic-compression.css`
+  - Dynamic Compression-only controls, meters, transfer curve, formula UI, simulation states, and responsive behavior.
+  - It remains a large module stylesheet; further organization is a maintainability task, not a missing product feature.
+
+### JavaScript Runtime
+
+- `modules/dynamic-compression/dynamic-compression.js`
+  - Owns page state, DOM bindings, controls, meters, transfer curve, simulation, animation, and UI rendering.
+  - It remains a large runtime file. State, DOM, animation, and rendering have not yet been split into smaller runtime modules.
+
+### Pure Calculation
+
+- `modules/dynamic-compression/compression-math.js`
+  - Owns deterministic compression formulas without DOM access or UI state.
+  - Provides the shared calculation source used by both the runtime page and unit tests.
+
+### Tests
+
+- `modules/dynamic-compression/compression-math.test.js`
+  - Covers Threshold, Ratio, Gain Reduction, Makeup Gain, compressed/final output, and displayed-level boundaries.
+
+### Runtime Entry
+
+- Page: `modules/dynamic-compression/index.html`
+- Direct JS: `modules/dynamic-compression/dynamic-compression.js`
+- Pure calculation dependency: `modules/dynamic-compression/compression-math.js`
+- Primary CSS: `dynamic-compression.css`
+
+The core formulas have been extracted and protected by tests. The remaining runtime and stylesheet size are follow-up maintainability concerns and do not mean the current feature is incomplete.
 
 ## Unclear or Mixed Responsibility
 
@@ -345,12 +390,18 @@ Assessment:
 - EQ band data and EQ-specific teaching copy.
 - EQ-only responsive behavior.
 
+### Dynamic Compression
+
+- Dynamic Compression runtime page and page-specific markup.
+- Page state, controls, meters, transfer curve, simulation, animation, and UI rendering.
+- DOM-free compression formulas and their unit tests.
+- Dynamic Compression-only styling and responsive behavior.
+
 ### Planned Features
 
-Suggested future paths:
+Suggested future path:
 
 ```text
-modules/dynamic-compression/
 modules/noise-gate/
 ```
 
@@ -441,7 +492,8 @@ Do not write documentation as though this structure already exists. It is only a
 
 ## Bottom Line
 
-- Current runtime isolation is better than the file tree suggests because Home loads no JS, Gain Staging loads `script.js`, and EQ Curves loads `eqTrainer.js`.
+- Current runtime isolation is better than the file tree suggests because Home loads no JS, Gain Staging loads `script.js`, EQ Curves loads `eqTrainer.js`, and Dynamic Compression loads `modules/dynamic-compression/dynamic-compression.js`.
+- Dynamic Compression core formulas now have a DOM-free calculation boundary and unit-test protection, while its state, DOM, animation, and rendering remain together in the runtime entry.
 - Current CSS isolation is weaker because several shared files still contain mixed feature ownership.
 - The biggest maintenance risk is not an active runtime bug today. It is that feature-specific CSS, JS, and data still live in shared root locations.
 - Product naming has moved to concept names, while some physical paths and filenames remain historical technical debt.
