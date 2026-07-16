@@ -10,7 +10,7 @@ import {
 
 const pflVisualizer = document.getElementById("pflVisualizer");
 const pflLabels = document.getElementById("pflLabels");
-const pflValueDisplay = document.getElementById("pflValueDisplay");
+const pflValueDisplay = document.getElementById("detailPflValue");
 const peakHoldLabel = document.querySelector(".pfl-info-row:first-child span");
 const peakHoldValue = document.getElementById("peakHoldValue");
 const pflRangeLabel = document.getElementById("pflRange");
@@ -60,7 +60,7 @@ function updatePflVisual(value) {
   const visualCeiling = pflMeterState.warning ? 0 : pflMeterState.peakHigh;
   const rounded = Math.max(-60, Math.min(value, visualCeiling, 0));
   if (pflValueDisplay) {
-    pflValueDisplay.textContent = formatDb(rounded);
+    pflValueDisplay.textContent = `即時 PFL：${formatDb(rounded)} dBFS`;
   }
 
   let currentIndex = -1;

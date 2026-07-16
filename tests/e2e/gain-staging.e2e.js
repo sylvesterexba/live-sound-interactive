@@ -125,6 +125,21 @@ test("synchronizes Male Vocal detail, source, ranges, mic, and recommended Gain"
   await expect(page.locator("#gainValue")).toHaveText("GAIN +28 dB");
 });
 
+test("shows a visible live PFL readout for the selected source", async ({ page }) => {
+  await page.goto(pagePath);
+  await turnSimulationOff(page);
+  await selectMaleVocal(page);
+
+  const pflReadout = page.locator("#detailPflValue");
+  await expect(pflReadout).toBeVisible();
+  await expect
+    .poll(async () => (await pflReadout.textContent())?.trim() ?? "")
+    .toMatch(/^即時 PFL：-?\d+(?:\.\d)? dBFS$/);
+
+  const firstReading = (await pflReadout.textContent())?.trim();
+  await expect.poll(async () => (await pflReadout.textContent())?.trim()).not.toBe(firstReading);
+});
+
 test("updates Gain by keyboard and resets to the selected source recommendation", async ({
   page
 }) => {
