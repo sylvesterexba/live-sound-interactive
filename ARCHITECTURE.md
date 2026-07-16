@@ -117,8 +117,16 @@ Do not treat `modules/eq-trainer/`, `fundamentals/`, or `interactive-eq/` as cur
 - JavaScript entry: `modules/dynamic-compression/dynamic-compression.js`
 - Supporting runtime files:
   - `modules/dynamic-compression/compression-math.js`
+  - `modules/dynamic-compression/simulation-engine.js`
 - Unit tests:
   - `modules/dynamic-compression/compression-math.test.js`
+  - `modules/dynamic-compression/simulation-engine.test.js`
+- Browser tests:
+  - `tests/e2e/dynamic-compression.e2e.js`
+
+`dynamic-compression.js` owns the browser-facing runtime boundary: DOM collection, controls, UI rendering, meter and transfer-curve rendering, Formula Detail, Simulation toggle state, and the `requestAnimationFrame` lifecycle. It calculates the raw frame delta and passes it to the Simulation Engine.
+
+`compression-math.js` remains the single DOM-free source for the accepted compression formulas. `simulation-engine.js` owns the DOM-free and RAF-free Simulation numerical model, including the Slow and Medium waves, noise, positive transient, smoothing, meter numerical state, and baseline/body snapshots. The Engine clamps raw frame deltas to 1-50 ms and accepts an injectable random source for deterministic unit tests. The current formal Simulation behavior does not include a Downward dip.
 
 ## 6. Future Migration Notes
 
@@ -144,6 +152,7 @@ Do not create new Trainer, Course, or Lesson style paths for planned features or
 - Keep physical-path migration separate from UI copy changes.
 - Keep Gain Staging, EQ Curves, and Dynamic Compression runtime logic independent.
 - Keep Dynamic Compression formulas in the DOM-free `compression-math.js` boundary and protect them with unit tests.
-- Treat further separation of Dynamic Compression state, DOM, animation, and rendering as an independent maintainability task.
+- Keep Dynamic Compression Simulation numerical state in the DOM-free and RAF-free `simulation-engine.js` boundary and protect it with deterministic unit tests.
+- Keep browser lifecycle and view ownership in `dynamic-compression.js`; treat any further separation of DOM collection, controls, Formula Detail, meters, transfer-curve rendering, or other UI responsibilities as an independent maintainability task.
 - Promote shared code only when at least two features truly need the same helper.
 - Add new planned features on `develop` first, then merge to `main` after validation.

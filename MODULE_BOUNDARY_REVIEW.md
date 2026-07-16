@@ -51,6 +51,8 @@ The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and A
 - `modules/dynamic-compression/dynamic-compression.js`
 - `modules/dynamic-compression/compression-math.js`
 - `modules/dynamic-compression/compression-math.test.js`
+- `modules/dynamic-compression/simulation-engine.js`
+- `modules/dynamic-compression/simulation-engine.test.js`
 - `assets/`
 - `modules/gain-staging/index.html`
 - `modules/eq-trainer/index.html`
@@ -192,8 +194,9 @@ This path is historical technical structure. It does not mean the product should
 ### JavaScript Runtime
 
 - `modules/dynamic-compression/dynamic-compression.js`
-  - Owns page state, DOM bindings, controls, meters, transfer curve, simulation, animation, and UI rendering.
-  - It remains a large runtime file. State, DOM, animation, and rendering have not yet been split into smaller runtime modules.
+  - Owns the browser-facing page state, DOM cache and bindings, controls, Formula Detail, meter and transfer-curve rendering, Simulation toggle UI, `requestAnimationFrame` start/stop, `visibilitychange`, `prefers-reduced-motion`, and page initialization.
+  - Calculates raw frame deltas and renders the immutable snapshots returned by the Simulation Engine.
+  - It remains a large runtime file of about 902 lines. DOM collection, controls, Formula Detail, meters, transfer curve, and other rendering responsibilities have not yet been split into smaller runtime modules.
 
 ### Pure Calculation
 
@@ -201,19 +204,34 @@ This path is historical technical structure. It does not mean the product should
   - Owns deterministic compression formulas without DOM access or UI state.
   - Provides the shared calculation source used by both the runtime page and unit tests.
 
+### Simulation Engine
+
+- `modules/dynamic-compression/simulation-engine.js`
+  - Owns private numerical state without DOM or `requestAnimationFrame` dependencies.
+  - Generates the Slow and Medium waves, noise, and positive transient with Attack, Hold, and Release phases.
+  - Owns Input and Gain Reduction smoothing, Peak and power-domain RMS state, and baseline/body reset behavior.
+  - Clamps raw frame deltas to 1-50 ms and returns deterministic renderer snapshots.
+  - Uses injectable RNG for deterministic tests; production defaults to `Math.random`.
+  - Does not implement a Downward dip.
+
 ### Tests
 
 - `modules/dynamic-compression/compression-math.test.js`
   - Covers Threshold, Ratio, Gain Reduction, Makeup Gain, compressed/final output, and displayed-level boundaries.
+- `modules/dynamic-compression/simulation-engine.test.js`
+  - Covers deterministic signal traces, state isolation, input and Gain Reduction boundaries, delta clamping, reset/refresh behavior, positive transient phases, noise/wave bounds, Peak/RMS behavior, and smoothing timing.
+- `tests/e2e/dynamic-compression.e2e.js`
+  - Covers browser loading, controls, Ratio 1:1, below-threshold behavior, Formula Detail, Simulation toggle, responsive viewports, and page/console errors.
 
 ### Runtime Entry
 
 - Page: `modules/dynamic-compression/index.html`
 - Direct JS: `modules/dynamic-compression/dynamic-compression.js`
 - Pure calculation dependency: `modules/dynamic-compression/compression-math.js`
+- Simulation dependency: `modules/dynamic-compression/simulation-engine.js`
 - Primary CSS: `dynamic-compression.css`
 
-The core formulas have been extracted and protected by tests. The remaining runtime and stylesheet size are follow-up maintainability concerns and do not mean the current feature is incomplete.
+The core formulas and Simulation numerical engine have been extracted and protected by tests. The remaining runtime and stylesheet size are follow-up maintainability concerns and do not mean the current feature is incomplete.
 
 ## Unclear or Mixed Responsibility
 
@@ -393,8 +411,9 @@ Assessment:
 ### Dynamic Compression
 
 - Dynamic Compression runtime page and page-specific markup.
-- Page state, controls, meters, transfer curve, simulation, animation, and UI rendering.
+- Browser page state, DOM, controls, Formula Detail, meter and transfer-curve rendering, Simulation lifecycle, and initialization.
 - DOM-free compression formulas and their unit tests.
+- DOM-free and RAF-free Simulation numerical engine and its deterministic unit tests.
 - Dynamic Compression-only styling and responsive behavior.
 
 ### Planned Features
@@ -493,7 +512,7 @@ Do not write documentation as though this structure already exists. It is only a
 ## Bottom Line
 
 - Current runtime isolation is better than the file tree suggests because Home loads no JS, Gain Staging loads `script.js`, EQ Curves loads `eqTrainer.js`, and Dynamic Compression loads `modules/dynamic-compression/dynamic-compression.js`.
-- Dynamic Compression core formulas now have a DOM-free calculation boundary and unit-test protection, while its state, DOM, animation, and rendering remain together in the runtime entry.
+- Dynamic Compression core formulas and Simulation numerical state now have separate DOM-free boundaries with unit-test protection. The runtime entry still combines DOM collection, controls, Formula Detail, meters, transfer curve, browser lifecycle, and UI rendering.
 - Current CSS isolation is weaker because several shared files still contain mixed feature ownership.
 - The biggest maintenance risk is not an active runtime bug today. It is that feature-specific CSS, JS, and data still live in shared root locations.
 - Product naming has moved to concept names, while some physical paths and filenames remain historical technical debt.
