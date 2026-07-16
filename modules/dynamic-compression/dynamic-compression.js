@@ -1,3 +1,12 @@
+import {
+  calculateCompressedOutput,
+  calculateCompression,
+  deriveDisplayedLevels
+} from "./compression-math.js";
+import { createSimulationEngine } from "./simulation-engine.js";
+
+export { calculateCompressedOutput, calculateCompression, deriveDisplayedLevels };
+
 export const compressionState = {
   inputLevel: -6,
   threshold: -12,
@@ -26,51 +35,17 @@ const LEVEL_METER_THRESHOLDS = Object.freeze([
 const GR_METER_THRESHOLDS = Object.freeze([
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
 ]);
-const MAX_FRAME_DELTA_MS = 50;
-const INPUT_ATTACK_MS = 85;
-const INPUT_DECAY_MS = 380;
-const GR_ATTACK_MS = 95;
-const GR_RELEASE_MS = 500;
-const DEFAULT_CREST_FACTOR_DB = 13;
-const BODY_SLOW_AMPLITUDE_DB = 2;
-const BODY_MEDIUM_AMPLITUDE_DB = 1.25;
-const BODY_NOISE_AMPLITUDE_DB = 1;
-const METER_RMS_TIME_MS = 400;
-const METER_PEAK_DECAY_MS = 850;
 const MIN_METER_POWER = 1e-12;
 const METER_THRESHOLD_EPSILON = 1e-6;
 
 const simulationState = {
   isEnabled: true,
-  instantaneousInput: compressionState.inputLevel,
-  displayedInput: compressionState.inputLevel,
-  displayedGainReduction: 0,
-  displayedCompressedOutput: compressionState.inputLevel,
-  displayedFinalOutput: compressionState.inputLevel,
-  displayedInputPeak: compressionState.inputLevel,
-  inputRmsPower: 0,
-  displayedInputRms: compressionState.inputLevel,
-  displayedOutputPeak: compressionState.inputLevel,
-  outputRmsPower: 0,
-  displayedOutputRms: compressionState.inputLevel,
-  noiseValue: 0,
-  noiseTarget: 0,
-  nextNoiseUpdate: 0,
-  transientPhase: "idle",
-  transientAmount: 0,
-  transientTargetAmount: 0,
-  transientCeiling: compressionState.inputLevel,
-  transientPhaseStartTime: 0,
-  transientAttackDuration: 0,
-  transientHoldDuration: 0,
-  transientReleaseDuration: 0,
-  nextTransientTime: 0,
-  phaseOffset: Math.random() * Math.PI * 2,
   lastTimestamp: 0,
   animationFrameId: null,
   reducedMotionQuery: null,
   dom: null
 };
+const simulationEngine = createSimulationEngine();
 
 export function getLevelMeterState(value) {
   const safeValue = finiteNumber(value);
@@ -151,15 +126,6 @@ export function dbToY(value) {
   );
 }
 
-export function calculateCompressedOutput(input, threshold, ratio) {
-  const safeInput = finiteNumber(input);
-  const safeThreshold = finiteNumber(threshold);
-  const safeRatio = Math.max(1, finiteNumber(ratio, 1));
-  return safeInput <= safeThreshold
-    ? safeInput
-    : safeThreshold + (safeInput - safeThreshold) / safeRatio;
-}
-
 export function buildTransferCurvePath(state) {
   const threshold = finiteNumber(state?.threshold);
   const ratio = Math.max(1, finiteNumber(state?.ratio, 1));
@@ -173,45 +139,6 @@ export function buildTransferCurvePath(state) {
     `L ${dbToX(thresholdInput)} ${dbToY(thresholdOutput)}`,
     `L ${dbToX(TRANSFER_CURVE_BOUNDS.maxDb)} ${dbToY(endOutput)}`
   ].join(" ");
-}
-
-export function calculateCompression(state, inputValue = state?.inputLevel) {
-  const inputLevel = finiteNumber(inputValue);
-  const threshold = finiteNumber(state?.threshold);
-  const ratio = Math.max(1, finiteNumber(state?.ratio, 1));
-  const makeupGain = finiteNumber(state?.makeupGain);
-  const overThreshold = Math.max(0, inputLevel - threshold);
-  const ratioEffect = 1 - 1 / ratio;
-  const compressedOver = overThreshold / ratio;
-  const gainReduction = Math.max(0, overThreshold - compressedOver);
-  const compressedOutput = inputLevel - gainReduction;
-  const outputLevel = compressedOutput + makeupGain;
-
-  return {
-    inputLevel,
-    threshold,
-    ratio,
-    makeupGain,
-    overThreshold,
-    compressedOver,
-    ratioEffect,
-    gainReduction,
-    compressedOutput,
-    outputLevel,
-    isCompressing: inputLevel > threshold && gainReduction > 0
-  };
-}
-
-export function deriveDisplayedLevels(inputLevel, gainReduction, makeupGain) {
-  const displayedInput = finiteNumber(inputLevel);
-  const displayedGainReduction = Math.max(0, finiteNumber(gainReduction));
-  const displayedCompressedOutput = displayedInput - displayedGainReduction;
-  return {
-    displayedInput,
-    displayedGainReduction,
-    displayedCompressedOutput,
-    displayedFinalOutput: displayedCompressedOutput + finiteNumber(makeupGain)
-  };
 }
 
 export function formatNumber(value, decimals = 1) {
@@ -439,19 +366,11 @@ function renderFromState(pageDocument) {
     document.visibilityState === "visible" &&
     !simulationState.reducedMotionQuery?.matches
   ) {
-    if (!simulationState.nextTransientTime && !simulationState.lastTimestamp) {
+    if (!simulationState.lastTimestamp) {
       renderBodySimulation();
       return;
     }
-    const liveResult = calculateCompression(compressionState, simulationState.instantaneousInput);
-    const displayedLevels = deriveDisplayedLevels(
-      simulationState.displayedInput,
-      simulationState.displayedGainReduction,
-      compressionState.makeupGain
-    );
-    simulationState.displayedCompressedOutput = displayedLevels.displayedCompressedOutput;
-    simulationState.displayedFinalOutput = displayedLevels.displayedFinalOutput;
-    renderSimulationFrame(liveResult);
+    renderSimulationFrame(simulationEngine.refresh(compressionState));
     return;
   }
   renderBaselineSimulation();
@@ -643,7 +562,7 @@ function renderCompression(result, pageDocument) {
   if (makeupOperator) makeupOperator.textContent = formatMakeupOperator(result.makeupGain);
 }
 
-function renderLevelMeter(meterName, value, dom) {
+function renderLevelMeter(meterName, value, meterReadouts, dom) {
   const meter = dom?.meters[meterName];
   if (!meter?.shell) return;
   const safeValue = finiteNumber(value);
@@ -652,12 +571,8 @@ function renderLevelMeter(meterName, value, dom) {
     segment.classList.toggle("is-on", meterState.active[index]);
   });
 
-  const peakValue =
-    meterName === "input"
-      ? simulationState.displayedInputPeak
-      : simulationState.displayedOutputPeak;
-  const rmsValue =
-    meterName === "input" ? simulationState.displayedInputRms : simulationState.displayedOutputRms;
+  const peakValue = meterName === "input" ? meterReadouts.inputPeak : meterReadouts.outputPeak;
+  const rmsValue = meterName === "input" ? meterReadouts.inputRms : meterReadouts.outputRms;
   const peakMarkerIndex = getLevelMeterMarkerIndex(peakValue);
   meter.segments.forEach((segment, index) => {
     segment.classList.toggle("is-peak", index === peakMarkerIndex);
@@ -684,10 +599,11 @@ function renderGainReductionMeter(gainReduction, dom) {
   if (meter.readout) meter.readout.textContent = formatDb(safeGainReduction);
 }
 
-function renderMeters(result, dom) {
-  renderLevelMeter("input", result.inputLevel, dom);
-  renderGainReductionMeter(result.gainReduction, dom);
-  renderLevelMeter("output", result.outputLevel, dom);
+function renderMeters(snapshot, dom) {
+  const { displayedResult, meters } = snapshot;
+  renderLevelMeter("input", displayedResult.inputLevel, meters, dom);
+  renderGainReductionMeter(displayedResult.gainReduction, dom);
+  renderLevelMeter("output", displayedResult.outputLevel, meters, dom);
 }
 
 function renderTransferCurveStatic(state, result, dom) {
@@ -799,204 +715,9 @@ function renderTransferCurveDynamic(result, dom) {
   curveFrame?.classList.toggle("is-compressing", result.isCompressing);
 }
 
-function resetSimulationValues(
-  result = calculateCompression(compressionState),
-  rmsReferenceResult = result
-) {
-  simulationState.instantaneousInput = result.inputLevel;
-  simulationState.displayedInput = result.inputLevel;
-  simulationState.displayedGainReduction = result.gainReduction;
-  simulationState.displayedCompressedOutput = result.compressedOutput;
-  simulationState.displayedFinalOutput = result.outputLevel;
-  simulationState.displayedInputPeak = result.inputLevel;
-  simulationState.inputRmsPower = dbToPower(rmsReferenceResult.inputLevel);
-  simulationState.displayedInputRms = rmsReferenceResult.inputLevel;
-  simulationState.displayedOutputPeak = result.outputLevel;
-  simulationState.outputRmsPower = dbToPower(rmsReferenceResult.outputLevel);
-  simulationState.displayedOutputRms = rmsReferenceResult.outputLevel;
-  simulationState.noiseValue = 0;
-  simulationState.noiseTarget = 0;
-  simulationState.nextNoiseUpdate = 0;
-  simulationState.transientPhase = "idle";
-  simulationState.transientAmount = 0;
-  simulationState.transientTargetAmount = 0;
-  simulationState.transientCeiling = compressionState.inputLevel;
-  simulationState.transientPhaseStartTime = 0;
-  simulationState.transientAttackDuration = 0;
-  simulationState.transientHoldDuration = 0;
-  simulationState.transientReleaseDuration = 0;
-  simulationState.nextTransientTime = 0;
-  simulationState.lastTimestamp = 0;
-}
-
-function getSmoothedValue(current, target, deltaMs, attackMs, releaseMs) {
-  const timeConstant = target > current ? attackMs : releaseMs;
-  const amount = 1 - Math.exp(-deltaMs / timeConstant);
-  return current + (target - current) * amount;
-}
-
-function updateMeterReadoutState(result, deltaMs) {
-  simulationState.displayedInputPeak = getSmoothedValue(
-    simulationState.displayedInputPeak,
-    result.inputLevel,
-    deltaMs,
-    1,
-    METER_PEAK_DECAY_MS
-  );
-  simulationState.displayedOutputPeak = getSmoothedValue(
-    simulationState.displayedOutputPeak,
-    result.outputLevel,
-    deltaMs,
-    1,
-    METER_PEAK_DECAY_MS
-  );
-
-  const rmsBlend = 1 - Math.exp(-deltaMs / METER_RMS_TIME_MS);
-  simulationState.inputRmsPower +=
-    (dbToPower(result.inputLevel) - simulationState.inputRmsPower) * rmsBlend;
-  simulationState.outputRmsPower +=
-    (dbToPower(result.outputLevel) - simulationState.outputRmsPower) * rmsBlend;
-  simulationState.displayedInputRms = powerToDb(simulationState.inputRmsPower);
-  simulationState.displayedOutputRms = powerToDb(simulationState.outputRmsPower);
-}
-
-function getSmoothStep(progress) {
-  const clampedProgress = clampValue(progress, 0, 1);
-  return clampedProgress * clampedProgress * (3 - 2 * clampedProgress);
-}
-
-function getSignalDistribution(peakTarget) {
-  const inputConfig = controlConfigs.inputLevel;
-  const availableRange = Math.max(0, peakTarget - inputConfig.min);
-  const crestFactor = Math.min(DEFAULT_CREST_FACTOR_DB, availableRange * 0.75);
-  const rmsCenter = peakTarget - crestFactor;
-  const maximumBodyExcursion =
-    BODY_SLOW_AMPLITUDE_DB + BODY_MEDIUM_AMPLITUDE_DB + BODY_NOISE_AMPLITUDE_DB;
-  return {
-    rmsCenter,
-    bodyScale: clampValue((rmsCenter - inputConfig.min) / maximumBodyExcursion, 0, 1)
-  };
-}
-
-function scheduleNextTransient(timestamp, isInitial = false) {
-  simulationState.nextTransientTime =
-    timestamp + (isInitial ? 200 + Math.random() * 600 : 250 + Math.random() * 850);
-}
-
-function getTransientTargetOffset() {
-  const strength = Math.random();
-  if (strength < 0.3) return 4 + Math.random() * 3;
-  if (strength < 0.6) return 1.5 + Math.random() * 2.5;
-  return Math.random() < 0.2 ? Math.random() * 0.25 : 0.25 + Math.random() * 0.55;
-}
-
-function startTransient(timestamp, bodyLevel, peakTarget) {
-  const targetOffset = getTransientTargetOffset();
-  const targetLevel = peakTarget - targetOffset;
-  const allowsOvershoot = targetOffset < 0.35 && Math.random() < 0.08;
-  simulationState.transientPhase = "attack";
-  simulationState.transientAmount = 0;
-  simulationState.transientTargetAmount = Math.max(0, targetLevel - bodyLevel);
-  simulationState.transientCeiling = peakTarget + (allowsOvershoot ? Math.random() * 0.3 : 0);
-  simulationState.transientPhaseStartTime = timestamp;
-  simulationState.transientAttackDuration = 8 + Math.random() * 37;
-  simulationState.transientHoldDuration = 15 + Math.random() * 65;
-  simulationState.transientReleaseDuration = 120 + Math.random() * 330;
-}
-
-function updateTransient(timestamp, bodyLevel, peakTarget) {
-  if (!simulationState.nextTransientTime) {
-    scheduleNextTransient(timestamp, true);
-    return 0;
-  }
-
-  if (simulationState.transientPhase === "idle") {
-    if (timestamp >= simulationState.nextTransientTime) {
-      startTransient(timestamp, bodyLevel, peakTarget);
-    }
-    return simulationState.transientAmount;
-  }
-
-  const elapsed = timestamp - simulationState.transientPhaseStartTime;
-  if (simulationState.transientPhase === "attack") {
-    const progress = elapsed / simulationState.transientAttackDuration;
-    simulationState.transientAmount =
-      simulationState.transientTargetAmount * getSmoothStep(progress);
-    if (progress >= 1) {
-      simulationState.transientPhase = "hold";
-      simulationState.transientAmount = simulationState.transientTargetAmount;
-      simulationState.transientPhaseStartTime = timestamp;
-    }
-  } else if (simulationState.transientPhase === "hold") {
-    simulationState.transientAmount = simulationState.transientTargetAmount;
-    if (elapsed >= simulationState.transientHoldDuration) {
-      simulationState.transientPhase = "release";
-      simulationState.transientPhaseStartTime = timestamp;
-    }
-  } else if (simulationState.transientPhase === "release") {
-    const progress = elapsed / simulationState.transientReleaseDuration;
-    simulationState.transientAmount =
-      simulationState.transientTargetAmount * (1 - getSmoothStep(progress));
-    if (progress >= 1) {
-      simulationState.transientPhase = "idle";
-      simulationState.transientAmount = 0;
-      simulationState.transientTargetAmount = 0;
-      scheduleNextTransient(timestamp);
-    }
-  }
-
-  return simulationState.transientAmount;
-}
-
-function createInstantaneousInput(timestamp, deltaMs) {
-  if (timestamp >= simulationState.nextNoiseUpdate) {
-    simulationState.noiseTarget = (Math.random() * 2 - 1) * BODY_NOISE_AMPLITUDE_DB;
-    simulationState.nextNoiseUpdate = timestamp + 100 + Math.random() * 120;
-  }
-  simulationState.noiseValue = getSmoothedValue(
-    simulationState.noiseValue,
-    simulationState.noiseTarget,
-    deltaMs,
-    125,
-    170
-  );
-
-  const time = timestamp / 1000;
-  const { rmsCenter, bodyScale } = getSignalDistribution(compressionState.inputLevel);
-  const slowWave = Math.sin(time * 1.76 + simulationState.phaseOffset) * BODY_SLOW_AMPLITUDE_DB;
-  const mediumWave =
-    Math.sin(time * 5.09 + simulationState.phaseOffset * 0.61) * BODY_MEDIUM_AMPLITUDE_DB;
-  const bodyMovement = (slowWave + mediumWave + simulationState.noiseValue) * bodyScale;
-  const bodyLevel = rmsCenter + bodyMovement;
-  const transientAmount = updateTransient(timestamp, bodyLevel, compressionState.inputLevel);
-  const transientCeiling =
-    simulationState.transientPhase === "idle"
-      ? compressionState.inputLevel
-      : Math.min(simulationState.transientCeiling, compressionState.inputLevel + 0.3);
-  const inputConfig = controlConfigs.inputLevel;
-  return clampValue(
-    Math.min(bodyLevel + transientAmount, transientCeiling),
-    inputConfig.min,
-    inputConfig.max
-  );
-}
-
-function getDisplayedResult(instantaneousResult) {
-  return {
-    ...instantaneousResult,
-    inputLevel: simulationState.displayedInput,
-    gainReduction: simulationState.displayedGainReduction,
-    compressedOutput: simulationState.displayedCompressedOutput,
-    outputLevel: simulationState.displayedFinalOutput,
-    isCompressing:
-      simulationState.displayedInput > instantaneousResult.threshold &&
-      simulationState.displayedGainReduction > 0
-  };
-}
-
-function renderSimulationFrame(instantaneousResult) {
-  const displayedResult = getDisplayedResult(instantaneousResult);
-  renderMeters(displayedResult, simulationState.dom);
+function renderSimulationFrame(snapshot) {
+  const { instantaneousResult, displayedResult } = snapshot;
+  renderMeters(snapshot, simulationState.dom);
   const clipSegmentIndex = getLevelMeterMarkerIndex(0);
   const inputClipSegment = simulationState.dom?.meters.input.segments[clipSegmentIndex];
   const outputClipSegment = simulationState.dom?.meters.output.segments[clipSegmentIndex];
@@ -1024,37 +745,9 @@ function runSimulationFrame(timestamp) {
   }
 
   if (!simulationState.lastTimestamp) simulationState.lastTimestamp = timestamp;
-  const deltaMs = Math.min(
-    MAX_FRAME_DELTA_MS,
-    Math.max(1, timestamp - simulationState.lastTimestamp)
-  );
+  const deltaMs = timestamp - simulationState.lastTimestamp;
   simulationState.lastTimestamp = timestamp;
-  const instantaneousInput = createInstantaneousInput(timestamp, deltaMs);
-  const result = calculateCompression(compressionState, instantaneousInput);
-  simulationState.instantaneousInput = instantaneousInput;
-  updateMeterReadoutState(result, deltaMs);
-  simulationState.displayedInput = getSmoothedValue(
-    simulationState.displayedInput,
-    result.inputLevel,
-    deltaMs,
-    INPUT_ATTACK_MS,
-    INPUT_DECAY_MS
-  );
-  simulationState.displayedGainReduction = getSmoothedValue(
-    simulationState.displayedGainReduction,
-    result.gainReduction,
-    deltaMs,
-    GR_ATTACK_MS,
-    GR_RELEASE_MS
-  );
-  const displayedLevels = deriveDisplayedLevels(
-    simulationState.displayedInput,
-    simulationState.displayedGainReduction,
-    compressionState.makeupGain
-  );
-  simulationState.displayedCompressedOutput = displayedLevels.displayedCompressedOutput;
-  simulationState.displayedFinalOutput = displayedLevels.displayedFinalOutput;
-  renderSimulationFrame(result);
+  renderSimulationFrame(simulationEngine.advance(compressionState, { timestamp, deltaMs }));
   startSimulationLoop();
 }
 
@@ -1079,28 +772,11 @@ function startSimulationLoop() {
 }
 
 function renderBaselineSimulation() {
-  const result = calculateCompression(compressionState);
-  const { rmsCenter } = getSignalDistribution(compressionState.inputLevel);
-  const inputConfig = controlConfigs.inputLevel;
-  const rmsReferenceResult = calculateCompression(
-    compressionState,
-    clampValue(rmsCenter, inputConfig.min, inputConfig.max)
-  );
-  resetSimulationValues(result, rmsReferenceResult);
-  renderMeters(result, simulationState.dom);
-  renderTransferCurveDynamic(result, simulationState.dom);
+  renderSimulationFrame(simulationEngine.reset(compressionState, { mode: "baseline" }));
 }
 
 function renderBodySimulation() {
-  const { rmsCenter } = getSignalDistribution(compressionState.inputLevel);
-  const inputConfig = controlConfigs.inputLevel;
-  const result = calculateCompression(
-    compressionState,
-    clampValue(rmsCenter, inputConfig.min, inputConfig.max)
-  );
-  resetSimulationValues(result);
-  renderMeters(result, simulationState.dom);
-  renderTransferCurveDynamic(result, simulationState.dom);
+  renderSimulationFrame(simulationEngine.reset(compressionState, { mode: "body" }));
 }
 
 function updateSimulationToggle() {

@@ -17,19 +17,20 @@ Do not rename paths or classes in this document unless the underlying files have
 
 ## Current User-Facing Page Names
 
-| User-facing page | Current path                                                 | Notes                                                      |
-| ---------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| Home             | `index.html`                                                 | Homepage concept entry page                                |
-| Gain Staging     | `modules/gain-staging/index.html`                            | Active feature                                             |
-| EQ Curves        | `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | Active feature, still using historical physical EQ path    |
-| Historical page  | `modules/eq-trainer/index.html`                              | Retained file path, no longer part of main user flow       |
-| Historical page  | `modules/eq-trainer/fundamentals/index.html`                 | Retained file path, no longer part of main user flow       |
-| Historical page  | `modules/eq-trainer/instrument-eq/index.html`                | Retained file path, not part of current product navigation |
-| Historical page  | `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | Retained placeholder path                                  |
-| Historical page  | `modules/eq-trainer/fundamentals/ear-memory/index.html`      | Retained placeholder path                                  |
-| Historical page  | `modules/eq-trainer/fundamentals/q-value/index.html`         | Retained placeholder path                                  |
-| Historical page  | `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | Retained placeholder path                                  |
-| Historical page  | `modules/eq-trainer/fundamentals/filter-types/index.html`    | Retained placeholder path                                  |
+| User-facing page    | Current path                                                 | Notes                                                      |
+| ------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
+| Home                | `index.html`                                                 | Homepage concept entry page                                |
+| Gain Staging        | `modules/gain-staging/index.html`                            | Active feature                                             |
+| EQ Curves           | `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | Active feature, still using historical physical EQ path    |
+| Dynamic Compression | `modules/dynamic-compression/index.html`                     | Active feature                                             |
+| Historical page     | `modules/eq-trainer/index.html`                              | Retained file path, no longer part of main user flow       |
+| Historical page     | `modules/eq-trainer/fundamentals/index.html`                 | Retained file path, no longer part of main user flow       |
+| Historical page     | `modules/eq-trainer/instrument-eq/index.html`                | Retained file path, not part of current product navigation |
+| Historical page     | `modules/eq-trainer/fundamentals/frequency-atlas/index.html` | Retained placeholder path                                  |
+| Historical page     | `modules/eq-trainer/fundamentals/ear-memory/index.html`      | Retained placeholder path                                  |
+| Historical page     | `modules/eq-trainer/fundamentals/q-value/index.html`         | Retained placeholder path                                  |
+| Historical page     | `modules/eq-trainer/fundamentals/boost-vs-cut/index.html`    | Retained placeholder path                                  |
+| Historical page     | `modules/eq-trainer/fundamentals/filter-types/index.html`    | Retained placeholder path                                  |
 
 ## Current CSS Loading Matrix
 
@@ -38,6 +39,7 @@ Do not rename paths or classes in this document unless the underlying files have
 | `index.html`                                                 | Home                          | `base.css`, `layout.css`, `components.css`, `responsive.css`                                |
 | `modules/gain-staging/index.html`                            | Gain Staging                  | `base.css`, `layout.css`, `components.css`, `detail.css`, `simulator.css`, `responsive.css` |
 | `modules/eq-trainer/fundamentals/interactive-eq/index.html`  | EQ Curves                     | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
+| `modules/dynamic-compression/index.html`                     | Dynamic Compression           | `base.css`, `layout.css`, `components.css`, `dynamic-compression.css`                       |
 | `modules/eq-trainer/index.html`                              | Historical EQ path            | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
 | `modules/eq-trainer/fundamentals/index.html`                 | Historical EQ path            | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
 | `modules/eq-trainer/instrument-eq/index.html`                | Historical EQ path            | `base.css`, `layout.css`, `components.css`, `eq-trainer.css`, `responsive.css`              |
@@ -49,15 +51,16 @@ Do not rename paths or classes in this document unless the underlying files have
 
 ## Stylesheet Role Summary
 
-| CSS file         | Current responsibility                                                              | Notes                                                                                  |
-| ---------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `base.css`       | Global reset, `body`, bilingual title display                                       | Shared foundation                                                                      |
-| `layout.css`     | Header/main/footer, shared shell, and some Gain Staging layout                      | Contains mixed shared and feature-specific ownership                                   |
-| `components.css` | Shared buttons, homepage concept entries, and some Gain Staging UI                  | Older audit references to homepage module cards are `Outdated after homepage redesign` |
-| `detail.css`     | Gain Staging detail panel and PFL visualizer                                        | Gain Staging only                                                                      |
-| `simulator.css`  | Gain Staging simulator controls, meters, fader, reset pads                          | Gain Staging only                                                                      |
-| `eq-trainer.css` | EQ Curves controls, graph, EQ-specific UI, and retained historical EQ page styles   | Historical filename; user-facing feature name is now EQ Curves                         |
-| `responsive.css` | Shared responsive rules plus Home, Gain Staging, and EQ Curves responsive overrides | Mixed ownership remains                                                                |
+| CSS file                  | Current responsibility                                                                       | Notes                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `base.css`                | Global reset, `body`, bilingual title display                                                | Shared foundation                                                                      |
+| `layout.css`              | Header/main/footer, shared shell, and some Gain Staging layout                               | Contains mixed shared and feature-specific ownership                                   |
+| `components.css`          | Shared buttons, homepage concept entries, and some Gain Staging UI                           | Older audit references to homepage module cards are `Outdated after homepage redesign` |
+| `detail.css`              | Gain Staging detail panel and PFL visualizer                                                 | Gain Staging only                                                                      |
+| `simulator.css`           | Gain Staging simulator controls, meters, fader, reset pads                                   | Gain Staging only                                                                      |
+| `eq-trainer.css`          | EQ Curves controls, graph, EQ-specific UI, and retained historical EQ page styles            | Historical filename; user-facing feature name is now EQ Curves                         |
+| `dynamic-compression.css` | Dynamic Compression controls, meters, transfer curve, formula UI, simulation states, and RWD | Dynamic Compression only                                                               |
+| `responsive.css`          | Shared responsive rules plus Home, Gain Staging, and EQ Curves responsive overrides          | Mixed ownership remains                                                                |
 
 ## Home Page Notes
 
@@ -115,6 +118,29 @@ Basis:
 - `eqTrainer.js` and `interactive-eq-graph.js` write EQ custom properties consumed by `eq-trainer.css`.
 - The filename `eq-trainer.css` is historical technical naming; it has not yet been migrated.
 
+## Dynamic Compression Notes
+
+Required CSS:
+
+- `base.css`
+- `layout.css`
+- `components.css`
+- `dynamic-compression.css`
+
+Not loaded by the current page:
+
+- `responsive.css`
+- `detail.css`
+- `simulator.css`
+- `eq-trainer.css`
+
+Basis:
+
+- Dynamic Compression runs at `modules/dynamic-compression/index.html`.
+- The page directly loads `dynamic-compression.css` after the three shared stylesheets.
+- Dynamic Compression-specific responsive behavior is owned by `dynamic-compression.css`.
+- `modules/dynamic-compression/dynamic-compression.js` creates and updates the page-specific control, meter, transfer curve, formula, and simulation states consumed by this stylesheet.
+
 ## Historical EQ Path Notes
 
 The following paths are retained in the repository but are no longer part of the current user-facing navigation:
@@ -167,7 +193,7 @@ Future cleanup should be separate from product copy updates:
 
 ## Bottom Line
 
-- Current user-facing names are Home, Gain Staging, and EQ Curves.
+- Current user-facing names are Home, Gain Staging, EQ Curves, and Dynamic Compression.
 - The repository still contains historical EQ paths and CSS names.
 - The homepage redesign invalidated parts of the old homepage card analysis.
 - The page-level CSS boundary remains useful, but a full CSS audit should be performed separately before any larger stylesheet split.
