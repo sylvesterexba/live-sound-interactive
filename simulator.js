@@ -7,11 +7,17 @@ import {
   formatDbfs,
   formatSignedDb,
   getFaderBottomPercent,
-  getItemMeterProfile,
   randomBetween,
   simulatorMeterMarks,
   valueToFaderPosition
 } from "./data.js";
+import {
+  calculateStaticLevels,
+  calculateStereoOutput,
+  classifyInputLevel,
+  classifyOutputLevel,
+  deriveSimulatorProfile
+} from "./modules/gain-staging/gain-staging-math.js";
 import { getKnobAngle, getKnobArcAngle, renderMiniKnob } from "./components/knob.js";
 
 const simulatorSource = document.getElementById("simulatorSource");
@@ -215,7 +221,7 @@ function resetGainToRecommended() {
   updateKnob();
   const staticLevels = getStaticLevels();
   simulatorPeakHolds.inputPeak = { value: staticLevels.inputPeak, hold: 0.9 };
-  calculateStereoOutput(staticLevels.inputPeak);
+  applyStereoOutput(staticLevels.inputPeak);
   displayOutputL = simulatedOutputL;
   displayOutputR = simulatedOutputR;
   simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
@@ -226,7 +232,7 @@ function resetGainToRecommended() {
 function resetFaderToUnity() {
   currentFader = 0;
   updateFader();
-  calculateStereoOutput();
+  applyStereoOutput();
   displayOutputL = simulatedOutputL;
   displayOutputR = simulatedOutputR;
   simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
@@ -439,32 +445,22 @@ function updatePeakHoldMarker(container, holdValue) {
   meter.marker.style.opacity = "1";
 }
 
-function getStaticStereoDifference() {
-  return 0.8;
-}
-
 function getStaticLevels() {
-  const inputRms = clamp(simulatorProfile.sourceRmsAtZero + currentGain, -60, 1.5);
-  const inputPeak = clamp(
-    Math.max(simulatorProfile.sourcePeakAtZero + currentGain, inputRms + 4.8),
-    -60,
-    2.5
-  );
-  const outputBase = currentFader <= -89.5 ? -90 : inputPeak + currentFader;
-  const stereoWidth = getStaticStereoDifference();
-
-  return {
-    inputRms,
-    inputPeak,
-    outputL: outputBase + stereoWidth / 2,
-    outputR: outputBase - stereoWidth / 2
-  };
+  return calculateStaticLevels({
+    profile: simulatorProfile,
+    gain: currentGain,
+    faderDb: currentFader
+  });
 }
 
-function calculateStereoOutput(peakValue = simulatedInputPeak, stereoWidth = stereoDifference) {
-  const outputBase = currentFader <= -89.5 ? -90 : peakValue + currentFader;
-  simulatedOutputL = outputBase + stereoWidth / 2;
-  simulatedOutputR = outputBase - stereoWidth / 2;
+function applyStereoOutput(peakValue = simulatedInputPeak, stereoWidth = stereoDifference) {
+  const output = calculateStereoOutput({
+    inputPeak: peakValue,
+    faderDb: currentFader,
+    stereoWidth
+  });
+  simulatedOutputL = output.outputL;
+  simulatedOutputR = output.outputR;
 }
 
 function updateDisplayReadouts(timestamp, force = false, immediate = false) {
@@ -519,7 +515,7 @@ function renderGainSimulationState() {
     const staticLevels = getStaticLevels();
     simulatedInputRMS = staticLevels.inputRms;
     simulatedInputPeak = staticLevels.inputPeak;
-    calculateStereoOutput(staticLevels.inputPeak);
+    applyStereoOutput(staticLevels.inputPeak);
     simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0.9 };
     simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
     simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
@@ -535,7 +531,7 @@ function renderGainSimulationState() {
 
 function renderFaderSimulationState() {
   if (simulationState.isEnabled && document.visibilityState === "visible") {
-    calculateStereoOutput();
+    applyStereoOutput();
     simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
     simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
     updateStereoMeter();
@@ -549,33 +545,21 @@ function renderFaderSimulationState() {
 
 export function setSimulatorProfile(item) {
   if (!item) return;
-  const profile = getItemMeterProfile(item);
-  const peakCenter = (profile.peakLow + profile.peakHigh) / 2;
-  const rmsCenter = (profile.rmsLow + profile.rmsHigh) / 2;
-  const idealGain = Number.isFinite(item.recommendedGain)
-    ? item.recommendedGain
-    : item.name.includes("Male Vocal")
-      ? 28
-      : clamp(28 + (peakCenter + 9) * 0.7, 18, 42);
+  const derivedProfile = deriveSimulatorProfile(item);
+  const { inputRms, inputPeak } = derivedProfile.initialLevels;
 
-  simulatorProfile = {
-    ...profile,
-    idealGain,
-    recommendedGain: idealGain,
-    sourcePeakAtZero: peakCenter - idealGain,
-    sourceRmsAtZero: rmsCenter - idealGain
-  };
-  currentGain = idealGain;
+  simulatorProfile = derivedProfile.profile;
+  currentGain = simulatorProfile.idealGain;
   currentFader = 0;
-  simulatedInputRMS = rmsCenter;
-  simulatedInputPeak = peakCenter;
-  displayInputRMS = rmsCenter;
-  displayInputPeak = peakCenter;
+  simulatedInputRMS = inputRms;
+  simulatedInputPeak = inputPeak;
+  displayInputRMS = inputRms;
+  displayInputPeak = inputPeak;
   stereoDifference = randomBetween(0.5, 1.5) * (Math.random() > 0.5 ? 1 : -1);
-  calculateStereoOutput();
+  applyStereoOutput();
   displayOutputL = simulatedOutputL;
   displayOutputR = simulatedOutputR;
-  simulatorPeakHolds.inputPeak = { value: peakCenter, hold: 0.9 };
+  simulatorPeakHolds.inputPeak = { value: inputPeak, hold: 0.9 };
   simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
   simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
   simulatorNoisePhase = Math.random() * Math.PI * 2;
@@ -653,10 +637,7 @@ function setStatusClass(node, status) {
 
 function getInputStatusLevel() {
   // 直接從即時 Peak 推導狀態，不依賴上一輪 inputStatus，拖曳 Gain 時浮動旋鈕才不會慢半拍。
-  if (simulatedInputPeak >= 0) return "clip";
-  if (simulatedInputPeak > -3 || simulatedInputPeak > simulatorProfile.peakHigh) return "warning";
-  if (simulatedInputPeak < simulatorProfile.peakLow) return "low";
-  return "good";
+  return classifyInputLevel(simulatedInputPeak, simulatorProfile).status;
 }
 
 function getSimulatorDynamics(basePeak) {
@@ -673,36 +654,13 @@ function getSimulatorDynamics(basePeak) {
 }
 
 function updateStatusMessage() {
-  inputStatus = getInputStatusLevel();
+  const inputLevel = classifyInputLevel(simulatedInputPeak, simulatorProfile);
+  const outputLevel = classifyOutputLevel(simulatedOutputL, simulatedOutputR);
+  inputStatus = inputLevel.status;
+  outputStatus = outputLevel.status;
 
-  const outputPeak = Math.max(simulatedOutputL, simulatedOutputR);
-  if (outputPeak >= 0) {
-    outputStatus = "clip";
-  } else if (outputPeak > -1) {
-    outputStatus = "warning";
-  } else if (outputPeak > -3) {
-    outputStatus = "hot";
-  } else {
-    outputStatus = "good";
-  }
-
-  const inputMessages = {
-    low: "訊號偏低，可能需要增加 Gain。",
-    good: "建議範圍：Gain 設定良好。",
-    hot: "訊號偏熱，注意 Headroom。",
-    warning: "警告：Peak 接近 Clip。",
-    clip: "CLIP：輸入已到達 0 dBFS，請降低 Gain。"
-  };
-  const outputMessages = {
-    good: "Output 安全，Fader 可用來做混音平衡。",
-    hot: "Output 偏熱，注意主輸出 Headroom。",
-    warning: "警告：Output 接近 Clip，請降低 Fader。",
-    clip: "OUTPUT CLIP：輸出已超過 0 dBFS。",
-    low: "Output 偏低。"
-  };
-
-  if (inputStatusMessage) inputStatusMessage.textContent = inputMessages[inputStatus];
-  if (outputStatusMessage) outputStatusMessage.textContent = outputMessages[outputStatus];
+  if (inputStatusMessage) inputStatusMessage.textContent = inputLevel.message;
+  if (outputStatusMessage) outputStatusMessage.textContent = outputLevel.message;
   setStatusClass(inputStatusBox, inputStatus);
   setStatusClass(outputStatusBox, outputStatus);
   setStatusClass(gainKnob, inputStatus);
@@ -776,9 +734,7 @@ function renderDynamicState(timestamp) {
   }
 
   // Output 是 Input 經過 Fader 後的結果；Fader 拉低只會降輸出，不會修復前級已經發生的 input clip。
-  const outputBase = currentFader <= -89.5 ? -90 : simulatedInputPeak + currentFader;
-  simulatedOutputL = outputBase + stereoDifference / 2;
-  simulatedOutputR = outputBase - stereoDifference / 2;
+  applyStereoOutput();
 
   updatePeakHoldState(simulatorPeakHolds.inputPeak, simulatedInputPeak, dt);
   updatePeakHoldState(simulatorPeakHolds.outputL, simulatedOutputL, dt);
@@ -820,7 +776,7 @@ function setSimulationEnabled(isEnabled) {
     const staticLevels = getStaticLevels();
     simulatedInputRMS = staticLevels.inputRms;
     simulatedInputPeak = staticLevels.inputPeak;
-    calculateStereoOutput(staticLevels.inputPeak);
+    applyStereoOutput(staticLevels.inputPeak);
     simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0.9 };
     simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
     simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
@@ -1004,7 +960,7 @@ function initSimulator() {
       const staticLevels = getStaticLevels();
       simulatedInputRMS = staticLevels.inputRms;
       simulatedInputPeak = staticLevels.inputPeak;
-      calculateStereoOutput(staticLevels.inputPeak);
+      applyStereoOutput(staticLevels.inputPeak);
       simulatorPeakHolds.inputPeak = { value: simulatedInputPeak, hold: 0.9 };
       simulatorPeakHolds.outputL = { value: simulatedOutputL, hold: 0.9 };
       simulatorPeakHolds.outputR = { value: simulatedOutputR, hold: 0.9 };
