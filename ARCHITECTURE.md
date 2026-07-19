@@ -97,6 +97,19 @@ Do not treat `modules/eq-trainer/`, `fundamentals/`, or `interactive-eq/` as cur
   - `data.js`
   - `icons.js`
   - `components/knob.js`
+  - `modules/gain-staging/gain-staging-math.js`
+- Unit tests:
+  - `data.test.js`
+  - `components/knob.test.js`
+  - `modules/gain-staging/gain-staging-math.test.js`
+- Browser tests:
+  - `tests/e2e/gain-staging.e2e.js`
+
+`script.js` owns the Gain Staging page bootstrap, source selection, detail panel, drawer, and About Modal. `simulator.js` owns the simulator DOM, controls, rendering, random Simulation state, and `requestAnimationFrame` lifecycle. PFL numerical animation, DOM updates, and its separate animation lifecycle remain owned by `pflMeter.js`.
+
+`gain-staging-math.js` is the DOM-free, RNG-free, and RAF-free source for Gain, Fader, Stereo output, status, and simulator-profile calculations shared by the runtime and Vitest. Its Output model treats -90 dB as the lower floor: Fader mute returns -90 dB for base, Left, and Right; values below the floor do not produce lower readouts; and no upper clamp is applied, so clip values above 0 dBFS remain observable.
+
+The public pure mapping and formatting utilities in `data.js` and the shared knob utilities in `components/knob.js` also have direct Vitest coverage. `tests/e2e/gain-staging.e2e.js` provides Chromium browser characterization and regression coverage for page loading, source/detail synchronization, controls and resets, Gain/Fader signal responsibilities, Output-floor behavior, PFL readout, Simulation toggle, modal and mobile picker behavior, responsive viewports, and browser errors.
 
 ### EQ Curves
 
@@ -151,6 +164,8 @@ Do not create new Trainer, Course, or Lesson style paths for planned features or
 - Keep user-facing naming concept based.
 - Keep physical-path migration separate from UI copy changes.
 - Keep Gain Staging, EQ Curves, and Dynamic Compression runtime logic independent.
+- Keep Gain Staging static calculations in the DOM-free `gain-staging-math.js` boundary and use the same formulas from the runtime and unit tests.
+- Keep Gain Staging browser characterization and regression coverage in Playwright Chromium tests; treat any future separation of random Simulation state, meter rendering, smoothing, transient scheduling, Stereo scheduling, or RAF lifecycle from `simulator.js` as an independent maintainability task.
 - Keep Dynamic Compression formulas in the DOM-free `compression-math.js` boundary and protect them with unit tests.
 - Keep Dynamic Compression Simulation numerical state in the DOM-free and RAF-free `simulation-engine.js` boundary and protect it with deterministic unit tests.
 - Keep browser lifecycle and view ownership in `dynamic-compression.js`; treat any further separation of DOM collection, controls, Formula Detail, meters, transfer-curve rendering, or other UI responsibilities as an independent maintainability task.
