@@ -58,6 +58,49 @@ async function readOutputLevels(page) {
   };
 }
 
+async function setGainByKeyboard(page, target) {
+  const gainKnob = getGainKnob(page);
+  let current = Number(await gainKnob.getAttribute("aria-valuenow"));
+
+  while (current !== target) {
+    const difference = target - current;
+    const direction = difference > 0 ? "ArrowUp" : "ArrowDown";
+    const key = Math.abs(difference) >= 5 ? `Shift+${direction}` : direction;
+    await gainKnob.press(key);
+    const next = Number(await gainKnob.getAttribute("aria-valuenow"));
+    expect(next, `Gain did not move toward ${target}`).not.toBe(current);
+    current = next;
+  }
+
+  await expect(gainKnob).toHaveAttribute("aria-valuenow", String(target));
+}
+
+async function readGainKnobVisuals(page) {
+  return page.evaluate(() => {
+    const readAngle = (element, property) => {
+      return Number.parseFloat(window.getComputedStyle(element).getPropertyValue(property));
+    };
+    const mainKnob = document.querySelector("#gainKnob");
+    const floatingButton = document.querySelector("#floatingSimButton");
+    const floatingIcon = floatingButton.querySelector(".floating-knob-icon");
+    const floatingPointer = floatingIcon.querySelector(".floating-knob-pointer");
+    const floatingLeds = floatingIcon.querySelector(".floating-knob-leds");
+
+    return {
+      gain: Number(mainKnob.getAttribute("aria-valuenow")),
+      mainPointer: readAngle(mainKnob, "--knob-rotation"),
+      mainArc: readAngle(mainKnob, "--knob-angle") + 135,
+      floatingParentPointer: readAngle(floatingButton, "--floating-knob-rotation"),
+      floatingIconPointer: readAngle(floatingIcon, "--floating-knob-rotation"),
+      floatingPointer: readAngle(floatingPointer, "--floating-knob-rotation"),
+      floatingParentArc: readAngle(floatingButton, "--floating-gain-angle"),
+      floatingIconArc: readAngle(floatingIcon, "--floating-gain-angle"),
+      floatingLedArc: readAngle(floatingLeds, "--floating-gain-angle"),
+      floatingIconStyle: floatingIcon.getAttribute("style") ?? ""
+    };
+  });
+}
+
 async function expectCoreSurface(page) {
   await expect(page.getByRole("heading", { level: 1, name: /Gain Staging/ })).toBeVisible();
   await expect(page.locator("#items")).toBeVisible();
@@ -178,6 +221,46 @@ test("updates Gain by keyboard and resets to the selected source recommendation"
   await page.getByRole("button", { name: /建議 Gain/ }).click();
   await expect(gainKnob).toHaveAttribute("aria-valuenow", "28");
   await expect(page.locator("#gainValue")).toHaveText("GAIN +28 dB");
+});
+
+test("keeps the floating Mini Knob pointer and LED arc synchronized with Gain", async ({
+  page
+}) => {
+  await page.goto(pagePath);
+  await turnSimulationOff(page);
+  await selectMaleVocal(page);
+
+  const controlPoints = [
+    { gain: 0, pointer: -135, arc: 0 },
+    { gain: 30, pointer: 0, arc: 135 },
+    { gain: 60, pointer: 135, arc: 270 }
+  ];
+
+  for (const point of controlPoints) {
+    await setGainByKeyboard(page, point.gain);
+    const visuals = await readGainKnobVisuals(page);
+
+    expect(visuals.gain).toBe(point.gain);
+    expect(visuals.mainPointer).toBeCloseTo(point.pointer);
+    expect(visuals.floatingParentPointer).toBeCloseTo(visuals.mainPointer);
+    expect(visuals.floatingIconPointer).toBeCloseTo(visuals.mainPointer);
+    expect(visuals.floatingPointer).toBeCloseTo(visuals.mainPointer);
+    expect(visuals.mainArc).toBeCloseTo(point.arc);
+    expect(visuals.floatingParentArc).toBeCloseTo(visuals.mainArc);
+    expect(visuals.floatingIconArc).toBeCloseTo(visuals.mainArc);
+    expect(visuals.floatingLedArc).toBeCloseTo(visuals.mainArc);
+    expect(visuals.floatingIconStyle).not.toContain("--floating-knob-rotation");
+    expect(visuals.floatingIconStyle).not.toContain("--floating-gain-angle");
+  }
+
+  await page.getByRole("button", { name: /建議 Gain/ }).click();
+  await expect(getGainKnob(page)).toHaveAttribute("aria-valuenow", "28");
+  const resetVisuals = await readGainKnobVisuals(page);
+
+  expect(resetVisuals.mainPointer).toBeCloseTo(-9);
+  expect(resetVisuals.floatingPointer).toBeCloseTo(resetVisuals.mainPointer);
+  expect(resetVisuals.mainArc).toBeCloseTo(126);
+  expect(resetVisuals.floatingLedArc).toBeCloseTo(resetVisuals.mainArc);
 });
 
 test("operates the Output Fader and resets it to unity", async ({ page }) => {

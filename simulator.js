@@ -18,7 +18,7 @@ import {
   classifyOutputLevel,
   deriveSimulatorProfile
 } from "./modules/gain-staging/gain-staging-math.js";
-import { getKnobAngle, getKnobArcAngle, renderMiniKnob } from "./components/knob.js";
+import { getKnobAngle, getKnobArcAngle } from "./components/knob.js";
 
 const simulatorSource = document.getElementById("simulatorSource");
 const simulationToggle = document.getElementById("simulationToggle");
@@ -50,7 +50,6 @@ const outputStatusMessage = document.getElementById("outputStatusMessage");
 const gainSimulator = document.getElementById("gain-simulator");
 const floatingSimButton = document.getElementById("floatingSimButton");
 const floatingSimButtonText = floatingSimButton?.querySelector(".floating-btn-text");
-const floatingSimKnobIcon = floatingSimButton?.querySelector(".floating-knob-icon");
 let currentGain = 28;
 let currentFader = 0;
 let simulatedInputRMS = -24;
@@ -196,22 +195,6 @@ function updateFloatingKnobIcon() {
     "title",
     isAtSimulator ? `回到頁面上方，${gainText}` : `前往 Gain Staging Simulator，${gainText}`
   );
-}
-
-function initFloatingKnobIcon() {
-  if (!floatingSimKnobIcon) return;
-
-  floatingSimKnobIcon.outerHTML = renderMiniKnob({
-    value: currentGain,
-    min: 0,
-    max: 60,
-    className: "floating-knob-icon",
-    arcClassName: "floating-knob-leds",
-    bodyClassName: "floating-knob-body",
-    indicatorClassName: "floating-knob-pointer",
-    angleProperty: "--floating-knob-rotation",
-    arcProperty: "--floating-gain-angle"
-  });
 }
 
 function resetGainToRecommended() {
@@ -943,7 +926,6 @@ function initSimulator() {
   [inputRmsMeter, inputPeakMeter, outputLeftMeter, outputRightMeter].forEach(createSimulatorMeter);
   renderFaderScale();
   initKnobLedRing();
-  initFloatingKnobIcon();
   bindGainKnob();
   bindOutputFader();
   bindFaderPointerControl();
