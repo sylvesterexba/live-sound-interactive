@@ -1,7 +1,7 @@
 import { clamp, getItemMeterProfile } from "../../data.js";
 
 const FADER_MUTE_THRESHOLD_DB = -89.5;
-const MUTED_OUTPUT_DB = -90;
+const OUTPUT_FLOOR_DB = -90;
 const STATIC_STEREO_WIDTH_DB = 0.8;
 
 function getInputStatusMessage(status) {
@@ -39,12 +39,29 @@ function getOutputStatusMessage(status) {
 }
 
 export function calculateStereoOutput({ inputPeak, faderDb, stereoWidth }) {
-  const outputBase = faderDb <= FADER_MUTE_THRESHOLD_DB ? MUTED_OUTPUT_DB : inputPeak + faderDb;
+  if (faderDb <= FADER_MUTE_THRESHOLD_DB) {
+    return {
+      outputBase: OUTPUT_FLOOR_DB,
+      outputL: OUTPUT_FLOOR_DB,
+      outputR: OUTPUT_FLOOR_DB
+    };
+  }
+
+  const rawBase = inputPeak + faderDb;
+  const outputBase = Math.max(OUTPUT_FLOOR_DB, rawBase);
+
+  if (outputBase === OUTPUT_FLOOR_DB) {
+    return {
+      outputBase,
+      outputL: OUTPUT_FLOOR_DB,
+      outputR: OUTPUT_FLOOR_DB
+    };
+  }
 
   return {
     outputBase,
-    outputL: outputBase + stereoWidth / 2,
-    outputR: outputBase - stereoWidth / 2
+    outputL: Math.max(OUTPUT_FLOOR_DB, outputBase + stereoWidth / 2),
+    outputR: Math.max(OUTPUT_FLOOR_DB, outputBase - stereoWidth / 2)
   };
 }
 

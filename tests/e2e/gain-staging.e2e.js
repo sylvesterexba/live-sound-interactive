@@ -35,12 +35,27 @@ async function turnSimulationOff(page) {
   await expect(page.locator("#simulationToggleState")).toContainText("Off");
 }
 
-async function selectMaleVocal(page) {
-  await page.locator('[data-filter="vocal"]').click();
-  const item = page.locator("#items").getByText("Male Vocal", { exact: true });
+async function selectSource(page, filter, name) {
+  await page.locator(`[data-filter="${filter}"]`).click();
+  const item = page.locator("#items").getByText(name, { exact: true });
   await expect(item).toBeVisible();
   await item.click();
-  await expect(page.locator("#detailName")).toContainText("Male Vocal");
+  await expect(page.locator("#detailName")).toContainText(name);
+}
+
+async function selectMaleVocal(page) {
+  await selectSource(page, "vocal", "Male Vocal");
+}
+
+async function readOutputLevels(page) {
+  const readout = (await page.locator("#outputReadout").textContent())?.trim() ?? "";
+  const match = readout.match(/^L ([+-]?\d+(?:\.\d+)?) dBFS \/ R ([+-]?\d+(?:\.\d+)?) dBFS$/);
+  expect(match, `Unexpected Output readout: ${readout}`).not.toBeNull();
+
+  return {
+    left: Number(match[1]),
+    right: Number(match[2])
+  };
 }
 
 async function expectCoreSurface(page) {
@@ -199,7 +214,65 @@ test("applies Gain to Input and Output while Fader changes only Output", async (
 
   await getOutputFader(page).press("End");
   await expect(inputReadout).toHaveText("RMS -20 dBFS / Peak -8 dBFS");
-  await expect(outputReadout).toHaveText("L -89.6 dBFS / R -90.4 dBFS");
+  await expect(outputReadout).toHaveText("L -90 dBFS / R -90 dBFS");
+});
+
+test("keeps the first Fader step monotonic at the Output floor across sources", async ({
+  page
+}) => {
+  await page.goto(pagePath);
+  await turnSimulationOff(page);
+
+  const sources = [
+    { filter: "vocal", name: "Male Vocal" },
+    { filter: "strings", name: "Acoustic Guitar" }
+  ];
+
+  for (const source of sources) {
+    await selectSource(page, source.filter, source.name);
+    const fader = getOutputFader(page);
+
+    await fader.press("End");
+    await expect(page.locator("#faderValue")).toHaveText("FADER -∞ dB");
+    await expect(page.locator("#outputReadout")).toHaveText("L -90 dBFS / R -90 dBFS");
+    const muted = await readOutputLevels(page);
+
+    await fader.press("ArrowLeft");
+    await expect(fader).toHaveValue("0.999");
+    await expect
+      .poll(async () => {
+        const output = await readOutputLevels(page);
+        return [output.left, output.right];
+      })
+      .toEqual([-90, -90]);
+    const nextStep = await readOutputLevels(page);
+
+    expect(nextStep.left).toBeGreaterThanOrEqual(muted.left);
+    expect(nextStep.right).toBeGreaterThanOrEqual(muted.right);
+    expect(nextStep.left).toBeGreaterThanOrEqual(-90);
+    expect(nextStep.right).toBeGreaterThanOrEqual(-90);
+  }
+});
+
+test("keeps both Output channels at the floor while Simulation is on and Fader is muted", async ({
+  page
+}) => {
+  await page.goto(pagePath);
+  await selectMaleVocal(page);
+
+  const toggle = page.getByRole("switch", { name: /Simulation/ });
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  const inputBefore = await page.locator("#inputReadout").textContent();
+
+  await getOutputFader(page).press("End");
+  await expect(page.locator("#faderValue")).toHaveText("FADER -∞ dB");
+  await expect.poll(async () => page.locator("#inputReadout").textContent()).not.toBe(inputBefore);
+  await expect
+    .poll(async () => {
+      const output = await readOutputLevels(page);
+      return [output.left, output.right];
+    })
+    .toEqual([-90, -90]);
 });
 
 test("keeps Input Clip active when the Output Fader is lowered", async ({ page }) => {

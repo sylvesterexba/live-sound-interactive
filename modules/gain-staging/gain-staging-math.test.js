@@ -70,6 +70,21 @@ describe("calculateStaticLevels", () => {
     });
   });
 
+  it("applies the Output floor without changing static Input levels", () => {
+    const levels = calculateStaticLevels({
+      profile: standardProfile,
+      gain: 28,
+      faderDb: -89.25
+    });
+
+    expect(levels).toEqual({
+      inputRms: -21,
+      inputPeak: -9,
+      outputL: -90,
+      outputR: -90
+    });
+  });
+
   it("returns the same snapshot for repeated identical input", () => {
     const input = { profile: standardProfile, gain: 28, faderDb: -5 };
 
@@ -90,21 +105,81 @@ describe("calculateStaticLevels", () => {
 });
 
 describe("calculateStereoOutput", () => {
-  it.each([
-    { faderDb: -90, outputBase: -90 },
-    { faderDb: -89.5, outputBase: -90 },
-    { faderDb: -89.499, outputBase: -95.499 }
-  ])("preserves the mute boundary at $faderDb dB", ({ faderDb, outputBase }) => {
+  it.each([-90, -89.5])("returns an equal Stereo floor when muted at %s dB", (faderDb) => {
     const output = calculateStereoOutput({
       inputPeak: -6,
       faderDb,
       stereoWidth: 0.8
     });
 
-    expect(output.outputBase).toBeCloseTo(outputBase);
-    expect(output.outputL).toBeCloseTo(outputBase + 0.4);
-    expect(output.outputR).toBeCloseTo(outputBase - 0.4);
+    expect(output).toEqual({
+      outputBase: -90,
+      outputL: -90,
+      outputR: -90
+    });
   });
+
+  it.each([
+    { source: "Male Vocal just above mute", inputPeak: -9, faderDb: -89.499 },
+    { source: "Male Vocal next UI step", inputPeak: -9, faderDb: -89.25 },
+    { source: "Acoustic Guitar just above mute", inputPeak: -14, faderDb: -89.499 },
+    { source: "Acoustic Guitar next UI step", inputPeak: -14, faderDb: -89.25 }
+  ])("keeps $source at the Output floor", ({ inputPeak, faderDb }) => {
+    const output = calculateStereoOutput({ inputPeak, faderDb, stereoWidth: 0.8 });
+
+    expect(output).toEqual({
+      outputBase: -90,
+      outputL: -90,
+      outputR: -90
+    });
+  });
+
+  it("collapses Stereo when raw base is exactly the Output floor", () => {
+    const output = calculateStereoOutput({
+      inputPeak: -9,
+      faderDb: -81,
+      stereoWidth: 1.4
+    });
+
+    expect(output).toEqual({
+      outputBase: -90,
+      outputL: -90,
+      outputR: -90
+    });
+  });
+
+  it("allows a high Input Peak to rise normally after leaving mute", () => {
+    const output = calculateStereoOutput({
+      inputPeak: 2.5,
+      faderDb: -89.499,
+      stereoWidth: 0.8
+    });
+
+    expect(output.outputBase).toBeCloseTo(-86.999);
+    expect(output.outputL).toBeCloseTo(-86.599);
+    expect(output.outputR).toBeCloseTo(-87.399);
+  });
+
+  it.each([
+    { inputPeak: -9, stereoWidth: 0.8 },
+    { inputPeak: -9, stereoWidth: -0.8 },
+    { inputPeak: -14, stereoWidth: 1.4 },
+    { inputPeak: -14, stereoWidth: -1.4 }
+  ])(
+    "keeps base and channels monotonic for Peak $inputPeak and width $stereoWidth",
+    ({ inputPeak, stereoWidth }) => {
+      const faderSequence = [-90, -89.5, -89.499, -89.25, -80, -60, -20, 0, 10];
+      const outputs = faderSequence.map((faderDb) =>
+        calculateStereoOutput({ inputPeak, faderDb, stereoWidth })
+      );
+
+      ["outputBase", "outputL", "outputR"].forEach((key) => {
+        outputs.slice(1).forEach((output, index) => {
+          expect(output[key]).toBeGreaterThanOrEqual(outputs[index][key]);
+        });
+      });
+    }
+  );
 
   it("places both channels at the base output when Stereo width is zero", () => {
     const output = calculateStereoOutput({
@@ -127,6 +202,42 @@ describe("calculateStereoOutput", () => {
     expect(output.outputL).toBeCloseTo(-11.3);
     expect(output.outputR).toBeCloseTo(-12.7);
     expect((output.outputL + output.outputR) / 2).toBeCloseTo(output.outputBase);
+  });
+
+  it("clamps each channel independently when Stereo approaches the floor", () => {
+    const output = calculateStereoOutput({
+      inputPeak: 0,
+      faderDb: -89.4,
+      stereoWidth: 2
+    });
+
+    expect(output.outputBase).toBeCloseTo(-89.4);
+    expect(output.outputL).toBeCloseTo(-88.4);
+    expect(output.outputR).toBe(-90);
+    expect(output.outputL).toBeGreaterThanOrEqual(-90);
+    expect(output.outputR).toBeGreaterThanOrEqual(-90);
+  });
+
+  it("does not clamp Output above 0 dBFS and preserves clip classification", () => {
+    const output = calculateStereoOutput({
+      inputPeak: 2.5,
+      faderDb: 10,
+      stereoWidth: 1.4
+    });
+
+    expect(output.outputBase).toBeCloseTo(12.5);
+    expect(output.outputL).toBeCloseTo(13.2);
+    expect(output.outputR).toBeCloseTo(11.8);
+    expect(classifyOutputLevel(output.outputL, output.outputR).status).toBe("clip");
+  });
+
+  it("does not mutate Stereo calculation input", () => {
+    const input = { inputPeak: -9, faderDb: -80, stereoWidth: 0.8 };
+    const original = { ...input };
+
+    calculateStereoOutput(input);
+
+    expect(input).toEqual(original);
   });
 });
 
