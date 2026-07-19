@@ -37,10 +37,12 @@ The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and A
 - `eq-trainer.css`
 - `dynamic-compression.css`
 - `components/`
+- `components/knob.test.js`
 - `script.js`
 - `simulator.js`
 - `pflMeter.js`
 - `data.js`
+- `data.test.js`
 - `icons.js`
 - `eqTrainer.js`
 - `eqData.js`
@@ -55,6 +57,10 @@ The old EQ Fundamentals course system, Instrument EQ, placeholder lessons, and A
 - `modules/dynamic-compression/simulation-engine.test.js`
 - `assets/`
 - `modules/gain-staging/index.html`
+- `modules/gain-staging/gain-staging-math.js`
+- `modules/gain-staging/gain-staging-math.test.js`
+- `tests/e2e/gain-staging.e2e.js`
+- `tests/e2e/dynamic-compression.e2e.js`
 - `modules/eq-trainer/index.html`
 - `modules/eq-trainer/fundamentals/index.html`
 - `modules/eq-trainer/fundamentals/frequency-atlas/index.html`
@@ -115,6 +121,7 @@ These paths should not be used to justify current product naming. They are retai
 - `components/knob.js`
   - Shared knob value normalization, angle calculation, arc calculation, and mini knob rendering.
   - Current users: `simulator.js` and `interactive-eq-knob.js`.
+  - Public pure helpers are covered directly by `components/knob.test.js`.
 
 ## Gain Staging Ownership
 
@@ -136,14 +143,34 @@ These paths should not be used to justify current product naming. They are retai
 - `script.js`
   - Gain Staging page bootstrap, item list, detail panel, drawer, about modal.
 - `simulator.js`
-  - Gain Staging simulator state, meters, fader/gain interactions.
-  - Uses shared knob helper from `components/knob.js`.
+  - Gain Staging simulator DOM, controls, rendering, random Simulation state, meter state, smoothing, transient and Stereo scheduling, and `requestAnimationFrame` lifecycle.
+  - Uses shared knob helpers from `components/knob.js` and static calculations from `modules/gain-staging/gain-staging-math.js`.
+  - Reduced from 1,057 lines to about 1,013 lines when duplicated Fader/Stereo output formulas were removed. It remains a large runtime file; this is maintainability debt, not an incomplete product feature.
 - `pflMeter.js`
-  - Gain Staging PFL detail meter animation.
+  - Gain Staging PFL numerical animation state, DOM rendering, and its own `requestAnimationFrame` lifecycle.
+  - This is a smaller independent runtime boundary, but it still mixes numerical state, DOM, and RAF responsibilities.
 - `icons.js`
   - Gain Staging source/mic icon rendering.
 - `data.js`
-  - Gain Staging source catalog plus simulator/PFL shared scales and helpers.
+  - Gain Staging source catalog plus simulator/PFL scales and pure mapping/formatting helpers.
+- `modules/gain-staging/gain-staging-math.js`
+  - DOM-free, RNG-free, and RAF-free static core for Gain, Fader, Stereo output, Input/Output status, and simulator-profile derivation.
+  - Provides the single calculation source used by `simulator.js` and its unit tests.
+  - Enforces the -90 dB Output floor and muted base/Left/Right invariant without adding an upper clamp, preserving values above 0 dBFS for clip handling.
+
+### Tests
+
+- `data.test.js`
+  - Covers the public range parsing, meter-profile derivation, Fader mapping, dB formatting, and category-label utilities in `data.js`.
+- `components/knob.test.js`
+  - Covers shared knob normalization, angle/arc calculations, and the public mini-knob markup contract.
+- `modules/gain-staging/gain-staging-math.test.js`
+  - Covers Gain/Fader responsibilities, Stereo output, Output-floor invariants, Input/Output status boundaries, profile derivation, determinism, and input immutability.
+- `tests/e2e/gain-staging.e2e.js`
+  - Provides Chromium browser characterization and regression coverage for module loading, source/detail synchronization, PFL readout, Gain/Fader controls and resets, signal responsibilities, Output floor, Simulation toggle, About Modal, mobile picker, responsive overflow, and browser errors.
+  - It does not claim coverage of other browser engines, physical touch devices, or manual screen-reader behavior.
+
+The meter renderer, random Simulation state, smoothing, transient scheduler, Stereo scheduler, and RAF lifecycle have not been extracted from `simulator.js` into a numerical engine. If that boundary is introduced later, RNG injection, frame delta ownership, smoothing invariants, and renderer snapshots should be defined before functions are moved. This is a follow-up maintainability option, not a blocker or evidence that the current Gain Staging feature is incomplete.
 
 ## EQ Curves Ownership
 
@@ -286,10 +313,11 @@ These are not currently confirmed breaking issues, but they increase the chance 
 ### Gain Staging ownership
 
 - `script.js` is Gain Staging only and assumes Gain DOM IDs/classes exist.
-- `simulator.js` is Gain Staging only and assumes simulator DOM IDs/classes exist.
-- `pflMeter.js` is Gain Staging only and assumes PFL detail DOM exists.
+- `simulator.js` is Gain Staging only and owns simulator DOM, controls, rendering, random Simulation state, smoothing, scheduling, and RAF lifecycle. Static Gain/Fader/Stereo/status/profile calculations come from `modules/gain-staging/gain-staging-math.js`.
+- `pflMeter.js` is Gain Staging only and owns the PFL numerical animation, PFL detail DOM, and its RAF lifecycle.
 - `icons.js` is Gain Staging content logic for source and mic visuals.
-- `data.js` is Gain Staging content plus simulator/PFL math.
+- `data.js` is Gain Staging content plus simulator/PFL scales and public pure mapping/formatting utilities.
+- `modules/gain-staging/gain-staging-math.js` is the pure static calculation boundary shared by the runtime and Vitest.
 
 ### EQ Curves ownership
 
@@ -310,6 +338,7 @@ These are not currently confirmed breaking issues, but they increase the chance 
 - Current users:
   - `simulator.js`
   - `interactive-eq-knob.js`
+- Unit-test boundary: `components/knob.test.js` directly exercises the public pure helpers without a browser.
 
 ### Pages loading JavaScript
 
@@ -333,6 +362,7 @@ Assessment:
 
 - Belongs to Gain Staging.
 - Internally couples content data and simulator presentation math in one file.
+- Its public parsing, meter-profile, Fader mapping, formatting, and category-label utilities are protected by `data.test.js`.
 - Acceptable for current size, but future growth may justify a split.
 
 ### `eqData.js`
@@ -376,6 +406,8 @@ Assessment:
 
 - Shared CSS files contain feature-only sections.
 - `data.js` mixes content data, meter constants, fader curves, and utility functions.
+- `simulator.js` still combines DOM, controls, meter rendering, random Simulation state, smoothing, transient and Stereo scheduling, and RAF lifecycle after static calculations were extracted.
+- `pflMeter.js` is independent from the main simulator but still combines numerical animation state, DOM rendering, and RAF lifecycle.
 - `eqData.js` mixes EQ band data and teaching copy.
 - Body-level state classes are used as page-mode switches.
 
@@ -399,6 +431,9 @@ Assessment:
 - Gain Staging page markup.
 - Instrument/source list, detail panel, PFL meter, simulator, floating simulator CTA.
 - Gain source data and gain-specific icon logic.
+- DOM-free static Gain/Fader/Stereo/status/profile calculations and their unit tests.
+- Public data/mapping/formatting and shared knob utilities with direct unit-test protection.
+- Chromium browser characterization and regression coverage for the current user-facing workflow.
 - Gain-only responsive drawer/simulator/detail behavior.
 
 ### EQ Curves
@@ -512,6 +547,8 @@ Do not write documentation as though this structure already exists. It is only a
 ## Bottom Line
 
 - Current runtime isolation is better than the file tree suggests because Home loads no JS, Gain Staging loads `script.js`, EQ Curves loads `eqTrainer.js`, and Dynamic Compression loads `modules/dynamic-compression/dynamic-compression.js`.
+- Gain Staging static Gain/Fader/Stereo/status/profile calculations now have a DOM-free boundary shared by the runtime and unit tests. Its data and shared knob pure utilities also have direct unit coverage, while Playwright protects current Chromium browser behavior.
+- Gain Staging random Simulation, meter rendering, smoothing, scheduling, and RAF lifecycle remain together in `simulator.js`; PFL remains a separate smaller mixed numerical/DOM/RAF runtime. These are maintainability concerns, not missing product functionality.
 - Dynamic Compression core formulas and Simulation numerical state now have separate DOM-free boundaries with unit-test protection. The runtime entry still combines DOM collection, controls, Formula Detail, meters, transfer curve, browser lifecycle, and UI rendering.
 - Current CSS isolation is weaker because several shared files still contain mixed feature ownership.
 - The biggest maintenance risk is not an active runtime bug today. It is that feature-specific CSS, JS, and data still live in shared root locations.
