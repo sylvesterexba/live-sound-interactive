@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noise Gate | Live Sound Interactive</title>
+  <link rel="canonical" href="https://sylvesterexba.github.io/live-sound-interactive/modules/noise-gate/" />
+  <meta
+    name="description"
+    content="調整 Threshold、Attack、Hold 與 Release，觀察 Noise Gate 如何根據輸入訊號開啟與關閉。"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Noise Gate | Live Sound Interactive" />
+  <meta property="og:url" content="https://sylvesterexba.github.io/live-sound-interactive/modules/noise-gate/" />
+  <meta
+    property="og:description"
+    content="調整 Threshold、Attack、Hold 與 Release，觀察 Noise Gate 如何根據輸入訊號開啟與關閉。"
+  />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Noise Gate | Live Sound Interactive" />
+  <meta
+    name="twitter:description"
+    content="調整 Threshold、Attack、Hold 與 Release，觀察 Noise Gate 如何根據輸入訊號開啟與關閉。"
+  />
+  <link rel="stylesheet" href="../../base.css" />
+  <link rel="stylesheet" href="../../layout.css" />
+  <link rel="stylesheet" href="../../components.css" />
+  <link rel="stylesheet" href="../../noise-gate.css" />
+  <script type="module" src="./noise-gate.js"></script>
+</head>
+<body class="gate-page">
+  <header class="gate-header">
+    <a class="about-button gate-back-link" href="../../index.html">← Back to Home</a>
+    <div class="gate-hero">
+      <p class="gate-eyebrow">Dynamics Lab · Static Preview</p>
+      <h1 class="bilingual-title">
+        <span class="title-en">Noise Gate</span>
+        <span class="title-zh">噪音閘門</span>
+      </h1>
+      <p>調整 Threshold、Attack、Hold 與 Release，觀察 Noise Gate 如何根據輸入訊號開啟與關閉。</p>
+    </div>
+  </header>
+
+  <main class="gate-main">
+    <section class="gate-workspace" aria-label="Noise Gate signal overview">
+      <section class="gate-panel gate-meter-bridge" aria-label="Noise Gate meter bridge">
+        <div class="gate-panel-heading gate-meter-bridge__heading">
+          <div>
+            <span>METER BRIDGE</span>
+            <strong>電平監看</strong>
+          </div>
+          <p>Deterministic phase snapshot · 固定階段快照</p>
+        </div>
+
+        <article class="gate-meter-channel">
+          <div class="gate-meter-channel__heading">
+            <span>Input</span>
+            <strong>輸入電平</strong>
+          </div>
+          <div
+            class="gate-meter gate-meter--level"
+            role="meter"
+            aria-label="Input level"
+            aria-valuemin="-60"
+            aria-valuemax="0"
+            aria-valuenow="-30"
+            aria-valuetext="-30.0 dB"
+            data-gate-meter="input"
+            style="--gate-meter-fill: 50%"
+          >
+            <span class="gate-meter__scale" aria-hidden="true">
+              <i>0</i><i>-12</i><i>-24</i><i>-36</i><i>-48</i><i>-60</i>
+            </span>
+            <span class="gate-meter__well" aria-hidden="true">
+              <span class="gate-meter__fill"></span>
+              <span class="gate-meter__ticks"></span>
+            </span>
+          </div>
+          <span class="gate-meter-readout" data-gate-meter-readout="input">-30.0 dB</span>
+        </article>
+
+        <article class="gate-meter-channel gate-meter-channel--reduction">
+          <div class="gate-meter-channel__heading">
+            <span>Gate Reduction</span>
+            <strong>閘門衰減</strong>
+          </div>
+          <div
+            class="gate-meter gate-meter--reduction"
+            role="meter"
+            aria-label="Gate Reduction"
+            aria-valuemin="0"
+            aria-valuemax="60"
+            aria-valuenow="60"
+            aria-valuetext="60+ dB"
+            data-gate-meter="reduction"
+            style="--gate-meter-fill: 100%"
+          >
+            <span class="gate-meter__scale" aria-hidden="true">
+              <i>60+</i><i>48</i><i>36</i><i>24</i><i>12</i><i>0</i>
+            </span>
+            <span class="gate-meter__well" aria-hidden="true">
+              <span class="gate-meter__fill"></span>
+              <span class="gate-meter__ticks"></span>
+            </span>
+          </div>
+          <span class="gate-meter-readout" data-gate-meter-readout="reduction">60+ dB</span>
+        </article>
+
+        <article class="gate-meter-channel">
+          <div class="gate-meter-channel__heading">
+            <span>Output</span>
+            <strong>輸出電平</strong>
+          </div>
+          <div
+            class="gate-meter gate-meter--level"
+            role="meter"
+            aria-label="Output level"
+            aria-valuemin="-60"
+            aria-valuemax="0"
+            aria-valuenow="-60"
+            aria-valuetext="−∞ dB"
+            data-gate-meter="output"
+            style="--gate-meter-fill: 0%"
+          >
+            <span class="gate-meter__scale" aria-hidden="true">
+              <i>0</i><i>-12</i><i>-24</i><i>-36</i><i>-48</i><i>-60</i>
+            </span>
+            <span class="gate-meter__well" aria-hidden="true">
+              <span class="gate-meter__fill"></span>
+              <span class="gate-meter__ticks"></span>
+            </span>
+          </div>
+          <span class="gate-meter-readout" data-gate-meter-readout="output">−∞ dB</span>
+        </article>
+      </section>
+
+      <section class="gate-panel gate-timeline-panel" aria-labelledby="gateTimelineHeading">
+        <div class="gate-panel-heading gate-timeline-panel__heading">
+          <div>
+            <span id="gateTimelineHeading">GATE TIMELINE</span>
+            <strong>閘門時間軸</strong>
+          </div>
+          <p>Deterministic teaching signal · 固定教學訊號</p>
+        </div>
+
+        <div class="gate-timeline-frame">
+          <svg
+            class="gate-timeline"
+            viewBox="0 0 840 390"
+            role="img"
+            aria-labelledby="gateTimelineTitle gateTimelineDescription"
+            data-gate-timeline
+          >
+            <title id="gateTimelineTitle">Noise Gate signal and envelope timeline</title>
+            <desc id="gateTimelineDescription" data-gate-timeline-description>
+              Deterministic input signal, threshold line, and gate envelope with Attack, Open, Hold, and Release phases.
+            </desc>
+            <defs>
+              <linearGradient id="gateSignalGradient" x1="0" x2="1">
+                <stop offset="0" stop-color="#67e8f9" />
+                <stop offset="1" stop-color="#a5f3fc" />
+              </linearGradient>
+              <linearGradient id="gateEnvelopeGradient" x1="0" x2="1">
+                <stop offset="0" stop-color="#c084fc" />
+                <stop offset="0.55" stop-color="#a78bfa" />
+                <stop offset="1" stop-color="#f0abfc" />
+              </linearGradient>
+            </defs>
+
+            <rect class="gate-timeline__surface" x="58" y="36" width="752" height="296" rx="12" />
+            <g class="gate-timeline__grid" aria-hidden="true">
+              <path d="M72 52H796" />
+              <path d="M72 118H796" />
+              <path d="M72 184H796" />
+              <path d="M72 250H796" />
+              <path d="M72 316H796" />
+            </g>
+
+            <path class="gate-timeline__threshold" data-gate-threshold-line d="M72 140H796" />
+            <text class="gate-timeline__threshold-label" data-gate-threshold-label x="82" y="132">
+              Threshold -20.0 dB
+            </text>
+            <path class="gate-timeline__signal" data-gate-signal-path d="" />
+            <path class="gate-timeline__envelope" data-gate-envelope-path d="" />
+
+            <g class="gate-timeline__phase-guides" aria-hidden="true">
+              <line data-gate-phase-guide="attack" x1="180" x2="180" y1="226" y2="328" />
+              <line data-gate-phase-guide="open" x1="250" x2="250" y1="226" y2="328" />
+              <line data-gate-phase-guide="hold" x1="540" x2="540" y1="226" y2="328" />
+              <line data-gate-phase-guide="release" x1="610" x2="610" y1="226" y2="328" />
+            </g>
+            <g class="gate-timeline__phase-labels" aria-hidden="true">
+              <text data-gate-phase-label="attack" x="215" y="356">ATTACK</text>
+              <text data-gate-phase-label="open" x="395" y="356">OPEN</text>
+              <text data-gate-phase-label="hold" x="575" y="356">HOLD</text>
+              <text data-gate-phase-label="release" x="690" y="356">RELEASE</text>
+            </g>
+            <text class="gate-timeline__axis-label" x="76" y="70">INPUT SIGNAL</text>
+            <text class="gate-timeline__axis-label" x="76" y="216">GATE ENVELOPE</text>
+          </svg>
+        </div>
+
+        <section class="gate-state-panel" aria-label="Current Gate state">
+          <div
+            class="gate-state-current"
+            role="status"
+            aria-live="polite"
+            data-gate-state-indicator
+            data-state="CLOSED"
+            data-core-output="-Infinity"
+          >
+            <span>Current State · 當前狀態</span>
+            <strong><b data-gate-state-en>CLOSED</b><i data-gate-state-zh>關閉</i></strong>
+            <small>Envelope <span data-gate-envelope-value>0.00</span></small>
+          </div>
+          <ol class="gate-state-sequence" aria-label="Noise Gate state sequence">
+            <li class="is-active" data-gate-state-option="CLOSED"><b>CLOSED</b><span>關閉</span></li>
+            <li data-gate-state-option="ATTACK"><b>ATTACK</b><span>開啟中</span></li>
+            <li data-gate-state-option="OPEN"><b>OPEN</b><span>開啟</span></li>
+            <li data-gate-state-option="HOLD"><b>HOLD</b><span>保持</span></li>
+            <li data-gate-state-option="RELEASE"><b>RELEASE</b><span>關閉中</span></li>
+          </ol>
+        </section>
+      </section>
+    </section>
+
+    <section class="gate-panel gate-control-surface" aria-label="Noise Gate controls">
+      <div class="gate-panel-heading gate-control-surface__heading">
+        <div>
+          <span>CONTROL SURFACE</span>
+          <strong>參數控制</strong>
+        </div>
+        <p>Drag vertically or use arrow keys · 上下拖曳或使用方向鍵</p>
+      </div>
+
+      <div class="gate-control-grid">
+        <article class="gate-control">
+          <span class="gate-control__label">Input Level</span>
+          <span class="gate-control__zh">輸入電平</span>
+          <div class="gate-knob" role="slider" tabindex="0" aria-label="Input Level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-30" aria-valuetext="-30.0 dB" aria-orientation="vertical" data-gate-control="inputLevel">
+            <span class="gate-knob__ring"></span><span class="gate-knob__cap"><span class="gate-knob__indicator"></span></span>
+          </div>
+          <span class="gate-control__readout" data-gate-control-value="inputLevel">-30.0 dB</span>
+          <div class="gate-control__range" aria-hidden="true"><span>-60 dB</span><span>0 dB</span></div>
+        </article>
+
+        <article class="gate-control">
+          <span class="gate-control__label">Threshold</span>
+          <span class="gate-control__zh">臨界值</span>
+          <div class="gate-knob" role="slider" tabindex="0" aria-label="Threshold" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-20" aria-valuetext="-20.0 dB" aria-orientation="vertical" data-gate-control="threshold">
+            <span class="gate-knob__ring"></span><span class="gate-knob__cap"><span class="gate-knob__indicator"></span></span>
+          </div>
+          <span class="gate-control__readout" data-gate-control-value="threshold">-20.0 dB</span>
+          <div class="gate-control__range" aria-hidden="true"><span>-60 dB</span><span>0 dB</span></div>
+        </article>
+
+        <article class="gate-control">
+          <span class="gate-control__label">Attack</span>
+          <span class="gate-control__zh">開啟時間</span>
+          <div class="gate-knob" role="slider" tabindex="0" aria-label="Attack" aria-valuemin="0" aria-valuemax="500" aria-valuenow="100" aria-valuetext="100 ms" aria-orientation="vertical" data-gate-control="attack">
+            <span class="gate-knob__ring"></span><span class="gate-knob__cap"><span class="gate-knob__indicator"></span></span>
+          </div>
+          <span class="gate-control__readout" data-gate-control-value="attack">100 ms</span>
+          <div class="gate-control__range" aria-hidden="true"><span>0 ms</span><span>500 ms</span></div>
+        </article>
+
+        <article class="gate-control">
+          <span class="gate-control__label">Hold</span>
+          <span class="gate-control__zh">保持時間</span>
+          <div class="gate-knob" role="slider" tabindex="0" aria-label="Hold" aria-valuemin="0" aria-valuemax="2000" aria-valuenow="100" aria-valuetext="100 ms" aria-orientation="vertical" data-gate-control="hold">
+            <span class="gate-knob__ring"></span><span class="gate-knob__cap"><span class="gate-knob__indicator"></span></span>
+          </div>
+          <span class="gate-control__readout" data-gate-control-value="hold">100 ms</span>
+          <div class="gate-control__range" aria-hidden="true"><span>0 ms</span><span>2000 ms</span></div>
+        </article>
+
+        <article class="gate-control">
+          <span class="gate-control__label">Release</span>
+          <span class="gate-control__zh">關閉時間</span>
+          <div class="gate-knob" role="slider" tabindex="0" aria-label="Release" aria-valuemin="0" aria-valuemax="5000" aria-valuenow="200" aria-valuetext="200 ms" aria-orientation="vertical" data-gate-control="release">
+            <span class="gate-knob__ring"></span><span class="gate-knob__cap"><span class="gate-knob__indicator"></span></span>
+          </div>
+          <span class="gate-control__readout" data-gate-control-value="release">200 ms</span>
+          <div class="gate-control__range" aria-hidden="true"><span>0 ms</span><span>5000 ms</span></div>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
