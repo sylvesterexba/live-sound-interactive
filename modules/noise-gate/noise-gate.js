@@ -1,5 +1,10 @@
 import { getKnobAngle, getKnobArcAngle } from "../../components/knob.js";
 import { GATE_STATES, createNoiseGateSimulationCore } from "./simulation-core.js";
+import {
+  createNoiseGateSimulationEngine,
+  getTeachingCycleModel,
+  getTeachingSignalAt
+} from "./simulation-engine.js";
 
 export const noiseGateState = {
   inputLevel: -30,
@@ -43,11 +48,19 @@ const STATE_LABELS = Object.freeze({
   HOLD: "保持",
   RELEASE: "關閉中"
 });
-const TUTORIAL_SIGNAL_POSITIONS = Object.freeze([0, 0.14, 0.22, 0.28, 0.66, 0.72, 0.82, 1]);
 const KNOB_DRAG_PIXELS = 180;
-const FIXED_OPEN_PREVIEW_MS = 500;
 const LEVEL_FLOOR_DB = -60;
 const REDUCTION_CEILING_DB = 60;
+const simulationEngine = createNoiseGateSimulationEngine(noiseGateState);
+const simulationRuntime = {
+  animationFrameId: null,
+  explicitMotionPreference: false,
+  isBound: false,
+  isEnabled: true,
+  lastTimestamp: 0,
+  pageDocument: null,
+  reducedMotionQuery: null
+};
 
 function finiteNumber(value, fallback = 0) {
   const number = Number(value);
@@ -132,44 +145,42 @@ export function buildTimelineGeometry(controls) {
       normalizeControlValue(name, controls?.[name])
     ])
   );
+  const model = getTeachingCycleModel(normalized);
   const thresholdY = dbToTimelineY(normalized.threshold);
-  const belowLevel = clamp(
-    Math.min(normalized.inputLevel, normalized.threshold - 12),
-    LEVEL_FLOOR_DB,
-    0
-  );
-  const aboveLevel = clamp(
-    Math.max(normalized.inputLevel, normalized.threshold + 10),
-    LEVEL_FLOOR_DB,
-    0
-  );
-  const signalLevels = [
-    belowLevel,
-    belowLevel,
-    normalized.threshold,
-    aboveLevel,
-    aboveLevel,
-    normalized.threshold,
-    belowLevel,
-    belowLevel
+  const timeToX = (timeMs) =>
+    TIMELINE_BOUNDS.left +
+    (clamp(timeMs, 0, model.cycleDurationMs) / model.cycleDurationMs) *
+      (TIMELINE_BOUNDS.right - TIMELINE_BOUNDS.left);
+  const signalTimes = [
+    0,
+    model.boundaries.riseStartMs,
+    model.gateTiming.triggerTimeMs ?? model.boundaries.riseStartMs,
+    model.boundaries.riseEndMs,
+    model.boundaries.fallStartMs,
+    model.gateTiming.closeTriggerTimeMs ?? model.boundaries.fallEndMs,
+    model.boundaries.fallEndMs,
+    model.cycleDurationMs - 0.001
   ];
-  const signalPoints = TUTORIAL_SIGNAL_POSITIONS.map((position, index) => [
-    TIMELINE_BOUNDS.left + position * (TIMELINE_BOUNDS.right - TIMELINE_BOUNDS.left),
-    dbToTimelineY(signalLevels[index])
+  const signalPoints = signalTimes.map((timeMs) => [
+    timeToX(timeMs),
+    dbToTimelineY(getTeachingSignalAt(timeMs, normalized).inputLevel)
   ]);
 
-  const phaseDuration =
-    normalized.attack + FIXED_OPEN_PREVIEW_MS + normalized.hold + normalized.release;
-  const phaseWidth = TIMELINE_BOUNDS.phaseEnd - TIMELINE_BOUNDS.phaseStart;
-  const attackEnd = TIMELINE_BOUNDS.phaseStart + (normalized.attack / phaseDuration) * phaseWidth;
-  const openEnd = attackEnd + (FIXED_OPEN_PREVIEW_MS / phaseDuration) * phaseWidth;
-  const holdEnd = openEnd + (normalized.hold / phaseDuration) * phaseWidth;
-  const releaseEnd = TIMELINE_BOUNDS.phaseEnd;
+  const attackStartMs = model.gateTiming.triggerTimeMs ?? model.boundaries.riseStartMs;
+  const attackEndMs = model.gateTiming.attackEndMs ?? attackStartMs;
+  const holdStartMs = model.gateTiming.closeTriggerTimeMs ?? model.boundaries.fallStartMs;
+  const holdEndMs = model.gateTiming.holdEndMs ?? holdStartMs;
+  const releaseEndMs = model.gateTiming.releaseEndMs ?? holdEndMs;
+  const attackStart = timeToX(attackStartMs);
+  const attackEnd = timeToX(attackEndMs);
+  const holdStart = timeToX(holdStartMs);
+  const holdEnd = timeToX(holdEndMs);
+  const releaseEnd = timeToX(releaseEndMs);
   const envelopePoints = [
     [TIMELINE_BOUNDS.left, TIMELINE_BOUNDS.envelopeBottom],
-    [TIMELINE_BOUNDS.phaseStart, TIMELINE_BOUNDS.envelopeBottom],
+    [attackStart, TIMELINE_BOUNDS.envelopeBottom],
     [attackEnd, TIMELINE_BOUNDS.envelopeTop],
-    [openEnd, TIMELINE_BOUNDS.envelopeTop],
+    [holdStart, TIMELINE_BOUNDS.envelopeTop],
     [holdEnd, TIMELINE_BOUNDS.envelopeTop],
     [releaseEnd, TIMELINE_BOUNDS.envelopeBottom],
     [TIMELINE_BOUNDS.right, TIMELINE_BOUNDS.envelopeBottom]
@@ -179,17 +190,18 @@ export function buildTimelineGeometry(controls) {
     thresholdY,
     signalPath: pointsToPath(signalPoints),
     envelopePath: pointsToPath(envelopePoints),
+    cycleDurationMs: model.cycleDurationMs,
     phaseBoundaries: {
-      attack: TIMELINE_BOUNDS.phaseStart,
+      attack: attackStart,
       open: attackEnd,
-      hold: openEnd,
+      hold: holdStart,
       release: holdEnd,
       end: releaseEnd
     },
     phaseLabels: {
-      attack: (TIMELINE_BOUNDS.phaseStart + attackEnd) / 2,
-      open: (attackEnd + openEnd) / 2,
-      hold: (openEnd + holdEnd) / 2,
+      attack: (attackStart + attackEnd) / 2,
+      open: (attackEnd + holdStart) / 2,
+      hold: (holdStart + holdEnd) / 2,
       release: (holdEnd + releaseEnd) / 2
     }
   };
@@ -205,14 +217,7 @@ function normalizeControls(controls) {
 }
 
 function getTeachingSignalLevels(controls) {
-  const availableRise = Math.min(10, Math.max(0, -controls.threshold));
-  return {
-    below: controls.inputLevel <= controls.threshold ? controls.inputLevel : controls.threshold,
-    above:
-      controls.inputLevel > controls.threshold
-        ? controls.inputLevel
-        : Math.min(0, controls.threshold + availableRise)
-  };
+  return getTeachingCycleModel(controls).signalLevels;
 }
 
 export function createTeachingSequence(
@@ -355,6 +360,24 @@ function renderTimeline(controls, pageDocument) {
   }
 }
 
+export function getTimelinePlayheadX(cycleTimeMs, cycleDurationMs) {
+  const safeDuration = Math.max(1, finiteNumber(cycleDurationMs, 1));
+  const progress = clamp(finiteNumber(cycleTimeMs) / safeDuration, 0, 1);
+  return TIMELINE_BOUNDS.left + progress * (TIMELINE_BOUNDS.right - TIMELINE_BOUNDS.left);
+}
+
+function renderTimelinePlayhead(snapshot, pageDocument) {
+  const playhead = pageDocument.querySelector("[data-gate-playhead]");
+  const timeline = pageDocument.querySelector("[data-gate-timeline]");
+  if (!playhead) return;
+
+  const x = getTimelinePlayheadX(snapshot.cycleTimeMs, snapshot.cycleDurationMs);
+  playhead.setAttribute("transform", `translate(${x} 0)`);
+  timeline?.setAttribute("data-cycle-time", String(snapshot.cycleTimeMs));
+  timeline?.setAttribute("data-cycle-duration", String(snapshot.cycleDurationMs));
+  timeline?.setAttribute("data-cycle-progress", String(snapshot.cycleProgress));
+}
+
 function renderState(snapshot, pageDocument) {
   const indicator = pageDocument.querySelector("[data-gate-state-indicator]");
   if (!indicator) return;
@@ -376,15 +399,30 @@ function renderState(snapshot, pageDocument) {
   });
 }
 
-export function renderNoiseGate(pageDocument) {
-  const snapshot = createStaticPreviewSnapshot(noiseGateState);
+function renderSimulationToggle(pageDocument) {
+  const toggle = pageDocument.querySelector("[data-gate-simulation-toggle]");
+  const state = pageDocument.querySelector("[data-gate-simulation-state]");
+  if (!toggle) return;
+
+  toggle.setAttribute("aria-checked", String(simulationRuntime.isEnabled));
+  toggle.classList.toggle("is-on", simulationRuntime.isEnabled);
+  if (state) state.textContent = simulationRuntime.isEnabled ? "On · 開啟" : "Off · 關閉";
+}
+
+function renderSimulationSnapshot(snapshot, pageDocument) {
   const meters = getMeterPresentation(snapshot);
-  renderControls(pageDocument);
   renderMeter("input", meters.input, pageDocument);
   renderMeter("reduction", meters.reduction, pageDocument);
   renderMeter("output", meters.output, pageDocument);
-  renderTimeline(noiseGateState, pageDocument);
+  renderTimelinePlayhead(snapshot, pageDocument);
   renderState(snapshot, pageDocument);
+}
+
+export function renderNoiseGate(pageDocument, snapshot = simulationEngine.refresh(noiseGateState)) {
+  renderControls(pageDocument);
+  renderTimeline(noiseGateState, pageDocument);
+  renderSimulationSnapshot(snapshot, pageDocument);
+  renderSimulationToggle(pageDocument);
   return snapshot;
 }
 
@@ -397,7 +435,7 @@ function getNextControlValue(name, currentValue, direction, multiplier = 1) {
 
 function setControlValue(name, value, pageDocument) {
   noiseGateState[name] = normalizeControlValue(name, value);
-  renderNoiseGate(pageDocument);
+  renderNoiseGate(pageDocument, simulationEngine.refresh(noiseGateState));
 }
 
 function bindControls(pageDocument) {
@@ -476,9 +514,104 @@ function bindControls(pageDocument) {
   });
 }
 
+function stopAnimationLoop() {
+  if (simulationRuntime.animationFrameId !== null) {
+    window.cancelAnimationFrame(simulationRuntime.animationFrameId);
+    simulationRuntime.animationFrameId = null;
+  }
+  simulationRuntime.lastTimestamp = 0;
+}
+
+function runSimulationFrame(timestamp) {
+  simulationRuntime.animationFrameId = null;
+  const { pageDocument } = simulationRuntime;
+  if (!pageDocument || !simulationRuntime.isEnabled || pageDocument.visibilityState !== "visible") {
+    return;
+  }
+
+  if (!simulationRuntime.lastTimestamp) {
+    simulationRuntime.lastTimestamp = timestamp;
+    renderSimulationSnapshot(simulationEngine.getSnapshot(), pageDocument);
+  } else {
+    const deltaMs = timestamp - simulationRuntime.lastTimestamp;
+    simulationRuntime.lastTimestamp = timestamp;
+    renderSimulationSnapshot(simulationEngine.step(noiseGateState, deltaMs), pageDocument);
+  }
+
+  startAnimationLoop();
+}
+
+function startAnimationLoop() {
+  const { pageDocument } = simulationRuntime;
+  if (
+    typeof window === "undefined" ||
+    simulationRuntime.animationFrameId !== null ||
+    !simulationRuntime.isEnabled ||
+    !pageDocument ||
+    pageDocument.visibilityState !== "visible"
+  ) {
+    return;
+  }
+
+  simulationRuntime.animationFrameId = window.requestAnimationFrame(runSimulationFrame);
+}
+
+function setSimulationEnabled(isEnabled) {
+  simulationRuntime.isEnabled = Boolean(isEnabled);
+  let snapshot;
+
+  if (simulationRuntime.isEnabled) {
+    snapshot = simulationEngine.start();
+    simulationRuntime.lastTimestamp = 0;
+    startAnimationLoop();
+  } else {
+    stopAnimationLoop();
+    snapshot = simulationEngine.stop();
+  }
+
+  if (simulationRuntime.pageDocument) {
+    renderNoiseGate(simulationRuntime.pageDocument, snapshot);
+  }
+}
+
+function bindSimulationRuntime(pageDocument) {
+  if (simulationRuntime.isBound) return;
+  simulationRuntime.isBound = true;
+
+  pageDocument.querySelector("[data-gate-simulation-toggle]")?.addEventListener("click", () => {
+    simulationRuntime.explicitMotionPreference = true;
+    setSimulationEnabled(!simulationRuntime.isEnabled);
+  });
+
+  pageDocument.addEventListener("visibilitychange", () => {
+    if (pageDocument.visibilityState !== "visible") {
+      stopAnimationLoop();
+      return;
+    }
+
+    simulationRuntime.lastTimestamp = 0;
+    startAnimationLoop();
+  });
+
+  simulationRuntime.reducedMotionQuery?.addEventListener("change", (event) => {
+    if (simulationRuntime.explicitMotionPreference) return;
+    setSimulationEnabled(!event.matches);
+  });
+}
+
 export function initNoiseGate(pageDocument) {
+  simulationRuntime.pageDocument = pageDocument;
+  simulationRuntime.reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  simulationRuntime.isEnabled = !simulationRuntime.reducedMotionQuery.matches;
+  simulationEngine.reset(noiseGateState);
+  if (simulationRuntime.isEnabled) simulationEngine.start();
+  else simulationEngine.stop();
+
   bindControls(pageDocument);
-  return renderNoiseGate(pageDocument);
+  bindSimulationRuntime(pageDocument);
+  const snapshot = renderNoiseGate(pageDocument, simulationEngine.getSnapshot());
+  startAnimationLoop();
+  return snapshot;
 }
 
 if (typeof document !== "undefined") {

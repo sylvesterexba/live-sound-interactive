@@ -37,7 +37,8 @@ async function expectCoreSurface(page) {
   await expect(
     page.getByRole("img", { name: /Noise Gate signal and envelope timeline/ })
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("CLOSED");
+  await expect(page.getByRole("status")).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Simulation 模擬" })).toBeVisible();
   await expect(page.locator("[data-gate-state-option]")).toHaveCount(5);
   for (const name of controlNames) {
     await expect(page.getByRole("slider", { name, exact: true })).toBeVisible();
@@ -51,10 +52,17 @@ test("loads the standalone Noise Gate page and required modules", async ({ page 
   const coreResponse = page.waitForResponse(
     (response) => response.url().endsWith("/simulation-core.js") && response.status() === 200
   );
+  const engineResponse = page.waitForResponse(
+    (response) => response.url().endsWith("/simulation-engine.js") && response.status() === 200
+  );
 
   await page.goto(pagePath);
-  await Promise.all([controllerResponse, coreResponse]);
+  await Promise.all([controllerResponse, coreResponse, engineResponse]);
   await expectCoreSurface(page);
+  await expect(page.getByRole("switch", { name: "Simulation 模擬" })).toHaveAttribute(
+    "aria-checked",
+    "true"
+  );
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
     "https://sylvesterexba.github.io/live-sound-interactive/modules/noise-gate/"
@@ -69,6 +77,7 @@ test("updates controls, ARIA values, state, meters, and timeline with the keyboa
   page
 }) => {
   await page.goto(pagePath);
+  await page.getByRole("switch", { name: "Simulation 模擬" }).click();
   const input = page.getByRole("slider", { name: "Input Level", exact: true });
   const threshold = page.getByRole("slider", { name: "Threshold", exact: true });
   const attack = page.getByRole("slider", { name: "Attack", exact: true });
@@ -82,16 +91,15 @@ test("updates controls, ARIA values, state, meters, and timeline with the keyboa
   await expect.poll(() => thresholdPath.getAttribute("d")).not.toBe(initialThresholdPath);
 
   await input.press("End");
-  await expect(page.getByRole("status")).toContainText("ATTACK");
-  await expect(page.locator("[data-gate-meter-readout='output']")).not.toHaveText("−∞ dB");
+  await expect(input).toHaveAttribute("aria-valuenow", "0");
   await attack.press("Home");
-  await expect(page.getByRole("status")).toContainText("OPEN");
-  await expect(page.locator("[data-gate-meter-readout='reduction']")).toHaveText("0.0 dB");
+  await expect(attack).toHaveAttribute("aria-valuenow", "0");
 });
 
 test("keeps equality closed and separates true infinity from the Output meter floor", async ({
   page
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(pagePath);
   const input = page.getByRole("slider", { name: "Input Level", exact: true });
   const threshold = page.getByRole("slider", { name: "Threshold", exact: true });
@@ -107,6 +115,109 @@ test("keeps equality closed and separates true infinity from the Output meter fl
   await expect(outputMeter).toHaveAttribute("aria-valuetext", "−∞ dB");
   await expect(page.locator("[data-gate-meter-readout='output']")).toHaveText("−∞ dB");
   await expect(page.locator("[data-gate-meter-readout='reduction']")).toHaveText("60+ dB");
+});
+
+test("pauses and resumes the playhead without resetting the cycle", async ({ page }) => {
+  await page.goto(pagePath);
+  const toggle = page.getByRole("switch", { name: "Simulation 模擬" });
+  const timeline = page.locator("[data-gate-timeline]");
+
+  const initialProgress = Number(await timeline.getAttribute("data-cycle-progress"));
+  await expect
+    .poll(async () => Number(await timeline.getAttribute("data-cycle-progress")))
+    .toBeGreaterThan(initialProgress);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  await expect(page.locator("[data-gate-simulation-state]")).toContainText("Off");
+  const pausedProgress = await timeline.getAttribute("data-cycle-progress");
+  await page.waitForTimeout(250);
+  await expect(timeline).toHaveAttribute("data-cycle-progress", pausedProgress);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator("[data-gate-simulation-state]")).toContainText("On");
+  await expect
+    .poll(async () => Number(await timeline.getAttribute("data-cycle-progress")))
+    .toBeGreaterThan(Number(pausedProgress));
+});
+
+test("drives all core states, meters, and the looping playhead at runtime", async ({ page }) => {
+  await page.goto(pagePath);
+  const hold = page.getByRole("slider", { name: "Hold", exact: true });
+  await hold.press("PageUp");
+  await hold.press("PageUp");
+  await expect(hold).toHaveAttribute("aria-valuenow", "600");
+
+  const observations = await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const states = new Set();
+        const inputReadouts = new Set();
+        const outputReadouts = new Set();
+        const reductionReadouts = new Set();
+        const progressValues = [];
+        const startedAt = performance.now();
+        const intervalId = window.setInterval(() => {
+          states.add(document.querySelector("[data-gate-state-indicator]")?.dataset.state);
+          inputReadouts.add(
+            document.querySelector("[data-gate-meter-readout='input']")?.textContent
+          );
+          outputReadouts.add(
+            document.querySelector("[data-gate-meter-readout='output']")?.textContent
+          );
+          reductionReadouts.add(
+            document.querySelector("[data-gate-meter-readout='reduction']")?.textContent
+          );
+          progressValues.push(
+            Number(document.querySelector("[data-gate-timeline]")?.dataset.cycleProgress)
+          );
+
+          if (performance.now() - startedAt >= 6000) {
+            window.clearInterval(intervalId);
+            resolve({
+              states: [...states],
+              inputReadouts: [...inputReadouts],
+              outputReadouts: [...outputReadouts],
+              reductionReadouts: [...reductionReadouts],
+              progressValues
+            });
+          }
+        }, 20);
+      })
+  );
+
+  expect(observations.states).toEqual(
+    expect.arrayContaining(["CLOSED", "ATTACK", "OPEN", "HOLD", "RELEASE"])
+  );
+  expect(observations.inputReadouts.length).toBeGreaterThan(2);
+  expect(observations.outputReadouts).toContain("−∞ dB");
+  expect(observations.outputReadouts.length).toBeGreaterThan(2);
+  expect(observations.reductionReadouts).toContain("0.0 dB");
+  expect(observations.reductionReadouts.length).toBeGreaterThan(2);
+  expect(
+    observations.progressValues.some(
+      (progress, index) => index > 0 && progress < observations.progressValues[index - 1]
+    )
+  ).toBe(true);
+});
+
+test("uses a static fallback for reduced motion until explicitly enabled", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(pagePath);
+  const toggle = page.getByRole("switch", { name: "Simulation 模擬" });
+  const timeline = page.locator("[data-gate-timeline]");
+
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  const staticProgress = await timeline.getAttribute("data-cycle-progress");
+  await page.waitForTimeout(200);
+  await expect(timeline).toHaveAttribute("data-cycle-progress", staticProgress);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await expect
+    .poll(async () => Number(await timeline.getAttribute("data-cycle-progress")))
+    .toBeGreaterThan(Number(staticProgress));
 });
 
 test("supports pointer dragging on the custom controls", async ({ page }) => {

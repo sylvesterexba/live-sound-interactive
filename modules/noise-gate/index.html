@@ -32,7 +32,7 @@
   <header class="gate-header">
     <a class="about-button gate-back-link" href="../../index.html">← Back to Home</a>
     <div class="gate-hero">
-      <p class="gate-eyebrow">Dynamics Lab · Static Preview</p>
+      <p class="gate-eyebrow">Dynamics Lab · Continuous Simulation</p>
       <h1 class="bilingual-title">
         <span class="title-en">Noise Gate</span>
         <span class="title-zh">噪音閘門</span>
@@ -49,7 +49,22 @@
             <span>METER BRIDGE</span>
             <strong>電平監看</strong>
           </div>
-          <p>Deterministic phase snapshot · 固定階段快照</p>
+          <button
+            class="gate-simulation-toggle is-on"
+            type="button"
+            role="switch"
+            aria-checked="true"
+            aria-label="Simulation 模擬"
+            data-gate-simulation-toggle
+          >
+            <span class="gate-simulation-toggle__label">Simulation <strong>模擬</strong></span>
+            <span class="gate-simulation-toggle__track" aria-hidden="true">
+              <span class="gate-simulation-toggle__thumb"></span>
+            </span>
+            <span class="gate-simulation-toggle__state" data-gate-simulation-state>
+              On · 開啟
+            </span>
+          </button>
         </div>
 
         <article class="gate-meter-channel">
@@ -182,6 +197,16 @@
             </text>
             <path class="gate-timeline__signal" data-gate-signal-path d="" />
             <path class="gate-timeline__envelope" data-gate-envelope-path d="" />
+
+            <g
+              class="gate-timeline__playhead"
+              data-gate-playhead
+              transform="translate(72 0)"
+              aria-hidden="true"
+            >
+              <line x1="0" x2="0" y1="42" y2="326" />
+              <circle cx="0" cy="42" r="5" />
+            </g>
 
             <g class="gate-timeline__phase-guides" aria-hidden="true">
               <line data-gate-phase-guide="attack" x1="180" x2="180" y1="226" y2="328" />

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   TEACHING_PREVIEW_PHASES,
+  TIMELINE_BOUNDS,
   buildTimelineGeometry,
   createStaticPreviewSnapshot,
   createTeachingPreview,
@@ -10,8 +11,10 @@ import {
   getGateReductionPresentation,
   getMeterPresentation,
   getStaticPreviewPhase,
+  getTimelinePlayheadX,
   normalizeControlValue
 } from "./noise-gate.js";
+import { getTeachingCycleModel } from "./simulation-engine.js";
 import { createNoiseGateSimulationCore } from "./simulation-core.js";
 
 const defaultControls = Object.freeze({
@@ -172,6 +175,20 @@ describe("Noise Gate UI presentation helpers", () => {
 
   it("builds deterministic timeline geometry", () => {
     expect(buildTimelineGeometry(defaultControls)).toEqual(buildTimelineGeometry(defaultControls));
+  });
+
+  it("shares one cycle duration between timeline geometry and the runtime signal model", () => {
+    expect(buildTimelineGeometry(defaultControls).cycleDurationMs).toBe(
+      getTeachingCycleModel(defaultControls).cycleDurationMs
+    );
+  });
+
+  it("maps runtime cycle time to the visible Timeline playhead bounds", () => {
+    const duration = getTeachingCycleModel(defaultControls).cycleDurationMs;
+
+    expect(getTimelinePlayheadX(0, duration)).toBe(TIMELINE_BOUNDS.left);
+    expect(getTimelinePlayheadX(duration, duration)).toBe(TIMELINE_BOUNDS.right);
+    expect(getTimelinePlayheadX(duration / 2, duration)).toBe(434);
   });
 
   it("moves the Threshold line when Threshold changes", () => {
