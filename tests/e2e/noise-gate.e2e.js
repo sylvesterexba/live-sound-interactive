@@ -30,6 +30,26 @@ async function expectNoDocumentOverflow(page) {
     .toBe(true);
 }
 
+async function expectTimelinePhaseLabelsSeparated(page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const hold = document.querySelector('[data-gate-phase-label="hold"]');
+        const release = document.querySelector('[data-gate-phase-label="release"]');
+        if (!hold || !release) return false;
+        const holdBox = hold.getBoundingClientRect();
+        const releaseBox = release.getBoundingClientRect();
+        return (
+          holdBox.right <= releaseBox.left ||
+          releaseBox.right <= holdBox.left ||
+          holdBox.bottom <= releaseBox.top ||
+          releaseBox.bottom <= holdBox.top
+        );
+      })
+    )
+    .toBe(true);
+}
+
 async function expectCoreSurface(page) {
   await expect(page.getByRole("heading", { name: /Noise Gate/ })).toBeVisible();
   await expect(page.getByLabel("Noise Gate meter bridge")).toBeVisible();
@@ -71,6 +91,25 @@ test("loads the standalone Noise Gate page and required modules", async ({ page 
     "href",
     "../../index.html"
   );
+});
+
+test("navigates from the homepage Noise Gate card and back home", async ({ page }) => {
+  await page.goto("/");
+  const card = page.getByRole("link", { name: /Noise Gate/ });
+
+  await expect(card).toBeVisible();
+  await expect(card).toHaveAttribute("href", "modules/noise-gate/");
+  await expect(card).not.toContainText(/Coming Soon/i);
+  await card.focus();
+  await expect(card).toBeFocused();
+
+  await card.click();
+  await expect(page).toHaveURL(/\/modules\/noise-gate\/$/);
+  await expectCoreSurface(page);
+
+  await page.getByRole("link", { name: /Back to Home/ }).click();
+  await expect(page).toHaveURL(/\/index\.html$/);
+  await expect(page.getByRole("link", { name: /Noise Gate/ })).toBeVisible();
 });
 
 test("updates controls, ARIA values, state, meters, and timeline with the keyboard", async ({
@@ -243,11 +282,21 @@ for (const viewport of [
   { name: "tablet", width: 820, height: 1180 },
   { name: "mobile", width: 390, height: 844 }
 ]) {
-  test(`${viewport.name} viewport has no horizontal overflow`, async ({ page }) => {
+  test(`${viewport.name} homepage and Noise Gate page have no horizontal overflow`, async ({
+    page
+  }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.goto(pagePath);
+    await page.goto("/");
+    const card = page.getByRole("link", { name: /Noise Gate/ });
+    await expect(card).toBeVisible();
+    await expect(card).not.toContainText(/Coming Soon/i);
+    await expectNoDocumentOverflow(page);
+
+    await card.click();
+    await expect(page).toHaveURL(/\/modules\/noise-gate\/$/);
     await expectCoreSurface(page);
     await expectNoDocumentOverflow(page);
+    await expectTimelinePhaseLabelsSeparated(page);
 
     const release = page.getByRole("slider", { name: "Release", exact: true });
     await release.scrollIntoViewIfNeeded();

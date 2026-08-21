@@ -70,13 +70,23 @@ Dynamic Compression 協助使用者理解輸入電平、Threshold、Ratio、Gain
 - 鍵盤與觸控操作
 - 桌機 / 平板 / 手機支援
 
-## Planned Features
+### Noise Gate / 噪音閘門
 
-目前規劃中的功能：
+Noise Gate 使用 deterministic teaching signal，協助使用者理解 Threshold 與 Attack、Hold、Release 如何影響閘門狀態、envelope 及輸出電平。
 
-- Noise Gate / 噪音閘門
+目前包含：
 
-Noise Gate 目前仍為 Coming Soon，尚未提供可進入頁面或互動功能。
+- Input Level
+- Threshold
+- Attack
+- Hold
+- Release
+- Input / Gate Reduction / Output Meter
+- CLOSED / ATTACK / OPEN / HOLD / RELEASE 狀態視覺
+- Timeline / Envelope 視覺
+- Deterministic Continuous Simulation On / Off
+- 鍵盤與觸控操作
+- 桌機 / 平板 / 手機支援
 
 ## Project Structure
 
@@ -90,6 +100,7 @@ Noise Gate 目前仍為 Coming Soon，尚未提供可進入頁面或互動功能
 ├── detail.css
 ├── simulator.css
 ├── dynamic-compression.css
+├── noise-gate.css
 ├── eq-trainer.css
 ├── script.js
 ├── simulator.js
@@ -109,6 +120,11 @@ Noise Gate 目前仍為 Coming Soon，尚未提供可進入頁面或互動功能
     ├── dynamic-compression/
     │   ├── index.html
     │   └── dynamic-compression.js
+    ├── noise-gate/
+    │   ├── index.html
+    │   ├── noise-gate.js
+    │   ├── simulation-core.js
+    │   └── simulation-engine.js
     └── eq-trainer/
         └── fundamentals/
             └── interactive-eq/
@@ -118,6 +134,8 @@ Noise Gate 目前仍為 Coming Soon，尚未提供可進入頁面或互動功能
 `modules/gain-staging/index.html` 是 Gain Staging 的執行頁面。
 
 `modules/dynamic-compression/index.html` 是 Dynamic Compression 的執行頁面。
+
+`modules/noise-gate/index.html` 是 Noise Gate 的執行頁面。
 
 EQ Curves 目前仍沿用歷史路徑：
 
