@@ -1,3 +1,26 @@
+export const filterTypeTeaching = {
+  highPass: {
+    description: "Low Cut（高通）衰減截止頻率以下的低頻，讓較高頻率通過。",
+    useCases: ["減少舞台隆隆聲", "收斂不需要的超低頻"]
+  },
+  lowShelf: {
+    description: "Low Shelf（低頻棚架）廣泛提升或削減低頻，低頻端逐漸形成平坦的增益區。",
+    useCases: ["調整整體低頻重量", "修飾聲音厚度"]
+  },
+  bell: {
+    description: "Bell（鐘形）提升或削減中心頻率附近的區域；Q 越高，影響範圍越窄。",
+    useCases: ["局部共振修正", "特定頻段音色調整"]
+  },
+  highShelf: {
+    description: "High Shelf（高頻棚架）廣泛提升或削減高頻，高頻端逐漸形成平坦的增益區。",
+    useCases: ["調整整體明亮度", "修飾高頻空氣感"]
+  },
+  lowPass: {
+    description: "High Cut（低通）衰減截止頻率以上的高頻，讓較低頻率通過。",
+    useCases: ["收斂不需要的高頻", "減少高頻嘶聲"]
+  }
+};
+
 export const eqBands = [
   {
     id: "eq-63hz",

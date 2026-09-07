@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+const filterExamples = [
+  ["Low Cut", "截止頻率以下", "減少舞台隆隆聲"],
+  ["Low Shelf", "廣泛提升或削減低頻", "調整整體低頻重量"],
+  ["Bell", "中心頻率附近", "局部共振修正"],
+  ["High Shelf", "廣泛提升或削減高頻", "調整整體明亮度"],
+  ["High Cut", "截止頻率以上", "減少高頻嘶聲"]
+];
+
 test.beforeEach(async ({ page }) => {
   page.on("pageerror", (error) => {
     throw error;
@@ -76,3 +84,44 @@ test("keeps the dragged knob available for a second gesture", async ({ page }) =
   expect(Number(await gain.getAttribute("aria-valuenow"))).toBeGreaterThan(initial);
   expect(await originalKnob.evaluate((node) => node.isConnected)).toBe(true);
 });
+
+test("updates filter teaching while keeping the selected band's preset reference", async ({
+  page
+}) => {
+  await page.locator('[data-band-id="eq-125hz"]').click();
+  const card = page.getByRole("region", { name: "Filter Type", exact: true });
+  for (const [name, description, useCase] of filterExamples) {
+    await page.getByRole("button", { name: `${name} filter type`, exact: true }).click();
+    await expect(card.locator(".eq-filter-type-card__main")).toHaveText(name);
+    await expect(card.locator("p").first()).toContainText(description);
+    await expect(card.locator(".eq-filter-type-card__use-cases").first()).toContainText(useCase);
+    await expect(card.locator("dl")).toContainText("Preset Type / 預設類型Bell");
+    await expect(card).toContainText("125 Hz 頻段的預設參考");
+    await expect(card).toContainText("頻段參考情境");
+  }
+  await page.getByRole("slider", { name: "Gain", exact: true }).dblclick();
+  await page.locator('[data-accordion-item="filter-type"]').click();
+  await expect(card.locator(".eq-filter-type-card__main")).toHaveText("Bell");
+  await expect(card.locator("p").first()).toContainText("中心頻率附近");
+  await page.locator('[data-band-id="eq-63hz"]').click();
+  await page.locator('[data-accordion-item="filter-type"]').click();
+  await expect(card.locator("dl")).toContainText("Preset Type / 預設類型Low Shelf");
+  await expect(card).toContainText("63 Hz 頻段的預設參考");
+});
+
+for (const width of [375, 430, 768, 1440]) {
+  test(`keeps filter teaching readable within the ${width}px viewport`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.getByRole("button", { name: "High Shelf filter type", exact: true }).click();
+    const card = page.getByRole("region", { name: "Filter Type", exact: true });
+    await expect(card).toBeVisible();
+    expect(
+      await card.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        return (
+          box.left >= 0 && box.right <= window.innerWidth && node.scrollWidth <= node.clientWidth
+        );
+      })
+    ).toBe(true);
+  });
+}

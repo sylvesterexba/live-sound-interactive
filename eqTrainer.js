@@ -1,4 +1,4 @@
-import { boostCutTeaching, eqBands } from "./eqData.js";
+import { boostCutTeaching, eqBands, filterTypeTeaching } from "./eqData.js";
 import { renderEqTypeIcon } from "./interactive-eq-icons.js";
 import {
   MAX_FREQUENCY,
@@ -731,6 +731,32 @@ function setupFloatingSummaryVisibility() {
   window.addEventListener("resize", updateFloatingSummaryVisibility);
 }
 
+function createFilterTypeCard(filterType) {
+  const teaching = filterTypeTeaching[filterType];
+  return `
+    <section class="eq-filter-type-card" aria-label="Filter Type">
+      <span class="eq-filter-type-card__eyebrow">Current Filter / 目前濾波器</span>
+      <div class="eq-filter-type-card__main">${getFilterTypeLabel(filterType)}</div>
+      <p>${teaching.description}</p>
+      <div class="eq-filter-type-card__use-cases">
+        <strong>Current Filter Uses / 目前濾波器用途</strong>
+        <ul>${createFilterUseCaseList(teaching.useCases)}</ul>
+      </div>
+      <span class="eq-filter-type-card__eyebrow">Band Reference / 頻段預設參考</span>
+      <p>以下為 ${formatFrequencyLong(activeBand.frequency)} 頻段的預設參考，不隨目前 Filter Type 改變。</p>
+      <dl>
+        <div><dt>Preset Type / 預設類型</dt><dd>${getFilterTypeLabel(getBandFilterType(activeBand))}</dd></div>
+        <div><dt>Preset Q Reference / 預設 Q 建議</dt><dd>${activeBand.recommendedQ}</dd></div>
+      </dl>
+      <p>${activeBand.filterDescription}</p>
+      <div class="eq-filter-type-card__use-cases">
+        <strong>Band Use Cases / 頻段參考情境</strong>
+        <ul>${createFilterUseCaseList(activeBand.filterUseCases)}</ul>
+      </div>
+    </section>
+  `;
+}
+
 function renderLearningAccordion(
   settings,
   gain,
@@ -835,21 +861,7 @@ function renderLearningAccordion(
       summary: getFilterTypeLabel(filterType),
       icon: "🎚️",
       accentClass: "eq-learning-accordion__item--teal",
-      content: `
-        <section class="eq-filter-type-card" aria-label="Filter Type">
-          <span class="eq-filter-type-card__eyebrow">Filter Type</span>
-          <div class="eq-filter-type-card__main">${getFilterTypeLabel(filterType)}</div>
-          <p>${activeBand.filterDescription}</p>
-          <dl>
-            <div><dt>Preset Type</dt><dd>${activeBand.filterName || getFilterTypeLabel(getBandFilterType(activeBand))}</dd></div>
-            <div><dt>Recommended Q</dt><dd>${activeBand.recommendedQ}</dd></div>
-          </dl>
-          <div class="eq-filter-type-card__use-cases">
-            <strong>Use Cases</strong>
-            <ul>${createFilterUseCaseList(activeBand.filterUseCases)}</ul>
-          </div>
-        </section>
-      `
+      content: createFilterTypeCard(filterType)
     }),
     createAccordionItem({
       id: "detail",
@@ -975,19 +987,7 @@ function updateVisualPanel() {
         </div>
       </section>
 
-      <section class="eq-filter-type-card" aria-label="Filter Type">
-        <span class="eq-filter-type-card__eyebrow">Filter Type</span>
-        <div class="eq-filter-type-card__main">${getFilterTypeLabel(filterType)}</div>
-        <p>${activeBand.filterDescription}</p>
-        <dl>
-          <div><dt>用途</dt><dd>${activeBand.filterDescription}</dd></div>
-          <div><dt>常見 Q</dt><dd>${activeBand.recommendedQ}</dd></div>
-        </dl>
-        <div class="eq-filter-type-card__use-cases">
-          <strong>適用情境</strong>
-          <ul>${createFilterUseCaseList(activeBand.filterUseCases)}</ul>
-        </div>
-      </section>
+      ${createFilterTypeCard(filterType)}
 
       <dl>
         <div><dt>Frequency</dt><dd>${formatFrequencyLong(settings.frequency)}</dd></div>
