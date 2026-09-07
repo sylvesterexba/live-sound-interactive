@@ -74,11 +74,20 @@ export function renderEqKnobControl({
   `;
 }
 
+export function updateEqKnobControl(knobNode, value) {
+  const min = Number(knobNode.dataset.eqKnobMin);
+  const max = Number(knobNode.dataset.eqKnobMax);
+  const clampedValue = clampNumber(value, min, max);
+  const rangeInput = knobNode.parentElement?.querySelector(".eq-knob__range");
+  knobNode.style.setProperty("--eq-knob-angle", `${getKnobAngle(clampedValue, min, max)}deg`);
+  knobNode.setAttribute("aria-valuenow", String(clampedValue));
+  if (rangeInput) rangeInput.value = String(clampedValue);
+}
+
 export function bindEqKnobControl(knobNode, { getValue, onInput, onChange, onReset }) {
   const min = Number(knobNode.dataset.eqKnobMin);
   const max = Number(knobNode.dataset.eqKnobMax);
   const step = Number(knobNode.dataset.eqKnobStep);
-  const rangeInput = knobNode.parentElement?.querySelector(".eq-knob__range");
   let startPointerX = 0;
   let startPointerY = 0;
   let startValue = 0;
@@ -87,16 +96,9 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange, onRes
   let lastTapX = 0;
   let lastTapY = 0;
 
-  function syncKnob(value) {
-    const clampedValue = clampNumber(value, min, max);
-    knobNode.style.setProperty("--eq-knob-angle", `${getKnobAngle(clampedValue, min, max)}deg`);
-    knobNode.setAttribute("aria-valuenow", String(clampedValue));
-    if (rangeInput) rangeInput.value = String(clampedValue);
-  }
-
   function commitValue(value, shouldCommit = false) {
     const nextValue = clampNumber(value, min, max);
-    syncKnob(nextValue);
+    updateEqKnobControl(knobNode, nextValue);
     onInput(nextValue);
     if (shouldCommit) onChange(nextValue);
   }
@@ -190,5 +192,5 @@ export function bindEqKnobControl(knobNode, { getValue, onInput, onChange, onRes
     commitValue(getNextValue(getValue(), keyDeltas[event.key], { min, max, step }), true);
   });
 
-  syncKnob(getValue());
+  updateEqKnobControl(knobNode, getValue());
 }

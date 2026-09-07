@@ -9,7 +9,12 @@ import {
   getFrequencyPositionFromValue,
   updateEqCurvePreview
 } from "./interactive-eq-graph.js";
-import { bindEqKnobControl, renderEqKnobControl, renderMiniKnob } from "./interactive-eq-knob.js";
+import {
+  bindEqKnobControl,
+  renderEqKnobControl,
+  renderMiniKnob,
+  updateEqKnobControl
+} from "./interactive-eq-knob.js";
 
 const eqModule = document.getElementById("module-eq-trainer");
 const eqBandPreview = document.getElementById("eqBandPreview");
@@ -637,6 +642,20 @@ function renderInteractiveControls() {
   if (!controlsNode) return;
 
   const settings = getCurrentSettings();
+  // Keep the bound knobs alive so commits preserve keyboard focus and pointer state.
+  if (controlsNode.querySelector("[data-eq-knob]")) {
+    const values = {
+      gain: settings.gain,
+      frequency: getFrequencySliderValue(settings.frequency),
+      q: settings.q
+    };
+    controlsNode.querySelectorAll("[data-eq-knob]").forEach((knobNode) => {
+      updateEqKnobControl(knobNode, values[knobNode.dataset.eqKnob]);
+    });
+    updateControlReadouts(settings);
+    return;
+  }
+
   controlsNode.innerHTML = `
     <div class="eq-interactive-controls__header">
       <div>
