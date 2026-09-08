@@ -123,6 +123,11 @@ The public pure mapping and formatting utilities in `data.js` and the shared kno
   - `interactive-eq-icons.js`
   - `components/knob.js`
 
+- Unit tests: `interactive-eq-graph.test.js`
+- Browser tests: `tests/e2e/eq-curves.e2e.js`
+
+EQ unit tests cover logarithmic frequency mapping and qualitative preview-curve properties: finite ordered points at control extremes, zero-gain flatness, boost/cut symmetry, Bell width and peak movement, and Shelf/Pass direction. These tests characterize the existing teaching preview, not a measured DSP filter response. Browser tests cover continuous controls, limits, readout/curve synchronization, preset restoration, filter teaching, and responsive card layout.
+
 ### Dynamic Compression
 
 - Page: `modules/dynamic-compression/index.html`

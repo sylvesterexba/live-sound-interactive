@@ -8,6 +8,76 @@ const filterExamples = [
   ["High Cut", "截止頻率以上", "減少高頻嘶聲"]
 ];
 
+for (const [name, id] of [
+  ["Gain", "gain"],
+  ["Frequency", "frequency"],
+  ["Q", "q"]
+]) {
+  test(`synchronizes ${name} readouts and curve, clamps limits, and restores the preset`, async ({
+    page
+  }) => {
+    const knob = page.getByRole("slider", { name, exact: true });
+    const readout = page.locator(`[data-eq-${id}-readout]`);
+    const curve = page.locator("#eqCurvePath");
+    const initialPath = await curve.getAttribute("d");
+    const initialText = await knob.getAttribute("aria-valuetext");
+    await knob.focus();
+    await page.keyboard.press("PageUp");
+    await expect(curve).not.toHaveAttribute("d", initialPath);
+    await expect(readout).toHaveText(await knob.getAttribute("aria-valuetext"));
+    await page.keyboard.press("End");
+    await page.keyboard.press("ArrowUp");
+    await expect(knob).toHaveAttribute("aria-valuenow", await knob.getAttribute("aria-valuemax"));
+    await expect(readout).toHaveText(await knob.getAttribute("aria-valuetext"));
+    await page.keyboard.press("Home");
+    await page.keyboard.press("ArrowDown");
+    await expect(knob).toHaveAttribute("aria-valuenow", await knob.getAttribute("aria-valuemin"));
+    await expect(readout).toHaveText(await knob.getAttribute("aria-valuetext"));
+    await knob.dblclick();
+    await expect(curve).toHaveAttribute("d", initialPath);
+    await expect(readout).toHaveText(initialText);
+  });
+}
+
+test("updates curve shape for every filter without changing parameter values", async ({ page }) => {
+  const values = () =>
+    page
+      .getByRole("slider")
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-valuenow")));
+  const initial = await values();
+  const paths = new Set();
+  for (const [name] of filterExamples) {
+    await page.getByRole("button", { name: `${name} filter type`, exact: true }).click();
+    const path = await page.locator("#eqCurvePath").getAttribute("d");
+    expect(path).toMatch(/^M /);
+    expect(path).not.toMatch(/NaN|Infinity/);
+    expect(paths.has(path)).toBe(false);
+    paths.add(path);
+    expect(await values()).toEqual(initial);
+  }
+});
+
+test("moves the frequency marker and reloads a band's curve after custom edits", async ({
+  page
+}) => {
+  const marker = page.locator("#eqFrequencyMarker");
+  const position = () =>
+    marker.evaluate((node) => parseFloat(node.style.getPropertyValue("--eq-marker-position")));
+  const frequency = page.getByRole("slider", { name: "Frequency", exact: true });
+  const initialPosition = await position();
+  const initialPath = await page.locator("#eqCurvePath").getAttribute("d");
+  await frequency.focus();
+  await page.keyboard.press("End");
+  await expect.poll(position).toBeGreaterThan(initialPosition);
+  await page.locator('[data-band-id="eq-63hz"]').click();
+  await expect(frequency).toHaveAttribute("aria-valuetext", "63 Hz");
+  await expect.poll(position).toBeLessThan(initialPosition);
+  await expect(page.locator("#eqCurvePath")).not.toHaveAttribute("d", initialPath);
+  await page.locator('[data-band-id="eq-1khz"]').click();
+  await expect(page.locator("#eqCurvePath")).toHaveAttribute("d", initialPath);
+  await expect.poll(position).toBeCloseTo(initialPosition);
+});
+
 test.beforeEach(async ({ page }) => {
   page.on("pageerror", (error) => {
     throw error;
