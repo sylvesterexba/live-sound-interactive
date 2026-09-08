@@ -145,6 +145,24 @@ modules/eq-trainer/fundamentals/interactive-eq/
 
 這是待後續獨立重構的技術債，不代表目前正式產品名稱仍是 EQ Trainer。未來若要搬移 EQ Curves，應作為獨立任務處理，避免命名整理同時引發路徑與部署風險。
 
+## Browser Validation
+
+Install the test browsers with `npx playwright install chromium webkit`, then run `npm run test:e2e`.
+
+- `--project=chromium`: existing browser regression suite.
+- `--project=webkit`: EQ controls, curve/readout synchronization, resets, teaching text, and responsive layout.
+- `--project=webkit-touch`: iPhone 13 emulation for touch navigation across all four modules and EQ filter selection/double-tap reset.
+
+For example: `npm run test:e2e -- --project=webkit --project=webkit-touch`.
+
+WebKit device emulation is not an iPhone Safari hardware test. Before a mobile release, verify on a physical iPhone:
+
+- Drag Gain, Fader, and EQ knobs; release outside the control and confirm the gesture ends.
+- Double-tap reset and use reset pads without unwanted zoom.
+- Scroll the page outside controls before and after a drag; confirm controls do not capture page scrolling.
+- Long-press controls without unwanted text selection or callouts, while normal text elsewhere remains selectable.
+- Confirm pinch zoom remains available outside controls.
+
 ## Branch Strategy
 
 ### main

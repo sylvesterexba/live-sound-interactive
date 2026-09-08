@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(globalThis.process.env.CI);
 
@@ -12,12 +12,27 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL: "http://127.0.0.1:4173",
-    browserName: "chromium",
-    launchOptions: { args: ["--disable-gpu"] },
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "off"
   },
+  projects: [
+    {
+      name: "chromium",
+      testIgnore: "**/touch.e2e.js",
+      use: { browserName: "chromium", launchOptions: { args: ["--disable-gpu"] } }
+    },
+    {
+      name: "webkit",
+      testMatch: "**/eq-curves.e2e.js",
+      use: { browserName: "webkit" }
+    },
+    {
+      name: "webkit-touch",
+      testMatch: "**/touch.e2e.js",
+      use: { ...devices["iPhone 13"], browserName: "webkit" }
+    }
+  ],
   webServer: {
     command: "node tests/e2e/static-server.js",
     url: "http://127.0.0.1:4173/index.html",
