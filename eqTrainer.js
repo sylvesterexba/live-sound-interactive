@@ -659,7 +659,7 @@ function renderInteractiveControls() {
   controlsNode.innerHTML = `
     <div class="eq-interactive-controls__header">
       <div>
-        <span class="eq-interactive-controls__eyebrow">Interactive EQ Trainer</span>
+        <span class="eq-interactive-controls__eyebrow">EQ Curves</span>
         <h4>EQ Control Surface</h4>
       </div>
     </div>

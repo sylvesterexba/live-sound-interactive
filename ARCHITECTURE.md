@@ -11,7 +11,7 @@ Live Sound Interactive
 ├── Gain Staging
 ├── EQ Curves
 ├── Dynamic Compression
-└── Noise Gate (Planned)
+└── Noise Gate
 ```
 
 The previous course-style information architecture is no longer the product model. Current navigation should not introduce Trainer, Course, or Lesson paths for new work.
@@ -28,7 +28,7 @@ Current user-facing feature names:
 - `Gain Staging / 增益級距`
 - `EQ Curves / EQ 曲線`
 - `Dynamic Compression / 動態壓縮`
-- `Noise Gate / 噪音閘門` (Planned)
+- `Noise Gate / 噪音閘門`
 
 Avoid using the following as current product names or navigation concepts:
 
@@ -50,10 +50,11 @@ Users enter available tools directly from the home page:
 - Home -> Gain Staging
 - Home -> EQ Curves
 - Home -> Dynamic Compression
+- Home -> Noise Gate
 
 Users no longer need to pass through EQ Trainer, EQ Fundamentals, Instrument EQ, or any course-style intermediate page.
 
-Noise Gate remains a planned concept and should not link to a runtime page until the feature exists.
+All four concepts are available from the home page.
 
 ## 4. Existing Physical Folder Paths
 
@@ -66,6 +67,7 @@ index.html
 modules/gain-staging/index.html
 modules/eq-trainer/fundamentals/interactive-eq/index.html
 modules/dynamic-compression/index.html
+modules/noise-gate/index.html
 ```
 
 EQ Curves currently runs from:
@@ -146,6 +148,23 @@ EQ unit tests cover logarithmic frequency mapping and qualitative preview-curve 
 
 `compression-math.js` remains the single DOM-free source for the accepted compression formulas. `simulation-engine.js` owns the DOM-free and RAF-free Simulation numerical model, including the Slow and Medium waves, noise, positive transient, smoothing, meter numerical state, and baseline/body snapshots. The Engine clamps raw frame deltas to 1-50 ms and accepts an injectable random source for deterministic unit tests. The current formal Simulation behavior does not include a Downward dip.
 
+### Noise Gate
+
+- Page: `modules/noise-gate/index.html`
+- CSS: `base.css`, `layout.css`, `components.css`, `noise-gate.css`
+- JavaScript entry: `modules/noise-gate/noise-gate.js`
+- Supporting runtime files:
+  - `modules/noise-gate/simulation-core.js`
+  - `modules/noise-gate/simulation-engine.js`
+  - `components/knob.js`
+- Unit tests:
+  - `modules/noise-gate/noise-gate.test.js`
+  - `modules/noise-gate/simulation-core.test.js`
+  - `modules/noise-gate/simulation-engine.test.js`
+- Browser tests: `tests/e2e/noise-gate.e2e.js`
+
+`noise-gate.js` owns controls, UI state, meter and timeline rendering, and browser animation lifecycle. `simulation-core.js` owns Gate state transitions, envelope, and output calculations. `simulation-engine.js` supplies the deterministic teaching signal and simulation cycle, using the same core as the runtime.
+
 ## 6. Future Migration Notes
 
 If EQ Curves is moved later, handle it as an independent refactor:
@@ -155,7 +174,7 @@ If EQ Curves is moved later, handle it as an independent refactor:
 - preserve the existing route or provide a redirect if needed
 - verify Gain Staging and EQ Curves on desktop, tablet, and mobile
 
-Existing path for Dynamic Compression and recommended future path for Noise Gate:
+Existing paths for Dynamic Compression and Noise Gate:
 
 ```text
 modules/dynamic-compression/
@@ -168,7 +187,7 @@ Do not create new Trainer, Course, or Lesson style paths for planned features or
 
 - Keep user-facing naming concept based.
 - Keep physical-path migration separate from UI copy changes.
-- Keep Gain Staging, EQ Curves, and Dynamic Compression runtime logic independent.
+- Keep Gain Staging, EQ Curves, Dynamic Compression, and Noise Gate runtime logic independent.
 - Keep Gain Staging static calculations in the DOM-free `gain-staging-math.js` boundary and use the same formulas from the runtime and unit tests.
 - Keep Gain Staging browser characterization and regression coverage in Playwright Chromium tests; treat any future separation of random Simulation state, meter rendering, smoothing, transient scheduling, Stereo scheduling, or RAF lifecycle from `simulator.js` as an independent maintainability task.
 - Keep Dynamic Compression formulas in the DOM-free `compression-math.js` boundary and protect them with unit tests.

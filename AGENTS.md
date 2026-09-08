@@ -8,9 +8,6 @@ Live Sound Interactive 是包含多個現場音控互動概念的靜態前端專
 
 - Gain Staging
 - EQ Curves
-
-規劃中：
-
 - Dynamic Compression
 - Noise Gate
 
@@ -58,7 +55,17 @@ Live Sound Interactive 是包含多個現場音控互動概念的靜態前端專
 - `interactive-eq-graph.js`：EQ 曲線計算與繪製。
 - `interactive-eq-knob.js`：EQ 控制旋鈕。
 - `interactive-eq-icons.js`：EQ Filter Type 圖示。
-- `components/knob.js`：Gain Staging 與 EQ Curves 共用的中立旋鈕工具。
+- `modules/dynamic-compression/index.html`：Dynamic Compression 執行頁面。
+- `dynamic-compression.css`：Dynamic Compression 專屬樣式與響應式版面。
+- `modules/dynamic-compression/dynamic-compression.js`：壓縮器 UI、互動與動畫生命週期。
+- `modules/dynamic-compression/compression-math.js`：壓縮器純數值計算。
+- `modules/dynamic-compression/simulation-engine.js`：壓縮器模擬數值狀態。
+- `modules/noise-gate/index.html`：Noise Gate 執行頁面。
+- `noise-gate.css`：Noise Gate 專屬樣式與響應式版面。
+- `modules/noise-gate/noise-gate.js`：Noise Gate UI、互動、meter 與時間軸繪製。
+- `modules/noise-gate/simulation-core.js`：Gate 狀態、envelope 與輸出數值計算。
+- `modules/noise-gate/simulation-engine.js`：Gate 教學訊號、循環與模擬數值狀態。
+- `components/knob.js`：各模組共用的中立旋鈕工具。
 - `README.md`：專案說明與開發指令。
 - `ARCHITECTURE.md`：目前產品與技術架構。
 - `AGENTS.md`：AI 協作開發手冊，只記錄協作規範，不放一般使用者文件。
@@ -232,7 +239,7 @@ Gain Staging Simulator 是本專案的核心互動功能之一，修改時請特
 
 ## 14. EQ Curves 開發規範
 
-EQ Curves 是目前第二個已開放互動功能，修改時請特別注意：
+EQ Curves 是目前四個已開放互動功能之一，修改時請特別注意：
 
 - 不要改動 EQ graph、曲線計算、Filter Type、旋鈕功能或資料，除非需求明確要求。
 - `eqTrainer.js` 負責 UI 組裝與互動入口。
